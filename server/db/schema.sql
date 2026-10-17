@@ -133,7 +133,9 @@ CREATE TABLE IF NOT EXISTS alertas (
   criado_em       TEXT NOT NULL,
   reconhecido_em  TEXT,
   resolvido_em    TEXT,
-  chave_dedup     TEXT
+  chave_dedup     TEXT,
+  -- Quem fechou o alerta: 'manual' (pessoa, pela tela) ou 'automatica' (a causa acabou). NULL = aberto ou fechado antes da Tarefa 11b.
+  resolucao       TEXT CHECK (resolucao IN ('manual','automatica'))
 );
 CREATE INDEX IF NOT EXISTS idx_alertas_abertos ON alertas(resolvido_em, criticidade);
 CREATE INDEX IF NOT EXISTS idx_alertas_equipamento ON alertas(equipamento_id);

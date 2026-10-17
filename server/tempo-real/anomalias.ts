@@ -89,6 +89,32 @@ export function calcularBaseHoraria(
 
 const fmt = (n: number) => formatarNumero(n, n >= 100 || Number.isInteger(n) ? 0 : 1);
 
+/** Desvio usado no z de uma métrica: o medido, mas nunca menor que os pisos de DESVIO_RELATIVO_MINIMO. */
+function desvioUsado(base: BaseHoraria, chave: string, unidade: string, esperado: number): number {
+  return Math.max(
+    base.desvio[chave] ?? 0,
+    Math.abs(esperado) * DESVIO_RELATIVO_MINIMO,
+    ehContagem(unidade) ? Math.sqrt(Math.abs(esperado)) : 0,
+    DESVIO_ABSOLUTO_MINIMO,
+  );
+}
+
+/**
+ * z de cada métrica da leitura contra o normal do horário (mesma conta de `detectarAnomalia`). Serve ao motor para saber se
+ * uma leitura já voltou ao normal (|z| < 2) e fechar o alerta de anomalia. Vazio se faltam amostras.
+ */
+export function zPorMetrica(base: BaseHoraria, leitura: Record<string, number | boolean>, tipo: TipoEquipamentoId): Record<string, number> {
+  const z: Record<string, number> = {};
+  if (base.amostras < AMOSTRAS_MINIMAS) return z;
+  for (const metrica of METRICAS_POR_TIPO[tipo]) {
+    const valor = numero(leitura[metrica.chave]);
+    const esperado = base.media[metrica.chave];
+    if (valor === undefined || esperado === undefined) continue;
+    z[metrica.chave] = (valor - esperado) / desvioUsado(base, metrica.chave, metrica.unidade, esperado);
+  }
+  return z;
+}
+
 /**
  * A métrica mais fora do normal da leitura, ou `null` se tudo está dentro do esperado (ou se faltam amostras).
  * O desvio usado tem um piso (ver DESVIO_RELATIVO_MINIMO) para ruído normal não passar por anomalia.
@@ -100,13 +126,7 @@ export function detectarAnomalia(base: BaseHoraria, leitura: Record<string, numb
     const valor = numero(leitura[metrica.chave]);
     const esperado = base.media[metrica.chave];
     if (valor === undefined || esperado === undefined) continue;
-    const desvio = Math.max(
-      base.desvio[metrica.chave] ?? 0,
-      Math.abs(esperado) * DESVIO_RELATIVO_MINIMO,
-      ehContagem(metrica.unidade) ? Math.sqrt(Math.abs(esperado)) : 0,
-      DESVIO_ABSOLUTO_MINIMO,
-    );
-    const z = (valor - esperado) / desvio;
+    const z = (valor - esperado) / desvioUsado(base, metrica.chave, metrica.unidade, esperado);
 
     const radarZerado = tipo === 'radar' && metrica.chave === 'fluxo' && valor === 0 && esperado >= FLUXO_MINIMO_PARA_ZERO;
     if (!radarZerado && Math.abs(z) < Z_LIMITE) continue;

@@ -8,8 +8,14 @@ import type { TipoEquipamentoId } from '../../shared/tipos-equipamento';
 import { FALHAS_POR_DIA, FATOR_FURTO_BAIRRO_QUENTE, FURTOS_PATINETE_POR_DIA } from '../semente/historico';
 import { PERFIL_PATINETE, type TipoDia } from '../semente/perfis';
 
-/** Ocorrências ao vivo: múltiplo da taxa histórica. Dá ~5 por minuto na cidade inteira a 1×, das quais uma em cada quatro vira alerta. */
-export const FATOR_DEMO_OCORRENCIAS = 24;
+/**
+ * Ocorrências ao vivo: múltiplo da taxa histórica. Dá ~1,7 por minuto na cidade inteira a 1×, das quais uma em cada quatro vira alerta.
+ * Com 24 (valor antigo) e ocorrências de 10 a 40 min, mesmo fechando tudo sobravam ~100 alertas abertos ao mesmo tempo (taxa × duração);
+ * com 8 e 5 a 20 min ficam ~20 a 30, que a Central consegue mostrar como "o que está acontecendo agora".
+ */
+export const FATOR_DEMO_OCORRENCIAS = 8;
+/** Quanto dura uma ocorrência ao vivo, em minutos sorteados (antes do fator do tipo e da velocidade). */
+export const DURACAO_OCORRENCIA_MIN = { minimo: 5, maximo: 20 } as const;
 /** Falhas de equipamento: múltiplo da taxa histórica (~1 a cada 4 min a 1×). */
 export const FATOR_DEMO_FALHAS = 150;
 /** Furtos de patinete: múltiplo da taxa histórica (~1 por hora a 1×). */

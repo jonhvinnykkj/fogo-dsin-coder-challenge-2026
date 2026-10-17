@@ -12,7 +12,7 @@ import * as repo from '../repositorios/equipamentos';
 import { inserirManutencao, manutencoesDoEquipamento } from '../repositorios/manutencoes';
 import { dataLocal, somarDias } from '../tempo';
 
-type Base = Pick<ContextoApp, 'db' | 'relogio'>;
+type Base = Pick<ContextoApp, 'db' | 'relogio'> & Partial<Pick<ContextoApp, 'motor'>>;
 
 const agoraIso = (ctx: Base) => ctx.relogio.agora().toISOString();
 
@@ -135,5 +135,7 @@ export function registrarManutencao(ctx: Base, id: number, m: ManutencaoInput): 
       );
     }
   })();
+  // Manutenção concluída fecha o alerta de manutenção atrasada e, se o equipamento voltou a operar, os de falha.
+  if (m.concluidaEm) ctx.motor?.resolverPorManutencao(id, VOLTAM_A_OPERAR.includes(eq.situacao), ctx.relogio.agora());
   return detalheDoEquipamento(ctx, id);
 }

@@ -14,7 +14,7 @@ import type { TipoEquipamentoId } from '../../shared/tipos-equipamento';
 import { formatarNumero } from '../../shared/formato';
 import { inserirAlerta, resolverAlerta, type NovoAlerta } from '../repositorios/alertas';
 import { dataLocal, inicioDaHora, partesLocais } from '../tempo';
-import { calcularBaseHoraria, detectarAnomalia, type Anomalia, type BaseHoraria } from './anomalias';
+import { calcularBaseHoraria, detectarAnomalia, zPorMetrica, type Anomalia, type BaseHoraria } from './anomalias';
 
 /** Sem leitura há mais que isto, equipamento operacional vira alerta `sem_sinal`. */
 export const LIMITE_SEM_SINAL_MIN = 15;
@@ -26,6 +26,12 @@ export const LIMITE_SEM_SINAL_MIN = 15;
 export const Z_ALERTA_IMEDIATO = 6;
 /** Anomalia que não se repete há tanto tempo é considerada passada e resolvida sozinha. */
 export const RESOLVER_ANOMALIA_APOS_MIN = 30;
+
+/** Anomalia fecha depois de tantas leituras seguidas dentro do normal (|z| < Z_NORMAL). */
+export const LEITURAS_NORMAIS_PARA_RESOLVER = 3;
+export const Z_NORMAL = 2;
+/** Alagamento de sensor só fecha quando a água cai abaixo desta fração da altura de alerta (evita abrir e fechar na beirada). */
+export const FRACAO_ALAGAMENTO_RESOLVIDO = 0.8;
 
 const MIN = 60_000;
 const OPERANDO: readonly SituacaoEquipamento[] = ['operacional', 'mau_funcionamento'];
@@ -83,6 +89,8 @@ export class MotorAlertas {
   private readonly vistas = new Map<string, number>();
   /** Quantas leituras seguidas confirmaram cada anomalia (chave → contagem); zera quando a leitura volta ao normal. */
   private readonly suspeitas = new Map<string, number>();
+  /** Quantas leituras seguidas dentro do normal (|z| < 2) cada anomalia ABERTA já teve; ao chegar a 3, o alerta fecha. */
+  private readonly normais = new Map<string, number>();
 
   constructor(private readonly ctx: { db: Database; barramento: { emitir(e: EventoFogo): void }; relogio: { agora(): Date } }) {}
 
@@ -107,6 +115,7 @@ export class MotorAlertas {
     const abertos = this.db.prepare('SELECT id FROM alertas WHERE chave_dedup = ? AND resolvido_em IS NULL').all(chave) as { id: number }[];
     this.resolverIds(abertos.map((a) => a.id), quando);
     this.vistas.delete(chave);
+    this.normais.delete(chave);
   }
 
   /** Depois do reparo: some o que dizia respeito à falha (sem sinal, leitura fora do normal, falha). */
@@ -115,13 +124,82 @@ export class MotorAlertas {
       "SELECT id, chave_dedup FROM alertas WHERE equipamento_id = ? AND resolvido_em IS NULL AND tipo IN ('sem_sinal', 'anomalia_leitura', 'falha_equipamento')",
     ).all(equipamentoId) as { id: number; chave_dedup: string | null }[];
     this.resolverIds(abertos.map((a) => a.id), quando);
-    for (const a of abertos) if (a.chave_dedup) this.vistas.delete(a.chave_dedup);
+    for (const a of abertos) if (a.chave_dedup) { this.vistas.delete(a.chave_dedup); this.normais.delete(a.chave_dedup); }
   }
+
+  // ---- Resolução automática ------------------------------------------------------------------------------------------
+  // Todas as regras de "o alerta fecha sozinho quando a causa acaba" estão neste bloco (e nas chamadas marcadas "Regra N"
+  // em avaliarLeitura e varrer). Toda resolução passa por `resolverIds`: grava resolvido_em, marca resolucao = 'automatica'
+  // e emite o evento `alerta` com o alerta atualizado (a tela tira dos abertos).
+  //
+  //  Regra 1  acidente / congestionamento / alagamento de ocorrência: fecha quando a ocorrência recebe `fim`.
+  //  Regra 2  sem_sinal: fecha na próxima leitura do equipamento.
+  //  Regra 3  anomalia_leitura: fecha após 3 leituras seguidas normais da mesma métrica (|z| < 2) ou quando o equipamento
+  //           entra em manutenção.
+  //  Regra 4  falha_equipamento: fecha no reparo concluído (`resolverDoEquipamento`).
+  //  Regra 5  alagamento de sensor: fecha quando o nível cai abaixo de 80% da altura de alerta.
+  //  Regra 6  furto_suspeito NÃO fecha sozinho (só gente confirma recuperação ou perda); manutencao_atrasada só fecha quando
+  //           a manutenção é registrada (`resolverPorManutencao`).
 
   private resolverIds(ids: number[], quando: Date): void {
     for (const id of ids) {
-      const resolvido = resolverAlerta(this.db, id, quando.toISOString());
+      const resolvido = resolverAlerta(this.db, id, quando.toISOString(), 'automatica');
       if (resolvido) this.ctx.barramento.emitir({ tipo: 'alerta', dados: resolvido });
+    }
+  }
+
+  /** Regra 1: a ocorrência acabou, então o alerta que ela abriu também acaba. */
+  resolverDaOcorrencia(ocorrenciaId: number, quando: Date = this.ctx.relogio.agora()): void {
+    this.resolverPorChave(`ocorrencia:${ocorrenciaId}`, quando);
+  }
+
+  /**
+   * Regra 1 e limpeza de legado (regra 9): resolve todo alerta aberto de ocorrência cuja ocorrência já tem `fim`.
+   * Roda na partida e a cada varredura (rede de segurança para banco antigo e para ocorrência encerrada por outro caminho).
+   * O instante de resolução é o `fim` da ocorrência. Devolve quantos alertas fechou.
+   */
+  resolverAlertasDeOcorrenciasEncerradas(): number {
+    const abertos = this.db.prepare("SELECT id, chave_dedup FROM alertas WHERE resolvido_em IS NULL AND chave_dedup LIKE 'ocorrencia:%'").all() as { id: number; chave_dedup: string }[];
+    const fimDe = this.db.prepare('SELECT fim FROM ocorrencias WHERE id = ?');
+    let fechados = 0;
+    for (const a of abertos) {
+      const o = fimDe.get(Number(a.chave_dedup.slice('ocorrencia:'.length))) as { fim: string | null } | undefined;
+      if (!o?.fim) continue;
+      this.resolverIds([a.id], new Date(o.fim));
+      this.vistas.delete(a.chave_dedup);
+      fechados++;
+    }
+    return fechados;
+  }
+
+  /**
+   * Regra 6 (exceção) e regra 4: manutenção concluída registrada. Fecha `manutencao_atrasada`; se o equipamento voltou a
+   * operar, fecha também o que dizia respeito à falha (sem sinal, leitura fora do normal, falha).
+   */
+  resolverPorManutencao(equipamentoId: number, voltouAOperar: boolean, quando: Date = this.ctx.relogio.agora()): void {
+    this.resolverPorChave(`manutencao:${equipamentoId}`, quando);
+    if (voltouAOperar) this.resolverDoEquipamento(equipamentoId, quando);
+  }
+
+  /** Regra 3: conta uma leitura dentro (ou fora) do normal para cada anomalia aberta do equipamento; 3 normais seguidas fecham. */
+  private acompanharAnomaliasAbertas(alvo: AlvoAlerta, metricas: Record<string, number | boolean>, em: Date): void {
+    const abertas = this.db.prepare("SELECT chave_dedup FROM alertas WHERE equipamento_id = ? AND tipo = 'anomalia_leitura' AND resolvido_em IS NULL AND chave_dedup IS NOT NULL").all(alvo.id) as { chave_dedup: string }[];
+    if (abertas.length === 0) return;
+    const z = zPorMetrica(this.base(alvo, em), metricas, alvo.tipo);
+    for (const { chave_dedup: chave } of abertas) {
+      const zm = z[chave.slice(`anomalia:${alvo.id}:`.length)];
+      if (zm === undefined) continue; // essa leitura não trouxe a métrica (ou faltam amostras): não conta nem zera
+      if (Math.abs(zm) >= Z_NORMAL) {
+        this.normais.delete(chave);
+        continue;
+      }
+      const seguidas = (this.normais.get(chave) ?? 0) + 1;
+      if (seguidas >= LEITURAS_NORMAIS_PARA_RESOLVER) {
+        this.normais.delete(chave);
+        this.resolverPorChave(chave, em);
+      } else {
+        this.normais.set(chave, seguidas);
+      }
     }
   }
 
@@ -157,6 +235,8 @@ export class MotorAlertas {
    * do normal do horário. Só avalia equipamento operando. Devolve só os alertas novos.
    */
   avaliarLeitura(alvo: AlvoAlerta, metricas: Record<string, number | boolean>, em: Date, posicao?: { lat: number; lng: number }): Alerta[] {
+    // Regra 2: chegou leitura, então o equipamento voltou a falar.
+    this.resolverPorChave(`sem_sinal:${alvo.id}`, em);
     if (!OPERANDO.includes(alvo.situacao)) return [];
     const criados: Alerta[] = [];
     const emitido = (a: NovoAlerta) => {
@@ -178,12 +258,14 @@ export class MotorAlertas {
           titulo: `Alagamento em ${alvo.bairroNome}: ${alvo.codigo} acima da altura de alerta`,
           descricao: `${quem(alvo)} (${onde(alvo)}) mediu ${formatarNumero(metricas.nivelCm, 1)} cm de água, acima da altura de alerta de ${formatarNumero(altura, 0)} cm.`,
         });
-      } else if (Number.isFinite(altura)) {
+      } else if (Number.isFinite(altura) && metricas.nivelCm < altura * FRACAO_ALAGAMENTO_RESOLVIDO) {
+        // Regra 5: a água baixou de verdade (abaixo de 80% da altura de alerta), não só encostou no limite.
         this.resolverPorChave(`alagamento:${alvo.id}`, em);
       }
     }
 
     if (!alagando) {
+      this.acompanharAnomaliasAbertas(alvo, metricas, em); // Regra 3
       const anomalia = detectarAnomalia(this.base(alvo, em), metricas, alvo.tipo);
       const prefixo = `anomalia:${alvo.id}:`;
       const chave = anomalia ? `${prefixo}${anomalia.metrica}` : undefined;
@@ -285,6 +367,16 @@ export class MotorAlertas {
       (this.db.prepare(`SELECT a.id FROM alertas a JOIN equipamentos e ON e.id = a.equipamento_id
         WHERE a.tipo = 'manutencao_atrasada' AND a.resolvido_em IS NULL AND NOT (e.situacao NOT IN ('desativado', 'nao_instalado')
           AND e.manutencao_necessidade <> 'imediata' AND e.proxima_manutencao IS NOT NULL AND e.proxima_manutencao < ?)`).all(hoje) as { id: number }[]).map((a) => a.id),
+      agora,
+    );
+
+    // Regra 1 (rede de segurança) e regra 9: alerta de ocorrência cuja ocorrência já terminou.
+    this.resolverAlertasDeOcorrenciasEncerradas();
+
+    // Regra 3: equipamento que entrou em manutenção não "está anormal", está sendo consertado.
+    this.resolverIds(
+      (this.db.prepare(`SELECT a.id FROM alertas a JOIN equipamentos e ON e.id = a.equipamento_id
+        WHERE a.tipo = 'anomalia_leitura' AND a.resolvido_em IS NULL AND e.situacao = 'em_manutencao'`).all() as { id: number }[]).map((a) => a.id),
       agora,
     );
 

@@ -16,9 +16,10 @@ interface LinhaAlerta {
   criado_em: string;
   reconhecido_em: string | null;
   resolvido_em: string | null;
+  resolucao: 'manual' | 'automatica' | null;
 }
 
-const COLUNAS = 'id, tipo, criticidade, titulo, descricao, equipamento_id, agente_id, bairro_id, lat, lng, criado_em, reconhecido_em, resolvido_em';
+const COLUNAS = 'id, tipo, criticidade, titulo, descricao, equipamento_id, agente_id, bairro_id, lat, lng, criado_em, reconhecido_em, resolvido_em, resolucao';
 
 function paraAlerta(l: LinhaAlerta): Alerta {
   return {
@@ -35,6 +36,7 @@ function paraAlerta(l: LinhaAlerta): Alerta {
     criadoEm: l.criado_em,
     ...(l.reconhecido_em !== null && { reconhecidoEm: l.reconhecido_em }),
     ...(l.resolvido_em !== null && { resolvidoEm: l.resolvido_em }),
+    ...(l.resolucao !== null && { resolucao: l.resolucao }),
   };
 }
 
@@ -101,8 +103,13 @@ export function reconhecerAlerta(db: Database, id: number, agora: string): Alert
   return alertaPorId(db, id);
 }
 
-/** Resolver também reconhece, se ainda não tinha sido reconhecido. */
-export function resolverAlerta(db: Database, id: number, agora: string): Alerta | undefined {
-  db.prepare('UPDATE alertas SET reconhecido_em = COALESCE(reconhecido_em, ?), resolvido_em = COALESCE(resolvido_em, ?) WHERE id = ?').run(agora, agora, id);
+/**
+ * Resolver também reconhece, se ainda não tinha sido reconhecido. Grava quem resolveu (`manual` pela tela, `automatica`
+ * pelo motor). Idempotente: alerta já resolvido mantém instante e origem da primeira resolução.
+ */
+export function resolverAlerta(db: Database, id: number, agora: string, resolucao: 'manual' | 'automatica' = 'manual'): Alerta | undefined {
+  db.prepare(
+    'UPDATE alertas SET reconhecido_em = COALESCE(reconhecido_em, ?), resolucao = CASE WHEN resolvido_em IS NULL THEN ? ELSE resolucao END, resolvido_em = COALESCE(resolvido_em, ?) WHERE id = ?',
+  ).run(agora, resolucao, agora, id);
   return alertaPorId(db, id);
 }

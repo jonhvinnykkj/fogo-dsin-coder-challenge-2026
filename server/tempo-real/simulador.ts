@@ -24,7 +24,7 @@ import { registrarManutencao } from '../servicos/equipamentos';
 import { dataLocal, inicioDaHora, partesLocais } from '../tempo';
 import { gerarOcorrenciasDaHora, type ContextoHoras, type OcorrenciaGerada } from '../semente/historico';
 import {
-  CHANCE_FALHA_MUDA, chanceDeFalha, chanceDeFurto, DESCRICOES_INJETADAS, duracaoDaOcorrenciaMs, escalaDeOcorrencias, fracaoDePatinetesEmUso, VELOCIDADE_MS,
+  CHANCE_FALHA_MUDA, chanceDeFalha, chanceDeFurto, DESCRICOES_INJETADAS, DURACAO_OCORRENCIA_MIN, duracaoDaOcorrenciaMs, escalaDeOcorrencias, fracaoDePatinetesEmUso, VELOCIDADE_MS,
 } from './eventos-simulados';
 import { ingerirTelemetria } from './ingestao';
 import { alvoPorId } from './motor-alertas';
@@ -252,10 +252,11 @@ export class Simulador {
     }[];
     for (const o of pendentes) {
       const idade = agoraMs - Date.parse(o.inicio);
-      if (idade >= duracaoDaOcorrenciaMs(o.tipo, 40, 1)) {
+      if (idade >= duracaoDaOcorrenciaMs(o.tipo, DURACAO_OCORRENCIA_MIN.maximo, 1)) {
         // Já passou da duração máxima: encerra agora.
         const fechada = encerrarOcorrencia(this.ctx.db, o.id, agora.toISOString());
         if (fechada) this.ctx.barramento.emitir({ tipo: 'ocorrencia', dados: fechada });
+        this.ctx.motor.resolverDaOcorrencia(o.id, agora);
       } else {
         this.abertas.push({ id: o.id, fimEm: agoraMs + duracaoDaOcorrenciaMs(o.tipo, this.rng.int(1, 10), this.velocidade), ...(o.agente_id !== null && { agenteId: o.agente_id }) });
       }
@@ -460,6 +461,7 @@ export class Simulador {
       this.abertas.splice(i, 1);
       const fechada = encerrarOcorrencia(this.ctx.db, o.id, agora.toISOString());
       if (fechada) this.ctx.barramento.emitir({ tipo: 'ocorrencia', dados: fechada });
+      this.ctx.motor.resolverDaOcorrencia(o.id, agora);
       if (o.agenteId !== undefined) this.liberarAgente(o.agenteId, agora);
     }
     // Reparos: equipe a caminho, depois conclusão.
@@ -517,7 +519,7 @@ export class Simulador {
       descricao: o.descricao, chuva: o.chuva ?? mm > 0, origem: o.origem,
     });
     this.ctx.barramento.emitir({ tipo: 'ocorrencia', dados: criada });
-    const minutos = this.rng.int(10, 40);
+    const minutos = this.rng.int(DURACAO_OCORRENCIA_MIN.minimo, DURACAO_OCORRENCIA_MIN.maximo);
     this.abertas.push({ id: criada.id, fimEm: agora.getTime() + duracaoDaOcorrenciaMs(o.tipo, minutos, this.velocidade), ...(agente && { agenteId: agente.id }) });
     if (agente) this.enviarAgente(agente, { lat: o.lat, lng: o.lng }, agora);
     const alerta = opcoes.alertar ? this.ctx.motor.alertarOcorrencia(criada, this.nomeDoBairro(o.bairroId), agora) : null;

@@ -49,6 +49,9 @@ const ctx: ContextoApp = {
   relogio: relogioReal,
   geo,
 };
+// Banco antigo: alertas de ocorrência que já terminou (e nunca fecharam) são resolvidos agora, como automáticos.
+const legado = ctx.motor.resolverAlertasDeOcorrenciasEncerradas();
+if (legado > 0) console.log(`Alertas antigos de ocorrências já encerradas resolvidos: ${formatarNumero(legado)}`);
 ctx.simulador = new Simulador(ctx);
 
 const app = await criarApp(ctx);

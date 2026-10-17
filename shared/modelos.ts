@@ -79,6 +79,8 @@ export interface Alerta {
   criadoEm: string;
   reconhecidoEm?: string;
   resolvidoEm?: string;
+  /** Quem fechou: uma pessoa ('manual') ou o sistema porque a causa acabou ('automatica'). */
+  resolucao?: 'manual' | 'automatica';
 }
 
 export interface Ocorrencia {

@@ -38,8 +38,9 @@ export async function rotasAlertas(app: FastifyInstance): Promise<void> {
   });
 
   app.patch('/api/alertas/:id/resolver', { schema: { tags, summary: 'Resolve o alerta (sai da lista de abertos)' } }, async (req) => {
-    const alerta = resolverAlerta(ctx.db, id(req), agora());
+    const alerta = resolverAlerta(ctx.db, id(req), agora(), 'manual');
     if (!alerta) throw naoEncontrado('Alerta');
+    ctx.barramento.emitir({ tipo: 'alerta', dados: alerta }); // a Central tira dos abertos na hora
     return alerta;
   });
 }
