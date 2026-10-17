@@ -1,0 +1,94 @@
+/* `position: relative` segura a tabela só para leitor de tela (absoluta) dentro da área que rola */
+.cartao {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-4);
+}
+
+.placas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--e-3);
+}
+
+/* A frase é a resposta para a comissão: corpo maior, linha curta. */
+.frase {
+  max-width: 72ch;
+  font-size: var(--t-16);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.figura {
+  padding: var(--e-4);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+}
+
+.legenda {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-1) var(--e-4);
+  margin-bottom: var(--e-3);
+}
+
+.tituloGrafico {
+  font-size: var(--t-16);
+  font-weight: 800;
+}
+
+.chave {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--t-13);
+  font-weight: 700;
+}
+
+.amostraModelo,
+.amostraSimples {
+  width: 22px;
+  height: 0;
+  border-top: 3px solid var(--cor-fogo);
+}
+
+.amostraSimples {
+  border-top: 2px dashed var(--cor-texto-suave);
+}
+
+.nota {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-13);
+}
+
+.grafico {
+  height: 220px;
+}
+
+.dica {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--e-2) var(--e-3);
+  border-radius: var(--raio);
+  background: var(--cor-bloco-neutro);
+  color: var(--cor-sobre-bloco-neutro);
+  box-shadow: var(--sombra-flutuante);
+  font-size: var(--t-13);
+}
+
+.dica strong {
+  font-size: var(--t-14);
+}
+
+@media (max-width: 720px) {
+  .placas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .grafico {
+    height: 200px;
+  }
+}

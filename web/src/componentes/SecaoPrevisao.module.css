@@ -1,0 +1,95 @@
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-4);
+  min-width: 0;
+  scroll-margin-top: var(--e-5);
+}
+
+.cabeca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--e-1) var(--e-4);
+}
+
+.titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  font-size: var(--t-24);
+  font-stretch: 106%;
+  letter-spacing: -0.005em;
+}
+
+.titulo:focus {
+  outline: none;
+}
+
+.titulo:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 4px;
+}
+
+/* ícone numa placa grafite pequena (o laranja fica para a ação) */
+.icone {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--raio);
+  background: var(--cor-bloco-neutro);
+  color: var(--cor-sobre-bloco-neutro);
+}
+
+.quando {
+  margin-left: auto;
+  color: var(--cor-texto-fraco);
+  font-size: var(--t-12);
+  font-weight: 600;
+}
+
+.descricao {
+  flex-basis: 100%;
+  max-width: 76ch;
+  color: var(--cor-texto-suave);
+  font-size: var(--t-14);
+}
+
+.esqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-3);
+  padding: var(--e-4);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+}
+
+.calculando {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-13);
+  font-weight: 700;
+}
+
+.barraEsqueleto {
+  height: 14px;
+  border-radius: 2px;
+  background: var(--cor-superficie-baixa);
+  animation: respirar 1.4s ease-in-out infinite;
+}
+
+.barraEsqueleto:nth-child(3) {
+  width: 82%;
+  animation-delay: 0.15s;
+}
+
+.barraEsqueleto:nth-child(4) {
+  width: 64%;
+  animation-delay: 0.3s;
+}
+
+@keyframes respirar {
+  50% {
+    opacity: 0.45;
+  }
+}

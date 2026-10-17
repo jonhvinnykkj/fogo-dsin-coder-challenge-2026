@@ -1,0 +1,170 @@
+.tendencias {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-4);
+}
+
+.duas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--e-4);
+}
+
+.bloco {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-3);
+  min-width: 0;
+  padding: var(--e-4);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+}
+
+.cabeca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px var(--e-4);
+}
+
+.titulo {
+  font-size: var(--t-16);
+}
+
+.nota {
+  flex-basis: 100%;
+  max-width: 72ch;
+  color: var(--cor-texto-suave);
+  font-size: var(--t-13);
+}
+
+.chaves {
+  display: flex;
+  gap: var(--e-4);
+}
+
+.chave {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--t-12);
+  font-weight: 700;
+}
+
+.amostraMedido,
+.amostraProjecao {
+  width: 20px;
+  border-top: 2px solid var(--cor-texto);
+}
+
+.amostraProjecao {
+  border-top: 2px dashed var(--cor-fogo-texto);
+}
+
+/* quadros pequenos: mesma escala, um tipo por quadro */
+.quadros {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: var(--e-2);
+}
+
+.quadro {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--e-3);
+  border-radius: var(--raio);
+  background: var(--cor-zebra);
+}
+
+:global([data-tema='escuro']) .quadro {
+  background: var(--cor-superficie-baixa);
+}
+
+.nomeTipo {
+  min-height: 20px;
+  overflow: hidden;
+  font-size: var(--t-13);
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.numerosTipo {
+  display: flex;
+  gap: var(--e-4);
+}
+
+.valorTipo {
+  display: flex;
+  flex-direction: column;
+}
+
+.valorTipo strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--t-18);
+  font-weight: 800;
+  font-stretch: var(--largura-condensada);
+  line-height: 1.1;
+}
+
+.valorTipo[data-queda] strong {
+  color: var(--cor-fogo-texto);
+}
+
+.rotuloValor {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-12);
+  font-weight: 600;
+}
+
+.mini {
+  height: 56px;
+}
+
+.barras {
+  min-height: 60px;
+}
+
+.dica {
+  display: flex;
+  flex-direction: column;
+  padding: 6px var(--e-2);
+  border-radius: var(--raio);
+  background: var(--cor-bloco-neutro);
+  color: var(--cor-sobre-bloco-neutro);
+  box-shadow: var(--sombra-flutuante);
+  font-size: var(--t-12);
+}
+
+.dica strong {
+  font-size: var(--t-14);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 720px) {
+  .quadros {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .numerosTipo {
+    gap: var(--e-3);
+  }
+
+  .valorTipo strong {
+    font-size: var(--t-16);
+  }
+}
+
+/* os dois gráficos de barras lado a lado só quando há largura para os nomes e os rótulos */
+.tendencias {
+  container-type: inline-size;
+}
+
+@container (max-width: 980px) {
+  .duas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

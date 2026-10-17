@@ -1,0 +1,155 @@
+/* Régua: botão "Tocar" + 24 colunas. A agulha grafite com a placa da hora é o que marca a escolha. */
+.regua {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--e-4);
+  padding: var(--e-3) var(--e-4) var(--e-2);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+}
+
+.tocar {
+  flex-shrink: 0;
+  min-width: 116px;
+  justify-content: center;
+  margin-bottom: 26px;
+}
+
+.trilho {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  padding: 30px 0 20px;
+  border-radius: var(--raio);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+
+.trilho:focus-visible {
+  outline-offset: 4px;
+}
+
+.coluna {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.area {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 64px;
+  padding: 0 1px;
+}
+
+.barra {
+  width: 100%;
+  max-width: 22px;
+  border-radius: 2px 2px 0 0;
+  transition: filter var(--duracao) var(--curva);
+}
+
+.coluna:hover .barra {
+  filter: brightness(0.92);
+}
+
+.coluna[data-selecionada] .area {
+  background: var(--cor-superficie-baixa);
+}
+
+.hora {
+  height: 18px;
+  padding-top: 4px;
+  color: var(--cor-texto-suave);
+  font-size: var(--t-12);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* virada do dia: linha à esquerda e o nome do dia embaixo */
+.viraDia::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -8px;
+  bottom: -18px;
+  width: 2px;
+  background: var(--cor-texto-fraco);
+  opacity: 0.55;
+}
+
+.dia {
+  position: absolute;
+  left: 6px;
+  bottom: -20px;
+  color: var(--cor-texto-suave);
+  font-size: var(--t-12);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* agulha: atravessa a coluna escolhida, com a hora numa placa grafite em cima */
+.agulha {
+  position: absolute;
+  left: 50%;
+  top: -8px;
+  bottom: 18px;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--cor-texto);
+  pointer-events: none;
+}
+
+.placa {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: var(--cor-bloco-neutro);
+  color: var(--cor-sobre-bloco-neutro);
+  font-size: var(--t-13);
+  font-weight: 800;
+  font-stretch: var(--largura-condensada);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .regua {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--e-2);
+    padding: var(--e-3);
+  }
+
+  .tocar {
+    align-self: flex-start;
+    margin-bottom: 0;
+  }
+
+  .area {
+    height: 52px;
+  }
+
+  /* no celular, rótulo de 6 em 6 horas (sem cortar: o texto pode passar da coluna estreita) */
+  .hora {
+    font-size: 11px;
+    overflow: visible;
+    visibility: hidden;
+  }
+
+  .hora[data-seis] {
+    visibility: visible;
+  }
+}

@@ -80,11 +80,13 @@ export function executarBacktest(db: Database, { agora, dias = 14 }: { agora: Da
     }
     const celulas = nB * blocos;
     const acerto = acertoTop(noitePrevista, noiteOcorrida, TOP);
-    porDia.push({ data, acertoTop5: acerto, mae: arred(erroModelo / celulas, 4) });
+    const acertoIngenuo = acertoTop(est.bruta, noiteOcorrida, TOP);
+    // A média simples de cada dia também vai na resposta: o gráfico por dia compara as duas linhas.
+    porDia.push({ data, acertoTop5: acerto, acertoTop5Ingenuo: acertoIngenuo, mae: arred(erroModelo / celulas, 4), maeIngenuo: arred(erroIngenuo / celulas, 4) });
     somaModelo += erroModelo / celulas;
     somaIngenuo += erroIngenuo / celulas;
     somaTop += acerto;
-    somaTopIngenuo += acertoTop(est.bruta, noiteOcorrida, TOP);
+    somaTopIngenuo += acertoIngenuo;
   }
 
   const avaliados = porDia.length;

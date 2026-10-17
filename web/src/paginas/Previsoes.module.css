@@ -1,0 +1,109 @@
+/* Seções empilhadas; a partir de 1200 px o índice fica fixo à direita (o menu principal já ocupa a esquerda). */
+.pagina {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'cabecalho'
+    'indice'
+    'secoes';
+  gap: var(--e-4);
+}
+
+.cabecalho {
+  grid-area: cabecalho;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--e-1) var(--e-4);
+}
+
+.titulo {
+  font-size: var(--t-36);
+  font-stretch: 112%;
+  letter-spacing: -0.01em;
+}
+
+.subtitulo {
+  flex: 1 1 360px;
+  max-width: 64ch;
+  color: var(--cor-texto-suave);
+  font-size: var(--t-16);
+}
+
+.quando {
+  color: var(--cor-texto-fraco);
+  font-size: var(--t-12);
+  font-weight: 600;
+}
+
+.secoes {
+  grid-area: secoes;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--e-7) + var(--e-2));
+  min-width: 0;
+}
+
+/* ---- índice ---- */
+.indice {
+  grid-area: indice;
+}
+
+.indice ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-1);
+}
+
+.itemIndice {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  height: 34px;
+  padding: 0 var(--e-3);
+  border-radius: var(--raio-pilula);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  font-size: var(--t-13);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.itemIndice:hover {
+  background: var(--cor-superficie-alta);
+}
+
+.itemIndice[aria-current='true'] {
+  background: var(--cor-fogo);
+  color: var(--cor-sobre-fogo);
+}
+
+@media (min-width: 1200px) {
+  .pagina {
+    grid-template-columns: minmax(0, 1fr) 168px;
+    grid-template-areas:
+      'cabecalho cabecalho'
+      'secoes indice';
+    column-gap: var(--e-5);
+  }
+
+  .indice {
+    position: sticky;
+    top: var(--e-5);
+    align-self: start;
+  }
+
+  .indice ul {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 2px;
+  }
+
+  .itemIndice {
+    height: 36px;
+    border-radius: var(--raio);
+    background: transparent;
+  }
+}

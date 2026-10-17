@@ -1,0 +1,122 @@
+/* o envoltório é o "container": a coluna do índice desce quando a seção fica estreita */
+.envoltorio {
+  container-type: inline-size;
+}
+
+.resumo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: var(--e-3);
+  align-items: start;
+}
+
+.recomendacoes {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: var(--raio);
+  overflow: hidden;
+}
+
+/* cada recomendação: barra na cor da prioridade, como o feed de alertas da Central */
+.recomendacao {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--e-3) var(--e-4) var(--e-4) calc(var(--e-4) + 6px);
+  background: var(--cor-superficie);
+  box-shadow: inset 6px 0 0 var(--cor-prioridade);
+}
+
+.topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-2) var(--e-3);
+}
+
+.prioridade {
+  padding: 1px 8px;
+  border-radius: 3px;
+  font-size: var(--t-12);
+  font-weight: 800;
+}
+
+.fonte {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--cor-texto-suave);
+  font-size: var(--t-13);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.fonte:hover {
+  color: var(--cor-texto);
+  text-decoration: underline;
+}
+
+.titulo {
+  font-size: var(--t-18);
+  line-height: 1.25;
+}
+
+.detalhe {
+  max-width: 76ch;
+  color: var(--cor-texto-suave);
+  font-size: var(--t-14);
+}
+
+/* ---- índice do dia ---- */
+.indice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-2);
+  padding: var(--e-4);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+}
+
+.tituloIndice {
+  font-size: var(--t-16);
+}
+
+.notaIndice {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-12);
+}
+
+.bairros {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.bairro {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--e-3);
+}
+
+.nomeBairro {
+  overflow: hidden;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.nivel {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-12);
+  font-weight: 700;
+}
+
+@container (max-width: 720px) {
+  .resumo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

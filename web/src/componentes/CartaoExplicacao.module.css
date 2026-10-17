@@ -105,6 +105,12 @@ details[open] > .resumo .seta {
   gap: var(--e-3);
 }
 
+.semMedida {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-14);
+  font-weight: 700;
+}
+
 .metrica {
   display: grid;
   grid-template-columns: 88px minmax(0, 1fr);

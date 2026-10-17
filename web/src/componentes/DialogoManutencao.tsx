@@ -1,8 +1,9 @@
 // Diálogo "Registrar manutenção": tipo, descrição e se foi concluída agora ou está prevista para uma data.
-// Reaproveitado pela ficha do equipamento e (Tarefa 11) pelo quadro de Manutenção.
+// Reaproveitado pela ficha do equipamento, pelo quadro de Manutenção e (Tarefa 12) pelo ranking de falhas das Previsões,
+// que abre já em "Prevista para uma data" (`inicial`).
 import { Wrench } from '@phosphor-icons/react';
 import { useId, useState, type FormEvent } from 'react';
-import { manutencaoInputSchema } from '../../../shared/schemas';
+import { manutencaoInputSchema, type ManutencaoInput } from '../../../shared/schemas';
 import { ErroApi } from '../api/cliente';
 import { useRegistrarManutencao } from '../api/consultas';
 import { hojeIso } from '../util/datas';
@@ -16,11 +17,21 @@ interface Props {
   aberto: boolean;
   onFechar: () => void;
   equipamento: { id: number; codigo: string };
-  /** Chamado depois que a API aceitou o registro (o diálogo já se fecha sozinho). */
-  onRegistrada?: () => void;
+  /** Chamado depois que a API aceitou o registro, com o que foi enviado (o diálogo já se fecha sozinho). */
+  onRegistrada?: (dados: ManutencaoInput) => void;
+  /** Valores com que o formulário abre (padrão: corretiva, concluída agora). */
+  inicial?: ValoresIniciais;
 }
 
-export function DialogoManutencao({ aberto, onFechar, equipamento, onRegistrada }: Props) {
+export interface ValoresIniciais {
+  tipo?: 'corretiva' | 'preventiva';
+  descricao?: string;
+  quando?: 'agora' | 'prevista';
+  /** "aaaa-mm-dd". */
+  data?: string;
+}
+
+export function DialogoManutencao({ aberto, onFechar, equipamento, onRegistrada, inicial }: Props) {
   const idForm = useId();
   const mutacao = useRegistrarManutencao();
   return (
@@ -43,8 +54,9 @@ export function DialogoManutencao({ aberto, onFechar, equipamento, onRegistrada 
         idForm={idForm}
         equipamentoId={equipamento.id}
         mutacao={mutacao}
-        aoConcluir={() => {
-          onRegistrada?.();
+        inicial={inicial}
+        aoConcluir={(dados) => {
+          onRegistrada?.(dados);
           onFechar();
         }}
       />
@@ -52,13 +64,14 @@ export function DialogoManutencao({ aberto, onFechar, equipamento, onRegistrada 
   );
 }
 
-function FormularioManutencao({ idForm, equipamentoId, mutacao, aoConcluir }: {
-  idForm: string; equipamentoId: number; mutacao: ReturnType<typeof useRegistrarManutencao>; aoConcluir: () => void;
+function FormularioManutencao({ idForm, equipamentoId, mutacao, aoConcluir, inicial }: {
+  idForm: string; equipamentoId: number; mutacao: ReturnType<typeof useRegistrarManutencao>; aoConcluir: (dados: ManutencaoInput) => void;
+  inicial?: ValoresIniciais;
 }) {
-  const [tipo, setTipo] = useState('corretiva');
-  const [descricao, setDescricao] = useState('');
-  const [quando, setQuando] = useState<'agora' | 'prevista'>('agora');
-  const [data, setData] = useState('');
+  const [tipo, setTipo] = useState<string>(inicial?.tipo ?? 'corretiva');
+  const [descricao, setDescricao] = useState(inicial?.descricao ?? '');
+  const [quando, setQuando] = useState<'agora' | 'prevista'>(inicial?.quando ?? 'agora');
+  const [data, setData] = useState(inicial?.data ?? '');
   const [erros, setErros] = useState<Record<string, string>>({});
   const [erroGeral, setErroGeral] = useState<unknown>(null);
 
@@ -75,7 +88,7 @@ function FormularioManutencao({ idForm, equipamentoId, mutacao, aoConcluir }: {
     }
     setErros({});
     mutacao.mutate({ id: equipamentoId, dados: r.data }, {
-      onSuccess: aoConcluir,
+      onSuccess: () => aoConcluir(r.data),
       onError: (erro) => {
         if (erro instanceof ErroApi && erro.campos) setErros(erro.campos);
         else setErroGeral(erro);

@@ -1,0 +1,160 @@
+.turnos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-4);
+}
+
+.turno {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: var(--e-4);
+  align-items: start;
+}
+
+.quando {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: var(--e-3);
+}
+
+.dia {
+  font-size: var(--t-16);
+  font-weight: 800;
+}
+
+.faixa {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-14);
+  font-weight: 700;
+}
+
+.itens {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: var(--raio);
+  overflow: hidden;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  grid-template-areas:
+    'movimento carga'
+    'motivo carga';
+  gap: var(--e-2) var(--e-5);
+  padding: var(--e-3) var(--e-4);
+  background: var(--cor-superficie);
+}
+
+.movimento {
+  grid-area: movimento;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-2);
+}
+
+/* regiões como placas: quem cede em tom neutro, quem recebe em grafite */
+.origem,
+.destino {
+  padding: 4px var(--e-3);
+  border-radius: var(--raio);
+  font-size: var(--t-14);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.origem {
+  background: var(--cor-superficie-baixa);
+}
+
+.destino {
+  background: var(--cor-bloco-neutro);
+  color: var(--cor-sobre-bloco-neutro);
+}
+
+.seta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--t-13);
+}
+
+.motivo {
+  grid-area: motivo;
+  max-width: 72ch;
+  color: var(--cor-texto-suave);
+  font-size: var(--t-13);
+}
+
+.carga {
+  grid-area: carga;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-self: center;
+}
+
+.rotuloCarga {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-12);
+  font-weight: 700;
+}
+
+.linhaBarra {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: var(--e-2);
+}
+
+.rotuloBarra {
+  font-size: var(--t-12);
+  font-weight: 700;
+}
+
+.trilho {
+  height: 12px;
+  border-radius: 2px;
+  background: var(--cor-superficie-baixa);
+  overflow: hidden;
+}
+
+/* "depois" na cor do texto (grafite no claro, quase branco no escuro): é o número que importa */
+.barra {
+  display: block;
+  height: 100%;
+  background: var(--cor-texto);
+}
+
+.barraAntes {
+  background: var(--cor-texto-fraco);
+  opacity: 0.6;
+}
+
+.valorBarra {
+  font-size: var(--t-16);
+  font-weight: 800;
+  font-stretch: var(--largura-condensada);
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .turno {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--e-2);
+  }
+
+  .quando {
+    flex-direction: row;
+    gap: var(--e-2);
+    padding-top: 0;
+  }
+
+  .item {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'movimento' 'carga' 'motivo';
+  }
+}

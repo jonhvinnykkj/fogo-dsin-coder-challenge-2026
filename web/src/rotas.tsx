@@ -1,19 +1,11 @@
-// Rotas da interface. Telas ainda não construídas mostram um EstadoVazio com o nome da tela.
-import { ChartLineUp, Signpost, type Icon } from '@phosphor-icons/react';
+// Rotas da interface (todas as telas carregadas sob demanda, menos a casca).
+import { Signpost } from '@phosphor-icons/react';
 import { lazy, Suspense, type ReactNode } from 'react';
 import { createBrowserRouter, Link, useRouteError, type RouteObject } from 'react-router-dom';
 import { AvisoErro } from './componentes/AvisoErro';
 import { classeBotao } from './componentes/Botao';
 import { EstadoVazio } from './componentes/EstadoVazio';
 import { Shell } from './componentes/Shell';
-
-function pendente(titulo: string, descricao: string, Icone: Icon) {
-  return (
-    <div className="pagina">
-      <EstadoVazio tamanho="pagina" titulo={titulo} descricao={descricao} icone={<Icone weight="fill" />} />
-    </div>
-  );
-}
 
 function NaoEncontrada() {
   return (
@@ -52,6 +44,7 @@ const carregarCentral = () => import('./paginas/Central');
 void carregarCentral();
 const Central = lazy(carregarCentral);
 const Alertas = lazy(() => import('./paginas/Alertas'));
+const Previsoes = lazy(() => import('./paginas/Previsoes'));
 
 function Carregando({ children }: { children: ReactNode }) {
   return <Suspense fallback={<div className="pagina"><EstadoVazio tamanho="pagina" titulo="Carregando…" /></div>}>{children}</Suspense>;
@@ -72,7 +65,7 @@ const filhas: RouteObject[] = [
   { path: 'agentes/:id/editar', element: <Carregando><AgenteFormulario /></Carregando> },
   { path: 'manutencao', element: <Carregando><Manutencao /></Carregando> },
   { path: 'alertas', element: <Carregando><Alertas /></Carregando> },
-  { path: 'previsoes', element: pendente('Previsões', 'Em construção: risco por bairro e hora, reforço de agentes, falhas prováveis e tendências.', ChartLineUp) },
+  { path: 'previsoes', element: <Carregando><Previsoes /></Carregando> },
   ...(Vitrine ? [{ path: 'vitrine', element: <Suspense fallback={null}><Vitrine /></Suspense> }] : []),
   { path: '*', element: <NaoEncontrada /> },
 ];

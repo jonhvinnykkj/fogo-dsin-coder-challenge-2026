@@ -1,0 +1,61 @@
+.legenda {
+  display: flex;
+  align-items: center;
+  gap: var(--e-3);
+}
+
+.titulo {
+  font-size: var(--t-13);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.escala {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 280px;
+  padding: 0 8px;
+}
+
+/* números nas divisas dos níveis, centrados na marca */
+.marcas {
+  position: relative;
+  height: 14px;
+  color: var(--cor-texto-fraco);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.marcas span {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  line-height: 14px;
+}
+
+.faixa {
+  height: 10px;
+  border-radius: 2px;
+}
+
+.niveis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  color: var(--cor-texto-suave);
+  font-size: var(--t-12);
+  font-weight: 700;
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .legenda {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .escala {
+    width: min(100%, 300px);
+  }
+}

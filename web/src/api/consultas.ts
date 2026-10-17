@@ -140,12 +140,16 @@ export interface RespostasPrevisao {
   resumo: ResumoPreditivo;
 }
 
-/** O servidor guarda as previsões por 60 s; aqui também. `risco` aceita `{ horas: 24 | 168 }` (168 vem em blocos de 3 h). */
-export function usePrevisao<N extends NomePrevisao>(nome: N, params?: Parametros) {
+/**
+ * O servidor guarda as previsões por 60 s; aqui também. `risco` aceita `{ horas: 24 | 168 }` (168 vem em blocos de 3 h).
+ * `ativa: false` adia a busca (a tela de Previsões só pede os 7 dias, ~450 KB, quando a grade chega perto da tela).
+ */
+export function usePrevisao<N extends NomePrevisao>(nome: N, params?: Parametros, opcoes: { ativa?: boolean } = {}) {
   return useQuery({
     queryKey: chaves.previsao(nome, params),
     queryFn: () => api.get<RespostasPrevisao[N]>(`/api/previsoes/${nome}`, params),
     staleTime: UM_MINUTO,
+    enabled: opcoes.ativa ?? true,
   });
 }
 

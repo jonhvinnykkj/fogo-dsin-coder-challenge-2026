@@ -245,7 +245,8 @@ export interface ResultadoBacktest {
   acertoTop5Medio: number;
   /** O mesmo acerto escolhendo os 5 bairros pela média simples (comparação honesta). */
   acertoTop5IngenuoMedio: number;
-  porDia: { data: string; acertoTop5: number; mae: number }[];
+  /** Um item por dia avaliado: erro e acerto do modelo e, para comparar, os da média simples no mesmo dia. */
+  porDia: { data: string; acertoTop5: number; acertoTop5Ingenuo: number; mae: number; maeIngenuo: number }[];
   explicacao: ExplicacaoPrevisao;
 }
 

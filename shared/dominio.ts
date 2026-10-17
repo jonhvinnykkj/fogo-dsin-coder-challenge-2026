@@ -97,6 +97,27 @@ export const COR_NIVEL_ATENCAO: Record<'normal' | 'atencao' | 'critico', string>
   critico: '#D92D20',
 };
 
+/** Níveis do risco previsto (Parte 3), do índice 0–100: baixo < 25, moderado < 50, alto < 75, crítico ≥ 75 (server/preditivo/risco.ts). */
+export const NIVEIS_RISCO = ['baixo', 'moderado', 'alto', 'critico'] as const;
+export type NivelRiscoId = (typeof NIVEIS_RISCO)[number];
+export const ROTULO_NIVEL_RISCO: Record<NivelRiscoId, string> = {
+  baixo: 'Baixo',
+  moderado: 'Moderado',
+  alto: 'Alto',
+  critico: 'Crítico',
+};
+
+/**
+ * Escala própria do risco previsto: amarelo-claro → âmbar → laranja-fogo → vermelho-escuro. Não reaproveita as cores de
+ * situação (verde, âmbar de falha, azul…): risco é uma previsão, não o estado de um equipamento. Iguais nos dois temas.
+ */
+export const COR_NIVEL_RISCO: Record<NivelRiscoId, string> = {
+  baixo: '#F5D565',
+  moderado: '#F5901E',
+  alto: '#F04A00',
+  critico: '#A3140A',
+};
+
 export const ORGAOS = [
   'Secretaria de Mobilidade Urbana',
   'Guarda Civil Municipal',

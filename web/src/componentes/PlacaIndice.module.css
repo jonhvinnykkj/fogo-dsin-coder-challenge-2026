@@ -1,0 +1,20 @@
+/* Índice de risco numa placa de cor cheia (cor do nível), número condensado como as placas da Central. */
+.placa {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  min-width: 40px;
+  height: 34px;
+  padding: 0 6px;
+  border-radius: var(--raio);
+  font-size: var(--t-21);
+  font-weight: 800;
+  font-stretch: var(--largura-condensada);
+  line-height: 1;
+}
+
+.grande {
+  min-width: 64px;
+  height: 56px;
+  font-size: var(--t-36);
+}

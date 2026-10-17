@@ -47,6 +47,21 @@ describe('executarBacktest', () => {
     }
   });
 
+  // O gráfico "modelo × média simples por dia" da tela de Previsões precisa da média simples de cada dia, não só da média
+  // das 2 semanas: as médias dos dias têm de bater com os totais do resultado.
+  it('cada dia traz também o erro e o acerto da média simples, que somam aos totais do período', () => {
+    for (const d of resultado.porDia) {
+      expect(d.maeIngenuo).toBeGreaterThan(0);
+      expect(Number.isInteger(d.acertoTop5Ingenuo)).toBe(true);
+      expect(d.acertoTop5Ingenuo).toBeGreaterThanOrEqual(0);
+      expect(d.acertoTop5Ingenuo).toBeLessThanOrEqual(5);
+    }
+    const mediaIngenuo = resultado.porDia.reduce((s, d) => s + d.maeIngenuo, 0) / resultado.dias;
+    expect(resultado.maeIngenuo).toBeCloseTo(mediaIngenuo, 3);
+    const mediaTopIngenuo = resultado.porDia.reduce((s, d) => s + d.acertoTop5Ingenuo, 0) / resultado.dias;
+    expect(resultado.acertoTop5IngenuoMedio).toBeCloseTo(mediaTopIngenuo, 1);
+  });
+
   it('cada dia é previsto só com dados até a véspera: o erro bate com preverRisco cortado à meia-noite', () => {
     const dia = resultado.porDia[0]!;
     const meiaNoite = instanteLocal(dia.data, 0);
