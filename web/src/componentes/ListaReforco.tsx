@@ -57,7 +57,7 @@ export function ListaReforco({ recomendacoes }: { recomendacoes: RecomendacaoRef
                   <span className={estilos.origem}>{rotuloRegiao(r.regiaoOrigem)}</span>
                   <span className={estilos.seta}>
                     <strong className="numeros">{r.quantidade} {r.quantidade === 1 ? 'agente' : 'agentes'}</strong>
-                    <ArrowRight weight="bold" size={18} aria-hidden="true" />
+                    <ArrowRight weight="fill" size={18} aria-hidden="true" />
                   </span>
                   <span className={estilos.destino}>{rotuloRegiao(r.regiaoDestino)}</span>
                 </div>

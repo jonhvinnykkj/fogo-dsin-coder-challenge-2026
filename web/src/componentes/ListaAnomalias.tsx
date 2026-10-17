@@ -109,7 +109,7 @@ export function ListaAnomalias({ alertas, bairros, limite }: Props) {
                     </span>
                   </div>
                   <span className={estilos.sentido}>
-                    {leitura.sentido === 'abaixo' ? <ArrowDown weight="bold" size={14} aria-hidden="true" /> : <ArrowUp weight="bold" size={14} aria-hidden="true" />}
+                    {leitura.sentido === 'abaixo' ? <ArrowDown weight="fill" size={14} aria-hidden="true" /> : <ArrowUp weight="fill" size={14} aria-hidden="true" />}
                     {leitura.sentido} do normal; costuma variar {leitura.variacao} em {leitura.dias} dias parecidos
                   </span>
                 </div>

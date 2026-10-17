@@ -34,7 +34,7 @@ export function DialogoSituacao({ aberto, onFechar, equipamento, situacaoInicial
       rodape={(
         <>
           <Botao variante="secundario" onClick={onFechar}>Cancelar</Botao>
-          <Botao type="submit" form={idForm} variante="primario" icone={<ArrowsClockwise weight="bold" size={18} aria-hidden="true" />} disabled={mutacao.isPending}>
+          <Botao type="submit" form={idForm} variante="primario" icone={<ArrowsClockwise weight="fill" size={18} aria-hidden="true" />} disabled={mutacao.isPending}>
             {mutacao.isPending ? 'Salvando…' : 'Mudar situação'}
           </Botao>
         </>

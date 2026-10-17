@@ -40,7 +40,7 @@ export function BarraFiltros({ filtros, valores, onChange, busca, onLimpar, acoe
     <div className={estilos.barra} role="search" aria-label="Filtros">
       {busca && (
         <label className={estilos.busca}>
-          <MagnifyingGlass weight="bold" size={16} aria-hidden="true" />
+          <MagnifyingGlass weight="fill" size={16} aria-hidden="true" />
           <span className="so-leitor">{busca.rotulo ?? 'Buscar'}</span>
           <input type="search" value={busca.valor} placeholder={busca.placeholder} onChange={(e) => busca.onChange(e.target.value)} />
         </label>

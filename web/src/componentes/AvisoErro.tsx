@@ -21,7 +21,7 @@ export function AvisoErro({ erro, titulo = 'Não foi possível carregar', onTent
         <p className={estilos.mensagem}>{mensagemDeErro(erro)}</p>
       </div>
       {onTentarDeNovo && (
-        <Botao variante="secundario" tamanho="pequeno" icone={<ArrowClockwise weight="bold" size={16} aria-hidden="true" />} onClick={onTentarDeNovo} disabled={tentando}>
+        <Botao variante="secundario" tamanho="pequeno" icone={<ArrowClockwise weight="fill" size={16} aria-hidden="true" />} onClick={onTentarDeNovo} disabled={tentando}>
           {tentando ? 'Tentando…' : 'Tentar de novo'}
         </Botao>
       )}

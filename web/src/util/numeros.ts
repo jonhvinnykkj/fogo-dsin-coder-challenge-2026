@@ -9,3 +9,8 @@ export function lerDecimal(texto: string): number | undefined {
 export function textoDeCoordenada(n: number): string {
   return n.toFixed(6).replace('.', ',');
 }
+
+/** Contagem de uma lista que a API corta em `limite` (os mais recentes, sem o total): no limite vira "200+". */
+export function contagemAteLimite(n: number, limite: number): string {
+  return n >= limite ? `${limite.toLocaleString('pt-BR')}+` : n.toLocaleString('pt-BR');
+}

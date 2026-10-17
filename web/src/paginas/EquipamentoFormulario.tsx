@@ -20,7 +20,7 @@ import { SeletorPontoMapa } from '../componentes/SeletorPontoMapa';
 import { bairroDoPonto } from '../util/bairroDoPonto';
 import { lerDecimal, textoDeCoordenada } from '../util/numeros';
 import estilos from './Formulario.module.css';
-import { validarEquipamento, type Erros, type EstadoEquipamento } from './validacaoEquipamento';
+import { dadosDaEdicao, validarEquipamento, type Erros, type EstadoEquipamento } from './validacaoEquipamento';
 
 const ESTADO_NOVO: EstadoEquipamento = {
   tipo: '', numeroSerie: '', marca: '', modelo: '', orgao: '', situacao: 'operacional', cep: '', logradouro: '', referencia: '',
@@ -66,6 +66,8 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
   const criar = useCriarEquipamento();
   const atualizar = useAtualizarEquipamento();
   const [estado, setEstado] = useState<EstadoEquipamento>(() => (equipamento ? estadoDe(equipamento) : ESTADO_NOVO));
+  // O que estava gravado quando o formulário abriu: na edição, decide se o grupo de manutenção vai no PUT.
+  const inicial = useRef(estado);
   const [erros, setErros] = useState<Erros>({});
   const [erroGeral, setErroGeral] = useState<unknown>(null);
   const [tentativas, setTentativas] = useState(0);
@@ -188,7 +190,8 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
     };
     const aoConcluir = (salvo: { id: number }) => navegar(`/equipamentos/${salvo.id}`);
     // Edição: `tipo` e `situacao` seguem como estavam (ver validacaoEquipamento.ts); o servidor ignora a situação no PUT.
-    if (equipamento) atualizar.mutate({ id: equipamento.id, dados }, { onSuccess: aoConcluir, onError: aoFalhar });
+    // O grupo de manutenção só vai se a pessoa mexeu nele (dadosDaEdicao).
+    if (equipamento) atualizar.mutate({ id: equipamento.id, dados: dadosDaEdicao(dados, estado, inicial.current) }, { onSuccess: aoConcluir, onError: aoFalhar });
     else criar.mutate(dados, { onSuccess: aoConcluir, onError: aoFalhar });
   };
 
@@ -203,7 +206,7 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
   return (
     <div className={`pagina ${estilos.pagina} formulario`}>
       <Link to={editando ? `/equipamentos/${equipamento.id}` : '/equipamentos'} className={estilos.voltar}>
-        <CaretLeft weight="bold" size={16} aria-hidden="true" />
+        <CaretLeft weight="fill" size={16} aria-hidden="true" />
         {editando ? 'Voltar para a ficha' : 'Voltar para equipamentos'}
       </Link>
 
@@ -361,7 +364,7 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
 
         <div className={estilos.rodape}>
           <Link to={editando ? `/equipamentos/${equipamento.id}` : '/equipamentos'} className={classeBotao('secundario')}>Cancelar</Link>
-          <Botao type="submit" variante="primario" disabled={enviando} icone={editando ? <FloppyDisk weight="fill" size={18} aria-hidden="true" /> : <Plus weight="bold" size={18} aria-hidden="true" />}>
+          <Botao type="submit" variante="primario" disabled={enviando} icone={editando ? <FloppyDisk weight="fill" size={18} aria-hidden="true" /> : <Plus weight="fill" size={18} aria-hidden="true" />}>
             {enviando ? 'Salvando…' : editando ? 'Salvar alterações' : 'Cadastrar equipamento'}
           </Botao>
         </div>

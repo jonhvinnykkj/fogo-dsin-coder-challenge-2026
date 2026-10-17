@@ -88,7 +88,7 @@ function Ficha({ eq }: { eq: EquipamentoDetalhe }) {
   return (
     <div className={`pagina ${estilos.pagina}`}>
       <Link to="/equipamentos" className={estilos.voltar}>
-        <CaretLeft weight="bold" size={16} aria-hidden="true" />
+        <CaretLeft weight="fill" size={16} aria-hidden="true" />
         Voltar para equipamentos
       </Link>
 
@@ -109,9 +109,9 @@ function Ficha({ eq }: { eq: EquipamentoDetalhe }) {
             <PencilSimple weight="fill" size={18} aria-hidden="true" />
             <span>Editar</span>
           </Link>
-          <Botao icone={<ArrowsClockwise weight="bold" size={18} aria-hidden="true" />} onClick={() => setSituacaoAberta({})}>Mudar situação</Botao>
+          <Botao icone={<ArrowsClockwise weight="fill" size={18} aria-hidden="true" />} onClick={() => setSituacaoAberta({})}>Mudar situação</Botao>
           <Botao icone={<Wrench weight="fill" size={18} aria-hidden="true" />} onClick={() => setManutencaoAberta(true)}>Registrar manutenção</Botao>
-          <Botao icone={<Prohibit weight="bold" size={18} aria-hidden="true" />} disabled={eq.situacao === 'desativado'} onClick={() => setSituacaoAberta({ inicial: 'desativado' })}>Desativar</Botao>
+          <Botao icone={<Prohibit weight="fill" size={18} aria-hidden="true" />} disabled={eq.situacao === 'desativado'} onClick={() => setSituacaoAberta({ inicial: 'desativado' })}>Desativar</Botao>
           <Botao variante="fantasma" icone={<Trash weight="fill" size={18} aria-hidden="true" />} onClick={() => { excluir.reset(); setExcluirAberto(true); }}>Excluir</Botao>
         </div>
       </header>
@@ -231,7 +231,7 @@ function Ficha({ eq }: { eq: EquipamentoDetalhe }) {
         erro={excluir.error}
         onConfirmar={() => excluir.mutate(eq.id, { onSuccess: () => navegar('/equipamentos') })}
         alternativa={eq.situacao === 'desativado' ? undefined : (
-          <Botao variante="primario" icone={<Prohibit weight="bold" size={18} aria-hidden="true" />} onClick={() => { setExcluirAberto(false); setSituacaoAberta({ inicial: 'desativado' }); }}>
+          <Botao variante="primario" icone={<Prohibit weight="fill" size={18} aria-hidden="true" />} onClick={() => { setExcluirAberto(false); setSituacaoAberta({ inicial: 'desativado' }); }}>
             Desativar em vez de excluir
           </Botao>
         )}

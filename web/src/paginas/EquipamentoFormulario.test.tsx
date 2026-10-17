@@ -138,6 +138,44 @@ describe('edição', () => {
     expect(corpo!.situacao).toBe('mau_funcionamento');
   });
 
+  // Datas de manutenção mudam enquanto o formulário está aberto (reparo registrado, simulador): sem mexer nelas, o PUT não
+  // as leva e o servidor mantém as gravadas. Mexendo, vai o grupo inteiro.
+  it('o PUT só leva o grupo de manutenção quando a pessoa mexe nele', async () => {
+    const u = userEvent.setup();
+    const corpos: Record<string, unknown>[] = [];
+    rotear((url, init) => {
+      if (url === '/api/equipamentos/5' && init?.method === 'PUT') {
+        corpos.push(JSON.parse(String(init.body)));
+        return json(EQUIPAMENTO);
+      }
+    });
+    renderizarEdicao();
+    await u.clear(await screen.findByLabelText('Modelo'));
+    await u.type(screen.getByLabelText('Modelo'), 'SC-500');
+    await u.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+    await screen.findByText('Ficha aberta');
+    for (const chave of ['manutencaoNecessidade', 'manutencaoPeriodicidadeDias', 'ultimaManutencao', 'proximaManutencao']) expect(corpos[0]).not.toHaveProperty(chave);
+    expect(corpos[0]!.modelo).toBe('SC-500');
+  });
+
+  it('mexendo na manutenção, o PUT leva o grupo inteiro', async () => {
+    const u = userEvent.setup();
+    const corpos: Record<string, unknown>[] = [];
+    rotear((url, init) => {
+      if (url === '/api/equipamentos/5' && init?.method === 'PUT') {
+        corpos.push(JSON.parse(String(init.body)));
+        return json(EQUIPAMENTO);
+      }
+    });
+    renderizarEdicao();
+    await u.selectOptions(await screen.findByLabelText('Necessidade de manutenção'), 'agendada');
+    const proxima = screen.getByLabelText(/Próxima manutenção/);
+    await u.type(proxima, '2026-12-01');
+    await u.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+    await screen.findByText('Ficha aberta');
+    expect(corpos[0]).toMatchObject({ manutencaoNecessidade: 'agendada', proximaManutencao: '2026-12-01' });
+  });
+
   it('mostra cada erro 400 do servidor no lugar certo e mantém o que foi digitado', async () => {
     const u = userEvent.setup();
     rotear((url, init) => {

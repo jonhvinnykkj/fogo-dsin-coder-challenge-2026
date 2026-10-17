@@ -124,7 +124,7 @@ export default function Equipamentos() {
         <h1 className={estilos.titulo}>Equipamentos</h1>
         {total !== undefined && <p className={estilos.total}>{formatarNumero(total)} {total === 1 ? 'equipamento' : 'equipamentos'}{url.temAlgum ? ' com esses filtros' : ' cadastrados'}</p>}
         <Link to="/equipamentos/novo" className={`${classeBotao('primario')} ${estilos.novo}`}>
-          <Plus weight="bold" size={18} aria-hidden="true" />
+          <Plus weight="fill" size={18} aria-hidden="true" />
           <span>Cadastrar equipamento</span>
         </Link>
       </header>

@@ -26,7 +26,11 @@ import { rotuloCurtoDoTipo } from '../componentes/IconeTipo';
 import { MapaOperacional, type CamadasVisiveis, type ControleMapa, type SelecaoMapa } from '../componentes/MapaOperacional';
 import { Notificacao, type DadosNotificacao } from '../componentes/Notificacao';
 import { PainelRegioes } from '../componentes/PainelRegioes';
+import { contagemAteLimite } from '../util/numeros';
 import estilos from './Central.module.css';
+
+/** /api/alertas devolve no máximo 200 (os mais recentes, sem o total): chegando a isso, a contagem vira "200+". */
+const LIMITE_ALERTAS = 200;
 
 // ------------------------------------------------------------------------------------------------ filtros na URL
 
@@ -92,7 +96,7 @@ export default function Central() {
   const filtrado = qtdFiltros > 0;
 
   const indicadores = useIndicadores(filtros, { atualizarACada: filtrado ? 5000 : undefined });
-  const alertas = useAlertas({ status: 'abertos' });
+  const alertas = useAlertas({ status: 'abertos', limite: LIMITE_ALERTAS });
   const regioes = useRegioes();
   const bairros = useBairros();
 
@@ -257,6 +261,10 @@ export default function Central() {
 
   const abertos = alertas.data?.length ?? 0;
   const criticos = alertas.data?.filter((a) => a.criticidade === 'critica').length ?? 0;
+  // No limite pode haver mais do que veio: "200+" abertos e "pelo menos N" críticos (contados entre os mais recentes).
+  const noLimite = abertos >= LIMITE_ALERTAS;
+  const textoAbertos = contagemAteLimite(abertos, LIMITE_ALERTAS);
+  const textoCriticos = `${formatarNumero(criticos)}${noLimite ? '+' : ''}`;
   const regioesComAtencao = regioes.data?.filter((r) => r.nivel !== 'normal').length ?? 0;
   const colunaVisivel = !estreita || colunaAberta;
 
@@ -321,7 +329,7 @@ export default function Central() {
               <button type="button" className={estilos.abrirColuna} onClick={() => setColunaAberta(true)} aria-haspopup="dialog">
                 <WarningDiamond weight="fill" size={16} aria-hidden="true" />
                 Alertas e regiões
-                <span className={`${estilos.contador} ${criticos ? estilos.contadorCritico : ''}`}>{formatarNumero(abertos)}</span>
+                <span className={`${estilos.contador} ${criticos ? estilos.contadorCritico : ''}`}>{textoAbertos}</span>
               </button>
             )}
           </div>
@@ -361,7 +369,7 @@ export default function Central() {
               >
                 <ListBullets weight="fill" size={16} aria-hidden="true" />
                 Alertas
-                <span className={`${estilos.contador} ${criticos ? estilos.contadorCritico : ''}`}>{formatarNumero(abertos)}</span>
+                <span className={`${estilos.contador} ${criticos ? estilos.contadorCritico : ''}`}>{textoAbertos}</span>
               </button>
               <button
                 id="aba-regioes"
@@ -382,8 +390,8 @@ export default function Central() {
             <div id="painel-alertas" role="tabpanel" aria-labelledby="aba-alertas" className={estilos.painel} hidden={aba !== 'alertas'}>
               <div className={estilos.cabecalhoPainel}>
                 <p>
-                  {criticos > 0 ? `${formatarNumero(criticos)} ${criticos === 1 ? 'crítico' : 'críticos'} · ` : ''}
-                  {formatarNumero(abertos)} {abertos === 1 ? 'aberto' : 'abertos'}
+                  {criticos > 0 ? `${textoCriticos} ${criticos === 1 && !noLimite ? 'crítico' : 'críticos'} · ` : ''}
+                  {textoAbertos} {abertos === 1 ? 'aberto' : 'abertos'}
                 </p>
                 <Link to="/alertas">Ver todos</Link>
               </div>

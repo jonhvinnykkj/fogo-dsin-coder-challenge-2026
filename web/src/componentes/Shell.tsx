@@ -41,7 +41,7 @@ export function Shell() {
 
       <header className={estilos.faixa}>
         <button type="button" className={estilos.botaoMenu} onClick={() => setMenuAberto(true)} aria-haspopup="dialog">
-          <List weight="bold" size={20} aria-hidden="true" />
+          <List weight="fill" size={20} aria-hidden="true" />
           Menu
         </button>
         <Link to="/" className={estilos.marca} title="Ir para a Central">

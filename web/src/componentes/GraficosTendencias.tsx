@@ -97,7 +97,7 @@ function QuadroTipo({ item, piso }: { item: ItemDisponibilidade; piso: number })
         </span>
         <span className={estilos.valorTipo} data-queda={diferenca <= -1 || undefined}>
           <span className={estilos.rotuloValor}>em 7 dias</span>
-          <strong className="numeros"><Seta weight="bold" size={14} aria-hidden="true" />{pct(item.projecao7d)}</strong>
+          <strong className="numeros"><Seta weight="fill" size={14} aria-hidden="true" />{pct(item.projecao7d)}</strong>
         </span>
       </div>
       <div className={estilos.mini} role="img" aria-label={`${nome}: ${pct(hoje)} hoje; a reta dos 30 dias aponta ${pct(item.projecao7d)} daqui a 7 dias`}>

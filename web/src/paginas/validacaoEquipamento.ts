@@ -2,7 +2,7 @@
 // O `superRefine` do schema só roda quando os campos básicos estão certos; por isso as regras dele (características
 // do tipo, ponto dentro de Marília, datas de manutenção) também são conferidas à parte, para o erro aparecer logo.
 import { dentroDeMarilia } from '../../../shared/geo';
-import { equipamentoInputSchema, type EquipamentoInput } from '../../../shared/schemas';
+import { equipamentoInputSchema, type EquipamentoEdicao, type EquipamentoInput } from '../../../shared/schemas';
 import { schemaCaracteristicas, type TipoEquipamentoId } from '../../../shared/tipos-equipamento';
 import { lerDecimal } from '../util/numeros';
 
@@ -31,6 +31,19 @@ export interface EstadoEquipamento {
 export type Erros = Record<string, string>;
 
 const vazioParaUndefined = (v: string) => (v.trim() === '' ? undefined : v);
+
+const CAMPOS_MANUTENCAO = ['manutencaoNecessidade', 'manutencaoPeriodicidadeDias', 'ultimaManutencao', 'proximaManutencao'] as const;
+
+/**
+ * Edição: o PUT só leva o grupo de manutenção (necessidade, periodicidade, última e próxima) se a pessoa mexeu nele desde
+ * que abriu o formulário. Sem o grupo, o servidor mantém as datas gravadas: um reparo registrado (ou concluído pelo
+ * simulador) enquanto o formulário estava aberto não é desfeito.
+ */
+export function dadosDaEdicao(dados: EquipamentoInput, estado: EstadoEquipamento, inicial: EstadoEquipamento): EquipamentoEdicao {
+  if (CAMPOS_MANUTENCAO.some((c) => estado[c] !== inicial[c])) return dados;
+  const { manutencaoNecessidade: _n, manutencaoPeriodicidadeDias: _p, ultimaManutencao: _u, proximaManutencao: _x, ...resto } = dados;
+  return resto;
+}
 
 export function montarCandidato(e: EstadoEquipamento): Record<string, unknown> {
   const periodica = e.manutencaoNecessidade === 'periodica';

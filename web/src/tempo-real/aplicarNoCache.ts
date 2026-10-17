@@ -129,15 +129,19 @@ export function aplicarAlerta(qc: QueryClient, alerta: Alerta): void {
   }
 }
 
+/**
+ * Ocorrência nova entra (ou a que já estava é atualizada) em cada variante da lista do mapa de calor; cada variante guarda
+ * só a própria janela (`['ocorrencias', horas]`): com a página aberta a 60× não cresce para sempre.
+ */
 export function aplicarOcorrencia(qc: QueryClient, o: Ocorrencia): void {
-  qc.setQueriesData<Ocorrencia[]>({ queryKey: chaves.ocorrencias() }, (lista) => {
-    if (!lista) return lista;
+  for (const [chave, lista] of qc.getQueriesData<Ocorrencia[]>({ queryKey: chaves.ocorrencias() })) {
+    if (!lista) continue;
+    const horas = typeof chave[1] === 'number' ? chave[1] : undefined;
+    const desde = horas === undefined ? -Infinity : Date.now() - horas * 3_600_000;
     const i = lista.findIndex((x) => x.id === o.id);
-    if (i === -1) return [...lista, o];
-    const nova = lista.slice();
-    nova[i] = o;
-    return nova;
-  });
+    const nova = i === -1 ? [...lista, o] : lista.map((x, k) => (k === i ? o : x));
+    qc.setQueryData(chave, nova.filter((x) => Date.parse(x.inicio) >= desde));
+  }
 }
 
 /** Os indicadores ao vivo do servidor são sempre da cidade inteira: só a variante sem filtros recebe. */

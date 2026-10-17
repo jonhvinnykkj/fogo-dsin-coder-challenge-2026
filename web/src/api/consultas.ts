@@ -7,7 +7,7 @@ import type {
   Pagina, PainelManutencao, PontoTelemetria, PrevisaoRisco, RespostaFalhas, RespostaReforco, ResultadoBacktest,
   ResumoPreditivo, StatusRegiao, Tendencias,
 } from '../../../shared/modelos';
-import type { AgenteInput, EquipamentoInput, FiltrosCentral, ManutencaoInput, MudancaSituacao } from '../../../shared/schemas';
+import type { AgenteInput, EquipamentoEdicao, EquipamentoInput, FiltrosCentral, ManutencaoInput, MudancaSituacao } from '../../../shared/schemas';
 import type { TipoEquipamento } from '../../../shared/tipos-equipamento';
 import { aplicarAlerta, aplicarSimulacao, type MapaCentral } from '../tempo-real/aplicarNoCache';
 import { api, ErroApi, type Parametros } from './cliente';
@@ -175,7 +175,7 @@ export function useCriarEquipamento() {
 export function useAtualizarEquipamento() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, dados }: { id: number; dados: EquipamentoInput }) => api.put<EquipamentoDetalhe>(`/api/equipamentos/${id}`, dados),
+    mutationFn: ({ id, dados }: { id: number; dados: EquipamentoEdicao }) => api.put<EquipamentoDetalhe>(`/api/equipamentos/${id}`, dados),
     onSuccess: (eq) => {
       qc.setQueryData(chaves.equipamento(eq.id), eq);
       invalidarCadastro(qc, 'equipamentos');

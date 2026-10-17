@@ -102,7 +102,7 @@ export default function Vitrine() {
             setPagina(1);
           }}
           onLimpar={() => { setFiltros({}); setBusca(''); setPagina(1); }}
-          acoes={<Botao variante="primario" icone={<Plus weight="bold" size={16} aria-hidden="true" />}>Cadastrar equipamento</Botao>}
+          acoes={<Botao variante="primario" icone={<Plus weight="fill" size={16} aria-hidden="true" />}>Cadastrar equipamento</Botao>}
         />
         {lista.isError ? (
           <AvisoErro erro={lista.error} titulo="Não foi possível carregar os equipamentos" onTentarDeNovo={() => void lista.refetch()} tentando={lista.isFetching} />

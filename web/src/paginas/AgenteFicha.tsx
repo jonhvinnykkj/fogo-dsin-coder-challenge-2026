@@ -83,7 +83,7 @@ function Ficha({ ag }: { ag: AgenteDetalhe }) {
   return (
     <div className={`pagina ${estilos.pagina}`}>
       <Link to="/agentes" className={estilos.voltar}>
-        <CaretLeft weight="bold" size={16} aria-hidden="true" />
+        <CaretLeft weight="fill" size={16} aria-hidden="true" />
         Voltar para agentes
       </Link>
 
@@ -104,7 +104,7 @@ function Ficha({ ag }: { ag: AgenteDetalhe }) {
             <PencilSimple weight="fill" size={18} aria-hidden="true" />
             <span>Editar</span>
           </Link>
-          <Botao icone={<ArrowsClockwise weight="bold" size={18} aria-hidden="true" />} onClick={() => setSituacaoAberta(true)}>Mudar situação</Botao>
+          <Botao icone={<ArrowsClockwise weight="fill" size={18} aria-hidden="true" />} onClick={() => setSituacaoAberta(true)}>Mudar situação</Botao>
           <Botao variante="fantasma" icone={<Trash weight="fill" size={18} aria-hidden="true" />} onClick={() => { excluir.reset(); setExcluirAberto(true); }}>Excluir</Botao>
         </div>
       </header>
@@ -169,7 +169,7 @@ function Ficha({ ag }: { ag: AgenteDetalhe }) {
         erro={excluir.error}
         onConfirmar={() => excluir.mutate(ag.id, { onSuccess: () => navegar('/agentes') })}
         alternativa={ag.situacao === 'fora_de_servico' ? undefined : (
-          <Botao variante="primario" icone={<ArrowsClockwise weight="bold" size={18} aria-hidden="true" />} onClick={() => { setExcluirAberto(false); setSituacaoAberta(true); }}>
+          <Botao variante="primario" icone={<ArrowsClockwise weight="fill" size={18} aria-hidden="true" />} onClick={() => { setExcluirAberto(false); setSituacaoAberta(true); }}>
             Mudar para “Fora de serviço”
           </Botao>
         )}

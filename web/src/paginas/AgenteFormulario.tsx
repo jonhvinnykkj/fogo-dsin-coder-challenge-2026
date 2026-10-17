@@ -175,7 +175,7 @@ function Formulario({ agente }: { agente?: Agente }) {
   return (
     <div className={`pagina ${estilos.pagina} formulario`}>
       <Link to={voltar} className={estilos.voltar}>
-        <CaretLeft weight="bold" size={16} aria-hidden="true" />
+        <CaretLeft weight="fill" size={16} aria-hidden="true" />
         {editando ? 'Voltar para a ficha' : 'Voltar para agentes'}
       </Link>
       <header className={estilos.cabecalho}>
@@ -231,9 +231,13 @@ function Formulario({ agente }: { agente?: Agente }) {
                 </select>
               )}
             </Campo>
-            <Campo rotulo="Situação" erro={erros.situacao}>
+            <Campo
+              rotulo="Situação"
+              erro={erros.situacao}
+              ajuda={editando ? 'Para mudar a situação, use "Mudar situação" na ficha: ela acompanha o turno e as ocorrências.' : undefined}
+            >
               {(p) => (
-                <select {...p} value={estado.situacao} onChange={(e) => definir('situacao', e.target.value)}>
+                <select {...p} value={estado.situacao} disabled={editando} onChange={(e) => definir('situacao', e.target.value)}>
                   {SITUACOES_AGENTE.map((s) => <option key={s} value={s}>{ROTULO_SITUACAO_AGENTE[s]}</option>)}
                 </select>
               )}
@@ -292,7 +296,7 @@ function Formulario({ agente }: { agente?: Agente }) {
 
         <div className={estilos.rodape}>
           <Link to={voltar} className={classeBotao('secundario')}>Cancelar</Link>
-          <Botao type="submit" variante="primario" disabled={enviando} icone={editando ? <FloppyDisk weight="fill" size={18} aria-hidden="true" /> : <Plus weight="bold" size={18} aria-hidden="true" />}>
+          <Botao type="submit" variante="primario" disabled={enviando} icone={editando ? <FloppyDisk weight="fill" size={18} aria-hidden="true" /> : <Plus weight="fill" size={18} aria-hidden="true" />}>
             {enviando ? 'Salvando…' : editando ? 'Salvar alterações' : 'Cadastrar agente'}
           </Botao>
         </div>

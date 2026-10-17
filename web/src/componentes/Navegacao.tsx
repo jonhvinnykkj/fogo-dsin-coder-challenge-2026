@@ -107,7 +107,7 @@ export function Navegacao({ recolhida = false, onAlternarRecolhida, onNavegar }:
             aria-expanded={!recolhida}
             data-dica={recolhida ? 'Abrir menu' : undefined}
           >
-            {recolhida ? <CaretDoubleRight weight="bold" size={20} aria-hidden="true" className={estilos.icone} /> : <CaretDoubleLeft weight="bold" size={20} aria-hidden="true" className={estilos.icone} />}
+            {recolhida ? <CaretDoubleRight weight="fill" size={20} aria-hidden="true" className={estilos.icone} /> : <CaretDoubleLeft weight="fill" size={20} aria-hidden="true" className={estilos.icone} />}
             <span className={estilos.rotulo}>Recolher menu</span>
           </button>
         )}

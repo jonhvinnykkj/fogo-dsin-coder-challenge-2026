@@ -97,7 +97,7 @@ export default function Agentes() {
         <h1 className={estilos.titulo}>Agentes</h1>
         {total !== undefined && <p className={estilos.total}>{formatarNumero(total)} {total === 1 ? 'agente' : 'agentes'}{url.temAlgum ? ' com esses filtros' : ' cadastrados'}</p>}
         <Link to="/agentes/novo" className={`${classeBotao('primario')} ${estilos.novo}`}>
-          <Plus weight="bold" size={18} aria-hidden="true" />
+          <Plus weight="fill" size={18} aria-hidden="true" />
           <span>Cadastrar agente</span>
         </Link>
       </header>
