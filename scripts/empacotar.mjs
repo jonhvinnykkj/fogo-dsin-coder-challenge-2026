@@ -12,8 +12,10 @@ const SAIDA = join(RAIZ, `${NOME}.zip`)
 const LIMITE_BYTES = 50 * 1024 * 1024
 
 // Pastas inteiras que ficam de fora (em qualquer nível).
-const PASTAS_FORA = new Set(['node_modules', 'dist', 'test-results', 'playwright-report', '.git', '.superpowers', '.impeccable'])
-const arquivoFora = (nome, rel) => nome === '.DS_Store' || nome.endsWith('.zip') || (rel.startsWith(`data${sep}`) && /\.db(-wal|-shm)?$/.test(nome))
+const PASTAS_FORA = new Set(['node_modules', 'dist', 'test-results', 'playwright-report', '.git', '.superpowers', '.impeccable', '.vscode', '.idea'])
+// Arquivos de fora: lixo do sistema, zips, bancos e qualquer .env (.env, .env.local, .env.production…): o repositório vai ser público.
+const arquivoFora = (nome, rel) =>
+  nome === '.DS_Store' || nome.endsWith('.zip') || nome === '.env' || nome.startsWith('.env.') || (rel.startsWith(`data${sep}`) && /\.db(-wal|-shm)?$/.test(nome))
 
 function listar(pasta) {
   const achados = []
