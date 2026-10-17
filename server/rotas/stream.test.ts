@@ -3,6 +3,7 @@ import type { AddressInfo } from 'node:net';
 import type { FastifyInstance } from 'fastify';
 import { criarApp } from '../app';
 import { criarCtxDeTeste, type CtxDeTeste } from '../test/ctx';
+import { inserirEquipamentoDeTeste } from '../test/fabricas';
 import { Simulador } from '../tempo-real/simulador';
 
 let ctx: CtxDeTeste;
@@ -58,6 +59,17 @@ describe('GET /api/stream', () => {
     expect(estado.simulacao.velocidade).toBe(1);
     expect(blocos[2]).toMatch(/^event: simulacao\ndata: /);
     expect(JSON.parse(blocos[2]!.split('data: ')[1]!)).toMatchObject({ tipo: 'simulacao', dados: { velocidade: 10 } });
+  });
+
+  it('o estado inicial leva os indicadores e o simulador publica `indicadores` pelo barramento', async () => {
+    inserirEquipamentoDeTeste(ctx, { tipo: 'radar', codigo: 'S-1' });
+    const r = await fetch(`${url}/api/stream`);
+    const blocos = await lerBlocos(r, 3, () => ctx.simulador!.emitirIndicadores());
+    const estado = JSON.parse(blocos[1]!.split('data: ')[1]!) as { indicadores: { totalEquipamentos: number } };
+    expect(estado.indicadores.totalEquipamentos).toBeGreaterThan(0);
+    const ev = blocos.find((b) => b.startsWith('event: indicadores'));
+    expect(ev).toBeDefined();
+    expect(JSON.parse(ev!.split('data: ')[1]!)).toMatchObject({ tipo: 'indicadores', dados: { totalEquipamentos: 1 } });
   });
 
   it('um alerta injetado aparece no stream', async () => {

@@ -11,6 +11,7 @@ import { ErroApi } from './erros';
 import { rotasAgentes } from './rotas/agentes';
 import { rotasAlertas } from './rotas/alertas';
 import { rotasBairros } from './rotas/bairros';
+import { rotasCentral } from './rotas/central';
 import { rotasEquipamentos } from './rotas/equipamentos';
 import { rotasManutencao } from './rotas/manutencao';
 import { rotasSaude } from './rotas/saude';
@@ -61,6 +62,7 @@ export async function criarApp(ctx: ContextoApp): Promise<FastifyInstance> {
         { name: 'Agentes', description: 'Cadastro de agentes' },
         { name: 'Alertas', description: 'Feed de alertas' },
         { name: 'Manutenção', description: 'Ordens e painel de manutenção' },
+        { name: 'Central', description: 'Indicadores, mapa e situação das regiões da central de operações' },
         { name: 'Tempo real', description: 'Ingestão de telemetria, simulação e fluxo de eventos (SSE)' },
       ],
     },
@@ -74,6 +76,7 @@ export async function criarApp(ctx: ContextoApp): Promise<FastifyInstance> {
   await app.register(rotasAgentes);
   await app.register(rotasAlertas);
   await app.register(rotasManutencao);
+  await app.register(rotasCentral);
   await app.register(rotasTelemetria);
   await app.register(rotasSimulacao);
   await app.register(rotasStream);

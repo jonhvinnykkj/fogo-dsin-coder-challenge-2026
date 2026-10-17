@@ -2,7 +2,7 @@ import type { Database } from 'better-sqlite3';
 import type { NecessidadeManutencao, Orgao, Regiao, SituacaoEquipamento } from '../../shared/dominio';
 import type { Equipamento, EquipamentoMapa, HistoricoSituacao, Pagina, PontoTelemetria, SituacaoManutencao } from '../../shared/modelos';
 import type { EquipamentoInput, FiltrosEquipamento } from '../../shared/schemas';
-import type { TipoEquipamentoId } from '../../shared/tipos-equipamento';
+import { tipoPorId, type TipoEquipamentoId } from '../../shared/tipos-equipamento';
 import { somarDias } from '../tempo';
 import { condicaoBusca } from './busca';
 
@@ -252,23 +252,34 @@ export function painelManutencao(db: Database, hoje: string) {
   return { atrasadas: buscar('atrasada'), imediatas: buscar('imediata'), proximos7: buscar('proxima'), proximos30: buscar('proxima30') };
 }
 
-/** Ponto do mapa de um equipamento (posição ATUAL). `hoje` = data local YYYY-MM-DD. */
+/** Situação de manutenção exibida no mapa. `hoje` = data local YYYY-MM-DD. Só equipamento ativo tem pendência. */
+export function situacaoDaManutencao(situacao: SituacaoEquipamento, necessidade: NecessidadeManutencao, proxima: string | null, hoje: string): SituacaoManutencao {
+  if (situacao === 'desativado' || situacao === 'nao_instalado') return 'ok';
+  if (necessidade === 'imediata') return 'imediata';
+  if (proxima !== null && proxima < hoje) return 'atrasada';
+  if (proxima !== null && proxima <= somarDias(hoje, 7)) return 'proxima';
+  return 'ok';
+}
+
+/** Posição no mapa: equipamento fixo usa o ponto cadastrado; móvel usa a posição atual (cai para o cadastro se nula). */
+export function posicaoNoMapa(l: { tipo: TipoEquipamentoId; lat: number; lng: number; lat_atual: number | null; lng_atual: number | null }): { lat: number; lng: number } {
+  if (tipoPorId(l.tipo).movel && l.lat_atual !== null && l.lng_atual !== null) return { lat: l.lat_atual, lng: l.lng_atual };
+  return { lat: l.lat, lng: l.lng };
+}
+
+/** Ponto do mapa de um equipamento. `hoje` = data local YYYY-MM-DD. */
 export function equipamentoMapaPorId(db: Database, id: number, hoje: string): EquipamentoMapa | undefined {
   const l = db
     .prepare(
-      `SELECT id, codigo, tipo, situacao, lat_atual, lng_atual, bairro_id, orgao, manutencao_necessidade, proxima_manutencao
+      `SELECT id, codigo, tipo, situacao, lat, lng, lat_atual, lng_atual, bairro_id, orgao, manutencao_necessidade, proxima_manutencao
        FROM equipamentos WHERE id = ?`,
     )
     .get(id) as
-    | { id: number; codigo: string; tipo: TipoEquipamentoId; situacao: SituacaoEquipamento; lat_atual: number; lng_atual: number; bairro_id: number; orgao: Orgao; manutencao_necessidade: NecessidadeManutencao; proxima_manutencao: string | null }
+    | { id: number; codigo: string; tipo: TipoEquipamentoId; situacao: SituacaoEquipamento; lat: number; lng: number; lat_atual: number; lng_atual: number; bairro_id: number; orgao: Orgao; manutencao_necessidade: NecessidadeManutencao; proxima_manutencao: string | null }
     | undefined;
   if (!l) return undefined;
-  const ativo = l.situacao !== 'desativado' && l.situacao !== 'nao_instalado';
-  let manutencao: SituacaoManutencao = 'ok';
-  if (ativo) {
-    if (l.manutencao_necessidade === 'imediata') manutencao = 'imediata';
-    else if (l.proxima_manutencao !== null && l.proxima_manutencao < hoje) manutencao = 'atrasada';
-    else if (l.proxima_manutencao !== null && l.proxima_manutencao <= somarDias(hoje, 7)) manutencao = 'proxima';
-  }
-  return { id: l.id, codigo: l.codigo, tipo: l.tipo, situacao: l.situacao, lat: l.lat_atual, lng: l.lng_atual, bairroId: l.bairro_id, orgao: l.orgao, manutencao };
+  return {
+    id: l.id, codigo: l.codigo, tipo: l.tipo, situacao: l.situacao, ...posicaoNoMapa(l), bairroId: l.bairro_id, orgao: l.orgao,
+    manutencao: situacaoDaManutencao(l.situacao, l.manutencao_necessidade, l.proxima_manutencao, hoje),
+  };
 }

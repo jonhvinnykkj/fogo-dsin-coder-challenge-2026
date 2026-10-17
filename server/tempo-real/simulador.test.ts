@@ -185,7 +185,7 @@ describe('Simulador', () => {
     expect(vi.getTimerCount()).toBe(0);
     sim.iniciar();
     sim.iniciar(); // idempotente
-    expect(vi.getTimerCount()).toBe(1);
+    expect(vi.getTimerCount()).toBe(2); // tick de 2 s + indicadores de 5 s
     vi.advanceTimersByTime(2000);
     expect((ctx.db.prepare('SELECT COUNT(*) AS n FROM telemetria_hora').get() as { n: number }).n).toBeGreaterThan(5);
     sim.parar();

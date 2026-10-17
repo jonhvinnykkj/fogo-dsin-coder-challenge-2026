@@ -1,11 +1,12 @@
 // Server-Sent Events: a tela abre uma conexão e recebe tudo o que acontece na cidade, sem ficar perguntando.
 //
 // Formato de cada mensagem: `event: <tipo>` + `data: <JSON do evento inteiro>` (o mesmo objeto `EventoFogo`, com `tipo`).
-// Ao conectar chegam `retry: 3000` (o navegador reconecta sozinho em 3 s) e um evento `estado` com `{ simulacao }`.
+// Ao conectar chegam `retry: 3000` (o navegador reconecta sozinho em 3 s) e um evento `estado` com `{ simulacao, indicadores }`.
 // Depois vêm os eventos do barramento. A cada 15 s um comentário `:ping` mantém a conexão viva atrás de proxies.
 import type { ServerResponse } from 'node:http';
 import type { FastifyInstance } from 'fastify';
 import type { EstadoInicialStream, EventoFogo } from '../../shared/modelos';
+import { calcularIndicadores } from '../servicos/central';
 
 const PING_MS = 15_000;
 
@@ -28,7 +29,7 @@ export async function rotasStream(app: FastifyInstance): Promise<void> {
       tags: ['Tempo real'],
       summary: 'Fluxo de eventos em tempo real (SSE)',
       description:
-        'Eventos: `estado` (uma vez, ao conectar), `posicoes` (agrupadas a cada 2 s), `equipamento`, `agente`, `alerta`, `ocorrencia`, `simulacao`. ' +
+        'Eventos: `estado` (uma vez, ao conectar), `posicoes` (agrupadas a cada 2 s), `equipamento`, `agente`, `alerta`, `ocorrencia`, `indicadores` (a cada 5 s), `simulacao`. ' +
         'Cada `data` é o JSON do evento inteiro (`{ tipo, ... }`).',
     },
   }, async (req, reply) => {
@@ -65,7 +66,10 @@ export async function rotasStream(app: FastifyInstance): Promise<void> {
     res.on('close', limpar);
 
     res.write('retry: 3000\n\n');
-    const estado: EstadoInicialStream = { simulacao: ctx.simulador?.estado() ?? { velocidade: 1, pausado: false, relogio: ctx.relogio.agora().toISOString() } };
+    const estado: EstadoInicialStream = {
+      indicadores: calcularIndicadores(ctx.db, {}, ctx.relogio.agora()),
+      simulacao: ctx.simulador?.estado() ?? { velocidade: 1, pausado: false, relogio: ctx.relogio.agora().toISOString() },
+    };
     escrever('estado', estado);
   });
 }

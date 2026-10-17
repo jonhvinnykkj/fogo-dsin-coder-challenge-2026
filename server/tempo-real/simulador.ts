@@ -17,6 +17,7 @@ import { criarRng, type Rng } from '../semente/aleatorio';
 import { BAIRROS_FURTO_PATINETE, FALHAS } from '../semente/historico';
 import { atividadeVeiculo, gerarLeituraHora, tipoDoDia } from '../semente/perfis';
 import { montarContexto, SEMENTE_PADRAO } from '../semente/semear';
+import { calcularIndicadores } from '../servicos/central';
 import { registrarManutencao } from '../servicos/equipamentos';
 import { dataLocal, inicioDaHora, partesLocais } from '../tempo';
 import { gerarOcorrenciasDaHora, type ContextoHoras, type OcorrenciaGerada } from '../semente/historico';
@@ -31,6 +32,8 @@ export const TIPOS_INJETAVEIS = ['furto', 'falha', 'acidente', 'alagamento', 'co
 export type TipoInjetavel = (typeof TIPOS_INJETAVEIS)[number];
 
 const TICK_MS = 2000;
+/** Os indicadores da Central seguem por SSE neste intervalo (tempo real, não simulado). */
+const INDICADORES_MS = 5000;
 const SEGUNDOS_POR_TICK = TICK_MS / 1000;
 /** Equipamento parado transmite a cada 15 ticks (30 s); móvel em movimento, a cada tick. */
 const PERIODO_PARADO_TICKS = 15;
@@ -102,6 +105,7 @@ export class Simulador {
   private velocidade: EstadoSimulacao['velocidade'] = 1;
   private pausado = false;
   private temporizador: NodeJS.Timeout | undefined;
+  private temporizadorIndicadores: NodeJS.Timeout | undefined;
 
   private tick = 0;
   private sincronizar = true;
@@ -131,11 +135,25 @@ export class Simulador {
       }
     }, TICK_MS);
     this.temporizador.unref?.();
+    this.temporizadorIndicadores = setInterval(() => this.emitirIndicadores(), INDICADORES_MS);
+    this.temporizadorIndicadores.unref?.();
+  }
+
+  /** Recalcula e publica os indicadores (a cada 5 s reais; também chamado direto nos testes). Sem ouvinte, não calcula. */
+  emitirIndicadores(): void {
+    if (this.ctx.barramento.ouvintesAtivos === 0) return;
+    try {
+      this.ctx.barramento.emitir({ tipo: 'indicadores', dados: calcularIndicadores(this.ctx.db, {}, this.ctx.relogio.agora()) });
+    } catch (erro) {
+      console.error('Simulador: erro ao calcular indicadores', erro);
+    }
   }
 
   parar(): void {
     if (this.temporizador) clearInterval(this.temporizador);
     this.temporizador = undefined;
+    if (this.temporizadorIndicadores) clearInterval(this.temporizadorIndicadores);
+    this.temporizadorIndicadores = undefined;
   }
 
   estado(): EstadoSimulacao {

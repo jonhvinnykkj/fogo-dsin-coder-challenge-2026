@@ -140,3 +140,26 @@ export const manutencaoInputSchema = z
     message: 'Informe a data prevista ou a data de conclusão',
   });
 export type ManutencaoInput = z.infer<typeof manutencaoInputSchema>;
+
+/** Query string que aceita o valor repetido (`?tipo=a&tipo=b`) ou separado por vírgula (`?tipo=a,b`). */
+const lista = <T extends z.ZodTypeAny>(item: T) =>
+  z.preprocess((v) => {
+    if (v === undefined || v === '') return undefined;
+    const partes = (Array.isArray(v) ? v : [v]).flatMap((x) => String(x).split(',')).map((x) => x.trim()).filter(Boolean);
+    return partes.length ? partes : undefined;
+  }, z.array(item).optional());
+
+/** Filtros da Central (mapa e indicadores). */
+export const filtrosCentralSchema = z.object({
+  tipo: lista(opcaoDe(IDS_TIPO, 'Tipo')),
+  situacao: lista(opcaoDe(SITUACOES_EQUIPAMENTO, 'Situação')),
+  bairroId: q(z.coerce.number().int().positive()),
+  regiao: q(opcaoDe(REGIOES, 'Região')),
+  orgao: q(opcaoDe(ORGAOS, 'Órgão')),
+  manutencao: q(z.enum(['ok', 'proxima', 'imediata', 'atrasada'], { errorMap: () => ({ message: 'Manutenção: valor inválido' }) })),
+});
+export type FiltrosCentral = z.infer<typeof filtrosCentralSchema>;
+
+export const filtroOcorrenciasSchema = z.object({
+  horas: z.coerce.number({ invalid_type_error: 'Horas: informe um número' }).int('Horas: informe um número inteiro').min(1, 'Horas: de 1 a 168').max(168, 'Horas: de 1 a 168').default(24),
+});
