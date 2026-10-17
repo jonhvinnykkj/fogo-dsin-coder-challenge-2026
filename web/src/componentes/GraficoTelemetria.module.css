@@ -1,0 +1,85 @@
+.grafico {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-3);
+}
+
+.topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--e-3) var(--e-5);
+}
+
+.nome {
+  font-size: var(--t-16);
+}
+
+.seletor {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--t-13);
+  font-weight: 700;
+  color: var(--cor-texto-suave);
+}
+
+.seletor select {
+  height: 36px;
+  padding: 0 var(--e-3);
+  border: 0;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-superficie-baixa);
+  color: var(--cor-texto);
+  font-size: var(--t-14);
+  font-weight: 700;
+}
+
+.resumo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-5);
+  margin: 0;
+}
+
+.resumo div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resumo dt {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-13);
+}
+
+.resumo dd {
+  margin: 0;
+  font-size: var(--t-21);
+  font-stretch: 80%;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.area {
+  width: 100%;
+  height: 260px;
+}
+
+.dica {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--e-2) var(--e-3);
+  border-radius: var(--raio);
+  background: var(--cor-bloco-neutro);
+  color: var(--cor-sobre-bloco-neutro);
+  box-shadow: var(--sombra-flutuante);
+  font-size: var(--t-13);
+}
+
+.dica strong {
+  font-size: var(--t-16);
+  font-variant-numeric: tabular-nums;
+}

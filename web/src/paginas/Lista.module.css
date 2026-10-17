@@ -1,0 +1,92 @@
+/* Estilo comum das listas (equipamentos e agentes). */
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-4);
+}
+
+.cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--e-2) var(--e-4);
+}
+
+.novo {
+  margin-left: auto;
+}
+
+.titulo {
+  font-size: var(--t-36);
+  font-stretch: 112%;
+  letter-spacing: -0.01em;
+}
+
+.total {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-16);
+  font-variant-numeric: tabular-nums;
+}
+
+.codigo {
+  color: var(--cor-texto);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+}
+
+.codigo:hover {
+  text-decoration: underline;
+}
+
+.duasLinhas {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.secundaria {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-13);
+}
+
+.atrasada {
+  margin-left: var(--e-2);
+  padding: 1px 6px;
+  border-radius: var(--raio);
+  background: var(--crit-critica);
+  color: #fff;
+  font-size: var(--t-12);
+  font-weight: 700;
+}
+
+.imediata {
+  margin-left: var(--e-2);
+  padding: 1px 6px;
+  border-radius: var(--raio);
+  background: var(--cor-fogo);
+  color: var(--cor-sobre-fogo);
+  font-size: var(--t-12);
+  font-weight: 700;
+}
+
+.fraco {
+  color: var(--cor-texto-fraco);
+}
+
+.soCelular {
+  display: none;
+  font-size: var(--t-13);
+  color: var(--cor-texto-suave);
+}
+
+@media (max-width: 720px) {
+  .soCelular {
+    display: block;
+  }
+
+  .titulo {
+    font-size: var(--t-24);
+  }
+}

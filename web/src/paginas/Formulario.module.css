@@ -1,0 +1,154 @@
+/* Estilo comum dos formulários de equipamento e de agente: seções em blocos de superfície, sem borda fina. */
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-5);
+  max-width: 1040px;
+}
+
+.voltar {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-1);
+  color: var(--cor-texto-suave);
+  font-weight: 700;
+  text-decoration: none;
+  font-size: var(--t-14);
+}
+
+.voltar:hover {
+  color: var(--cor-texto);
+  text-decoration: underline;
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-1);
+}
+
+.titulo {
+  font-size: var(--t-36);
+  font-stretch: 112%;
+  letter-spacing: -0.01em;
+}
+
+.descricao {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-16);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-5);
+}
+
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-4);
+  padding: var(--e-5);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  min-width: 0;
+}
+
+.secao > h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  font-size: var(--t-21);
+}
+
+.numero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--raio);
+  background: var(--cor-fogo);
+  color: var(--cor-sobre-fogo);
+  font-size: var(--t-16);
+  font-stretch: 80%;
+  font-weight: 800;
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: var(--e-4);
+}
+
+.larga {
+  grid-column: 1 / -1;
+}
+
+.aviso {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-2);
+  color: var(--cor-texto-suave);
+  font-size: var(--t-13);
+  font-weight: 600;
+}
+
+.sugestao {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-13);
+}
+
+.vazio {
+  padding: var(--e-4);
+  border-radius: var(--raio);
+  background: var(--cor-superficie-baixa);
+  color: var(--cor-texto-suave);
+  font-size: var(--t-16);
+}
+
+.resumoErro {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  padding: var(--e-3) var(--e-4);
+  border-radius: var(--raio);
+  background: var(--cor-erro-fundo);
+  color: var(--cor-erro);
+  font-weight: 700;
+}
+
+.rodape {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--e-2);
+  padding: var(--e-3) var(--e-4);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  box-shadow: 0 -8px 24px rgb(20 20 22 / 0.08);
+}
+
+.coordenadas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--e-4);
+}
+
+@media (max-width: 720px) {
+  .secao {
+    padding: var(--e-4);
+  }
+
+  .titulo {
+    font-size: var(--t-24);
+  }
+
+  .rodape > * {
+    flex: 1;
+  }
+}

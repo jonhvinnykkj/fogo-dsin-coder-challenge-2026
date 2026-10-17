@@ -1,0 +1,67 @@
+/* Corpo dos diálogos em gaveta (situação, manutenção, exclusão). */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-4);
+  font-size: var(--t-16);
+}
+
+.opcoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-1);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.opcoes legend {
+  padding: 0;
+  margin-bottom: var(--e-1);
+  font-size: var(--t-14);
+  font-weight: 700;
+}
+
+.opcao {
+  display: flex;
+  align-items: center;
+  gap: var(--e-3);
+  min-height: 44px;
+  padding: 0 var(--e-3);
+  border-radius: var(--raio);
+  background: var(--cor-superficie-baixa);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.opcao input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--cor-fogo);
+}
+
+.erro {
+  color: var(--cor-erro);
+  font-size: var(--t-14);
+  font-weight: 600;
+}
+
+.texto {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-16);
+}
+
+.destaque {
+  padding: var(--e-3) var(--e-4);
+  border-radius: var(--raio);
+  background: var(--cor-aviso-fundo);
+  font-weight: 600;
+}
+
+.atual {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  font-weight: 700;
+}

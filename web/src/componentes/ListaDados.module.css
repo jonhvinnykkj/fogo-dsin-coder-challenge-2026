@@ -1,0 +1,35 @@
+.lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
+  gap: var(--e-4) var(--e-5);
+  margin: 0;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.larga {
+  grid-column: 1 / -1;
+}
+
+.item dt {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-13);
+  font-weight: 600;
+}
+
+.item dd {
+  margin: 0;
+  font-size: var(--t-16);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.vazio {
+  color: var(--cor-texto-fraco);
+  font-weight: 500;
+}

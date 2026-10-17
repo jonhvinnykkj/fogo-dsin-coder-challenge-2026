@@ -110,6 +110,14 @@ export const COR_SITUACAO: Record<SituacaoEquipamento, string> = {
   nao_instalado: '#9CA3AF',
 };
 
+/** Cores de situação do agente (blocos cheios, como as dos equipamentos): em serviço = verde, em ocorrência = laranja-fogo, pausa = âmbar, fora de serviço = cinza. */
+export const COR_SITUACAO_AGENTE: Record<SituacaoAgente, string> = {
+  em_servico: '#1F9D55',
+  em_ocorrencia: '#F04A00',
+  pausa: '#E8A400',
+  fora_de_servico: '#6B7280',
+};
+
 export const COR_CRITICIDADE: Record<Criticidade, string> = {
   critica: '#D92D20',
   alta: '#F04A00',

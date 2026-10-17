@@ -1,0 +1,39 @@
+.seletor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-2);
+}
+
+.dica {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-2);
+  color: var(--cor-texto-suave);
+  font-size: var(--t-14);
+  font-weight: 600;
+}
+
+.mapa {
+  height: 340px;
+  border-radius: var(--raio);
+  overflow: hidden;
+  cursor: crosshair;
+}
+
+.mapa :global(.leaflet-container) {
+  cursor: crosshair;
+}
+
+.comErro {
+  outline: 3px solid var(--crit-critica);
+  outline-offset: 0;
+}
+
+.erro {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--cor-erro);
+  font-size: var(--t-14);
+  font-weight: 600;
+}

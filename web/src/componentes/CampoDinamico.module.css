@@ -149,3 +149,19 @@ select.entrada {
 .rotuloCaixa {
   font-weight: 600;
 }
+
+/* texto de várias linhas (motivo, descrição) */
+textarea.entrada {
+  height: auto;
+  min-height: 96px;
+  padding: var(--e-3);
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.entrada:disabled {
+  background: var(--cor-superficie-baixa);
+  color: var(--cor-texto-suave);
+  opacity: 0.8;
+  cursor: not-allowed;
+}
