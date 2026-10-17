@@ -5,7 +5,7 @@
   "type": "module",
   "description": "F.O.G.O. - sistema web de monitoramento de equipamentos urbanos (DSIN Coder Challenge 2026)",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "scripts": {
     "dev": "concurrently -n servidor,web -c yellow,cyan \"tsx watch server/index.ts\" \"vite\"",
@@ -14,7 +14,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.server.json",
     "e2e": "playwright test",
-    "empacotar": "node scripts/empacotar.mjs"
+    "empacotar": "node scripts/empacotar.mjs",
+    "token": "tsx scripts/token.ts"
   },
   "dependencies": {
     "@fastify/static": "^10.1.6",

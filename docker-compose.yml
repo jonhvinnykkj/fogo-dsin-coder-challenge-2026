@@ -1,0 +1,13 @@
+# docker compose up --build  →  http://localhost:3333
+# O banco (data/fogo.db) fica no volume "fogo-dados": sobrevive a docker compose down. Para recomeçar do zero: docker compose down -v
+services:
+  fogo:
+    build: .
+    ports:
+      - "${PORT:-3333}:3333"
+    volumes:
+      - fogo-dados:/app/data
+    restart: unless-stopped
+
+volumes:
+  fogo-dados:

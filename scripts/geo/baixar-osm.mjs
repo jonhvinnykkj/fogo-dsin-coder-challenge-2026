@@ -2,7 +2,8 @@
 // Roda uma vez; sem dependências. Uso: node scripts/geo/baixar-osm.mjs
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs'
 import { createHash } from 'node:crypto'
-import { dirname, resolve } from 'node:path'
+import { tmpdir } from 'node:os'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
@@ -24,7 +25,7 @@ const PRAZO_TOTAL_MS = 15 * 60 * 1000
 const inicio = Date.now()
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms))
 
-const CACHE = '/private/tmp/claude-501/-Users-vinnycius/54f0842e-af26-49a7-aa25-e31d3ac1af37/scratchpad/osm-cache'
+const CACHE = process.env.FOGO_OSM_CACHE ?? join(tmpdir(), 'fogo-osm-cache')
 async function overpass(consulta, rotulo) {
   // cache opcional fora do repositório (só para iterar sem rebaixar)
   const arqCache = `${CACHE}/${rotulo.replace(/\W/g, '_')}-${createHash('md5').update(consulta).digest('hex').slice(0, 8)}.json`

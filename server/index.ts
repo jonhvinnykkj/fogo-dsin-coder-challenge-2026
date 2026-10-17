@@ -8,11 +8,20 @@ import { carregarGeo } from './geo/marilia';
 import { contarBairros, inserirBairros } from './repositorios/bairros';
 import { preencherLacuna, semear, SEMENTE_PADRAO } from './semente/semear';
 import { relogioReal, type ContextoApp } from './contexto';
+import { ErroDePorta, lerPorta, mensagemPortaOcupada } from './porta';
 import { Barramento } from './tempo-real/barramento';
 import { MotorAlertas } from './tempo-real/motor-alertas';
 import { Simulador } from './tempo-real/simulador';
 
-const porta = Number(process.env.PORT ?? 3333);
+// Antes de abrir o banco: PORT inválida é erro de uso, não precisa de pilha de erro.
+let porta: number;
+try {
+  porta = lerPorta(process.env.PORT);
+} catch (erro) {
+  if (!(erro instanceof ErroDePorta)) throw erro;
+  console.error(erro.message);
+  process.exit(1);
+}
 const caminhoBanco = resolve(process.env.FOGO_DB ?? 'data/fogo.db');
 
 mkdirSync(dirname(caminhoBanco), { recursive: true });
@@ -55,7 +64,14 @@ if (legado > 0) console.log(`Alertas antigos de ocorrências já encerradas reso
 ctx.simulador = new Simulador(ctx);
 
 const app = await criarApp(ctx);
-await app.listen({ port: porta, host: '0.0.0.0' });
+try {
+  await app.listen({ port: porta, host: '0.0.0.0' });
+} catch (erro) {
+  if ((erro as NodeJS.ErrnoException).code !== 'EADDRINUSE') throw erro;
+  console.error(mensagemPortaOcupada(porta));
+  db.close();
+  process.exit(1);
+}
 console.log(`F.O.G.O. no ar em http://localhost:${porta} (banco: ${caminhoBanco})`);
 barramento.iniciarAgrupamento();
 ctx.simulador.iniciar();
