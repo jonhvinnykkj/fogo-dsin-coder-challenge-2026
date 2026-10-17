@@ -4,7 +4,7 @@
 // Todo alerta diz o quê, onde (código + logradouro/bairro) e por quê (valor medido × esperado).
 // Dedup: cada situação tem uma `chave_dedup` (ex.: `anomalia:12:fluxo`, `sem_sinal:12`, `furto:12`). Se já existe alerta
 // ABERTO com a mesma chave, nada novo é criado; depois de resolvido, o problema que voltar abre um alerta novo.
-import type { Database } from 'better-sqlite3';
+import type { Database, Statement } from 'better-sqlite3';
 import type { Criticidade, SituacaoEquipamento } from '../../shared/dominio';
 import { ROTULO_TIPO_OCORRENCIA } from '../../shared/dominio';
 import { dentroDeMarilia } from '../../shared/geo';
@@ -92,7 +92,23 @@ export class MotorAlertas {
   /** Quantas leituras seguidas dentro do normal (|z| < 2) cada anomalia ABERTA já teve; ao chegar a 3, o alerta fecha. */
   private readonly normais = new Map<string, number>();
 
-  constructor(private readonly ctx: { db: Database; barramento: { emitir(e: EventoFogo): void }; relogio: { agora(): Date } }) {}
+  /** Equipamentos com alerta `sem_sinal` aberto: só eles precisam de consulta quando chega uma leitura (regra 2). */
+  private readonly calados = new Set<number>();
+  /** Equipamentos com alerta de anomalia aberto: só eles precisam ser acompanhados a cada leitura (regra 3). */
+  private readonly comAnomalia = new Set<number>();
+  // Consultas preparadas uma vez (o caminho de leitura passa por aqui milhares de vezes por minuto).
+  private readonly qAbertosPorChave: Statement;
+  private readonly qAnomaliasDoEquipamento: Statement;
+
+  constructor(private readonly ctx: { db: Database; barramento: { emitir(e: EventoFogo): void }; relogio: { agora(): Date } }) {
+    this.qAbertosPorChave = ctx.db.prepare('SELECT id FROM alertas WHERE chave_dedup = ? AND resolvido_em IS NULL');
+    this.qAnomaliasDoEquipamento = ctx.db.prepare(
+      "SELECT chave_dedup FROM alertas WHERE equipamento_id = ? AND tipo = 'anomalia_leitura' AND resolvido_em IS NULL AND chave_dedup IS NOT NULL",
+    );
+    // Reconstrói o que estava aberto antes do reinício.
+    const abertos = ctx.db.prepare("SELECT tipo, equipamento_id AS e FROM alertas WHERE resolvido_em IS NULL AND equipamento_id IS NOT NULL AND tipo IN ('sem_sinal', 'anomalia_leitura')").all() as { tipo: string; e: number }[];
+    for (const a of abertos) (a.tipo === 'sem_sinal' ? this.calados : this.comAnomalia).add(a.e);
+  }
 
   private get db(): Database {
     return this.ctx.db;
@@ -106,13 +122,17 @@ export class MotorAlertas {
       if (aberto) return null;
     }
     const criado = inserirAlerta(this.db, alerta);
+    if (criado.equipamentoId !== undefined) {
+      if (criado.tipo === 'sem_sinal') this.calados.add(criado.equipamentoId);
+      else if (criado.tipo === 'anomalia_leitura') this.comAnomalia.add(criado.equipamentoId);
+    }
     this.ctx.barramento.emitir({ tipo: 'alerta', dados: criado });
     return criado;
   }
 
   /** Resolve os alertas abertos com essa chave (e avisa a tela). */
   resolverPorChave(chave: string, quando: Date = this.ctx.relogio.agora()): void {
-    const abertos = this.db.prepare('SELECT id FROM alertas WHERE chave_dedup = ? AND resolvido_em IS NULL').all(chave) as { id: number }[];
+    const abertos = this.qAbertosPorChave.all(chave) as { id: number }[];
     this.resolverIds(abertos.map((a) => a.id), quando);
     this.vistas.delete(chave);
     this.normais.delete(chave);
@@ -141,11 +161,24 @@ export class MotorAlertas {
   //  Regra 6  furto_suspeito NÃO fecha sozinho (só gente confirma recuperação ou perda); manutencao_atrasada só fecha quando
   //           a manutenção é registrada (`resolverPorManutencao`).
 
-  private resolverIds(ids: number[], quando: Date): void {
+  /** Grava a resolução automática (sem avisar ninguém). */
+  private fecharIds(ids: number[], quando: Date): Alerta[] {
+    const fechados: Alerta[] = [];
     for (const id of ids) {
       const resolvido = resolverAlerta(this.db, id, quando.toISOString(), 'automatica');
-      if (resolvido) this.ctx.barramento.emitir({ tipo: 'alerta', dados: resolvido });
+      if (!resolvido) continue;
+      fechados.push(resolvido);
+      if (resolvido.equipamentoId !== undefined && resolvido.tipo === 'sem_sinal') this.calados.delete(resolvido.equipamentoId);
     }
+    return fechados;
+  }
+
+  private avisar(alertas: Alerta[]): void {
+    for (const a of alertas) this.ctx.barramento.emitir({ tipo: 'alerta', dados: a });
+  }
+
+  private resolverIds(ids: number[], quando: Date): void {
+    this.avisar(this.fecharIds(ids, quando));
   }
 
   /** Regra 1: a ocorrência acabou, então o alerta que ela abriu também acaba. */
@@ -161,15 +194,19 @@ export class MotorAlertas {
   resolverAlertasDeOcorrenciasEncerradas(): number {
     const abertos = this.db.prepare("SELECT id, chave_dedup FROM alertas WHERE resolvido_em IS NULL AND chave_dedup LIKE 'ocorrencia:%'").all() as { id: number; chave_dedup: string }[];
     const fimDe = this.db.prepare('SELECT fim FROM ocorrencias WHERE id = ?');
-    let fechados = 0;
-    for (const a of abertos) {
-      const o = fimDe.get(Number(a.chave_dedup.slice('ocorrencia:'.length))) as { fim: string | null } | undefined;
-      if (!o?.fim) continue;
-      this.resolverIds([a.id], new Date(o.fim));
-      this.vistas.delete(a.chave_dedup);
-      fechados++;
-    }
-    return fechados;
+    // Tudo numa transação; os eventos só saem depois do commit (a tela nunca vê alerta que o banco ainda não guardou).
+    const fechados = this.db.transaction((): Alerta[] => {
+      const feitos: Alerta[] = [];
+      for (const a of abertos) {
+        const o = fimDe.get(Number(a.chave_dedup.slice('ocorrencia:'.length))) as { fim: string | null } | undefined;
+        if (!o?.fim) continue;
+        feitos.push(...this.fecharIds([a.id], new Date(o.fim)));
+        this.vistas.delete(a.chave_dedup);
+      }
+      return feitos;
+    })();
+    this.avisar(fechados);
+    return fechados.length;
   }
 
   /**
@@ -183,8 +220,12 @@ export class MotorAlertas {
 
   /** Regra 3: conta uma leitura dentro (ou fora) do normal para cada anomalia aberta do equipamento; 3 normais seguidas fecham. */
   private acompanharAnomaliasAbertas(alvo: AlvoAlerta, metricas: Record<string, number | boolean>, em: Date): void {
-    const abertas = this.db.prepare("SELECT chave_dedup FROM alertas WHERE equipamento_id = ? AND tipo = 'anomalia_leitura' AND resolvido_em IS NULL AND chave_dedup IS NOT NULL").all(alvo.id) as { chave_dedup: string }[];
-    if (abertas.length === 0) return;
+    if (!this.comAnomalia.has(alvo.id)) return; // nenhuma anomalia aberta: nada a acompanhar (sem consulta)
+    const abertas = this.qAnomaliasDoEquipamento.all(alvo.id) as { chave_dedup: string }[];
+    if (abertas.length === 0) {
+      this.comAnomalia.delete(alvo.id);
+      return;
+    }
     const z = zPorMetrica(this.base(alvo, em), metricas, alvo.tipo);
     for (const { chave_dedup: chave } of abertas) {
       const zm = z[chave.slice(`anomalia:${alvo.id}:`.length)];
@@ -235,8 +276,11 @@ export class MotorAlertas {
    * do normal do horário. Só avalia equipamento operando. Devolve só os alertas novos.
    */
   avaliarLeitura(alvo: AlvoAlerta, metricas: Record<string, number | boolean>, em: Date, posicao?: { lat: number; lng: number }): Alerta[] {
-    // Regra 2: chegou leitura, então o equipamento voltou a falar.
-    this.resolverPorChave(`sem_sinal:${alvo.id}`, em);
+    // Regra 2: chegou leitura, então o equipamento voltou a falar (só consulta se ele estava calado).
+    if (this.calados.has(alvo.id)) {
+      this.resolverPorChave(`sem_sinal:${alvo.id}`, em);
+      this.calados.delete(alvo.id);
+    }
     if (!OPERANDO.includes(alvo.situacao)) return [];
     const criados: Alerta[] = [];
     const emitido = (a: NovoAlerta) => {

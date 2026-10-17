@@ -89,4 +89,15 @@ describe('alertas', () => {
     expect(ficha.alertas).toHaveLength(1);
     expect(ficha.alertas[0]).toMatchObject({ equipamentoId: eq.id, titulo: 'Radar sem sinal' });
   });
+
+  it('PATCH resolver de alerta já resolvido mantém a origem e não emite o evento de novo', async () => {
+    const a = novo();
+    const eventos: { tipo: string }[] = [];
+    ctx.barramento.assinar((e) => eventos.push(e));
+    await app.inject({ method: 'PATCH', url: `/api/alertas/${a.id}/resolver` });
+    const segunda = await app.inject({ method: 'PATCH', url: `/api/alertas/${a.id}/resolver` });
+    expect(segunda.statusCode).toBe(200);
+    expect(segunda.json()).toMatchObject({ resolucao: 'manual' });
+    expect(eventos.filter((e) => e.tipo === 'alerta')).toHaveLength(1);
+  });
 });

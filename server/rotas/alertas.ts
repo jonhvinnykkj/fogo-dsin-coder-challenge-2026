@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { CRITICIDADES } from '../../shared/dominio';
 import { naoEncontrado } from '../erros';
-import { listarAlertas, reconhecerAlerta, resolverAlerta } from '../repositorios/alertas';
+import { alertaPorId, listarAlertas, reconhecerAlerta, resolverAlerta } from '../repositorios/alertas';
 import { lerId } from './id';
 
 const tags = ['Alertas'];
@@ -38,8 +38,11 @@ export async function rotasAlertas(app: FastifyInstance): Promise<void> {
   });
 
   app.patch('/api/alertas/:id/resolver', { schema: { tags, summary: 'Resolve o alerta (sai da lista de abertos)' } }, async (req) => {
-    const alerta = resolverAlerta(ctx.db, id(req), agora(), 'manual');
-    if (!alerta) throw naoEncontrado('Alerta');
+    const alertaId = id(req);
+    const antes = alertaPorId(ctx.db, alertaId);
+    if (!antes) throw naoEncontrado('Alerta');
+    if (antes.resolvidoEm) return antes; // já resolvido (por pessoa ou pelo sistema): mantém a origem e não avisa de novo
+    const alerta = resolverAlerta(ctx.db, alertaId, agora(), 'manual')!;
     ctx.barramento.emitir({ tipo: 'alerta', dados: alerta }); // a Central tira dos abertos na hora
     return alerta;
   });

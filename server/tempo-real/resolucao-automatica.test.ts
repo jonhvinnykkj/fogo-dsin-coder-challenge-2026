@@ -1,5 +1,5 @@
 // Tarefa 11b: alertas que se resolvem sozinhos quando a causa termina (e anotam que foi automático).
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import type { Alerta, EventoFogo } from '../../shared/modelos';
 import { criarApp } from '../app';
@@ -8,7 +8,9 @@ import { inserirOcorrencia } from '../repositorios/ocorrencias';
 import { criarCtxDeTeste, type CtxDeTeste, type RelogioDeTeste } from '../test/ctx';
 import { inserirEquipamentoDeTeste, inserirTelemetriaDeTeste } from '../test/fabricas';
 import { ingerirTelemetria } from './ingestao';
-import { alvoPorCodigo } from './motor-alertas';
+import { AGORA_PADRAO } from '../test/ctx';
+import { semear, SEMENTE_PADRAO } from '../semente/semear';
+import { alvoPorCodigo, MotorAlertas } from './motor-alertas';
 import { Simulador } from './simulador';
 
 const MIN = 60_000;
@@ -259,17 +261,95 @@ describe('regra 9: limpeza de legado', () => {
   });
 });
 
-describe('equilíbrio', () => {
-  it('2 horas a 60× (passos de 2 s, sem timers) terminam com menos de 40 alertas abertos', () => {
-    const ctx = cidadezinha();
+describe('custo no caminho de leitura', () => {
+  it('leitura normal de equipamento sem alerta aberto não executa nenhuma consulta de alerta', () => {
+    const { ctx } = cidadeComRadar();
+    const r = alvo(ctx, 'FOGO-RAD-0012');
+    const em = new Date(QUARTA_18H);
+    ctx.motor.avaliarLeitura(r, { fluxo: 400 }, em); // esquenta o cache da base horária
+    const Statement = Object.getPrototypeOf(ctx.db.prepare('SELECT 1')) as Record<string, (...a: unknown[]) => unknown>;
+    const espioes = (['get', 'all', 'run'] as const).map((m) => vi.spyOn(Statement, m));
+    const prepare = vi.spyOn(ctx.db, 'prepare');
+    ctx.motor.avaliarLeitura(r, { fluxo: 405 }, em);
+    expect(espioes.map((e) => e.mock.calls.length)).toEqual([0, 0, 0]);
+    expect(prepare).not.toHaveBeenCalled();
+    vi.restoreAllMocks();
+  });
+
+  it('depois de um reinício, o motor reconstrói do banco quem está calado e quem tem anomalia aberta', () => {
+    const { ctx, id } = cidadeComRadar();
+    ctx.db.prepare("UPDATE equipamentos SET ultimo_sinal_em = '2026-10-14T20:00:00.000Z' WHERE id = ?").run(id);
+    ctx.motor.varrer(new Date(QUARTA_18H));
+    expect(abertos(ctx, 'sem_sinal')).toBe(1);
+    const novo = new MotorAlertas({ db: ctx.db, barramento: ctx.barramento, relogio: ctx.relogio });
+    novo.avaliarLeitura(alvo(ctx, 'FOGO-RAD-0012'), { fluxo: 400 }, new Date(QUARTA_18H));
+    expect(abertos(ctx, 'sem_sinal')).toBe(0);
+  });
+});
+
+describe('equilíbrio na cidade de verdade', () => {
+  // Cidade semeada de verdade (350 equipamentos, 80 agentes), mesma semente do produto. Só passo(), relógio de teste e rng com semente.
+  const PASSOS = 450; // 15 min a 60× (passos de 2 s)
+  const TICK_MS = 2000;
+  let ctx: CtxDeTeste;
+  const porTipo = (sql: string) => Object.fromEntries((ctx.db.prepare(sql).all() as { tipo: string; n: number }[]).map((l) => [l.tipo, l.n]));
+  let abertosPorTipo: Record<string, number>;
+  let criadosPorTipo: Record<string, number>;
+  let fechadosPorTipo: Record<string, number>;
+  let abertosAntes: Record<string, number>;
+
+  beforeAll(() => {
+    ctx = criarCtxDeTeste({ agora: AGORA_PADRAO });
+    semear(ctx.db, { agora: new Date(AGORA_PADRAO), semente: SEMENTE_PADRAO, geo: ctx.geo });
     const sim = new Simulador(ctx, { semente: 31 });
     sim.definir({ velocidade: 60 });
-    for (let i = 0; i < (2 * HORA) / 2000; i++) {
+    sim.passo(); // sincroniza e roda a primeira varredura
+    avancar(ctx, TICK_MS);
+    abertosAntes = porTipo('SELECT tipo, COUNT(*) AS n FROM alertas WHERE resolvido_em IS NULL GROUP BY tipo');
+    for (let i = 0; i < PASSOS; i++) {
       sim.passo();
-      avancar(ctx, 2000);
+      avancar(ctx, TICK_MS);
     }
-    const total = (ctx.db.prepare('SELECT COUNT(*) AS n FROM alertas').get() as { n: number }).n;
-    expect(total).toBeGreaterThan(20); // houve movimento de verdade
-    expect(abertos(ctx)).toBeLessThan(40);
-  }, 120_000);
+    abertosPorTipo = porTipo('SELECT tipo, COUNT(*) AS n FROM alertas WHERE resolvido_em IS NULL GROUP BY tipo');
+    criadosPorTipo = porTipo('SELECT tipo, COUNT(*) AS n FROM alertas GROUP BY tipo');
+    fechadosPorTipo = porTipo('SELECT tipo, COUNT(*) AS n FROM alertas WHERE resolvido_em IS NOT NULL GROUP BY tipo');
+  }, 180_000);
+
+  const resumo = () => JSON.stringify({ abertosAntes, abertos: abertosPorTipo, criados: criadosPorTipo, fechados: fechadosPorTipo }, null, 1);
+  const abertoDe = (t: string) => abertosPorTipo[t] ?? 0;
+  const criadoDe = (t: string) => criadosPorTipo[t] ?? 0;
+
+  it('houve movimento de verdade', () => {
+    expect(criadoDe('acidente') + criadoDe('congestionamento'), resumo()).toBeGreaterThan(50);
+  });
+
+  // Tipos que se fecham sozinhos: abertos ≈ chegada por passo × vida do alerta em passos. Limite = 2× isso + folga.
+  // A 60× uma ocorrência dura de 15 s a 1 min 20 s (≤ 40 passos de 2 s); reparo (equipe + conclusão) ≤ ~15 passos.
+  const limiteDe = (tipo: string, vidaMaxPassos: number) => Math.ceil(2 * (criadoDe(tipo) / PASSOS) * vidaMaxPassos) + 5;
+
+  it.each([['acidente', 40], ['congestionamento', 20], ['alagamento', 40], ['falha_equipamento', 30]] as const)(
+    '%s: abertos ficam abaixo de chegada × duração (com folga)', (tipo, vida) => {
+      expect(abertoDe(tipo), `limite ${limiteDe(tipo, vida)}\n${resumo()}`).toBeLessThanOrEqual(limiteDe(tipo, vida));
+    },
+  );
+
+  it('sem_sinal e anomalia_leitura não acumulam (a maior parte dos criados já fechou)', () => {
+    for (const tipo of ['sem_sinal', 'anomalia_leitura']) {
+      expect(abertoDe(tipo), resumo()).toBeLessThanOrEqual(Math.max(15, Math.ceil(0.5 * criadoDe(tipo))));
+    }
+  });
+
+  it('só gente fecha furto_suspeito e manutencao_atrasada: furto nunca fecha; os dois só crescem pelo que foi criado', () => {
+    expect(fechadosPorTipo['furto_suspeito'] ?? 0, resumo()).toBe(0);
+    expect(abertoDe('furto_suspeito'), resumo()).toBe(criadoDe('furto_suspeito'));
+    // Manutenção atrasada: fecha só quando a manutenção é registrada (reparo do simulador conclui uma corretiva).
+    const corretivas = (ctx.db.prepare("SELECT COUNT(*) AS n FROM manutencoes WHERE tipo = 'corretiva' AND concluida_em IS NOT NULL").get() as { n: number }).n;
+    expect(fechadosPorTipo['manutencao_atrasada'] ?? 0, resumo()).toBeLessThanOrEqual(corretivas);
+  });
+
+  it('o total aberto (tudo somado) fica limitado', () => {
+    const total = Object.values(abertosPorTipo).reduce((a, b) => a + b, 0);
+    const humanos = abertoDe('furto_suspeito') + abertoDe('manutencao_atrasada');
+    expect(total - humanos, resumo()).toBeLessThan(150);
+  });
 });

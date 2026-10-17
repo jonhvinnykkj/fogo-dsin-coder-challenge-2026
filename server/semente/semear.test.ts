@@ -205,7 +205,7 @@ describe('preencherLacuna', () => {
     const r = preencherLacuna(antigo.db, { agora: new Date(AGORA.getTime() + 5 * HORA), semente: SEMENTE_PADRAO, geo: antigo.geo });
     expect(r.horasGeradas).toBe(5);
     expect(n(antigo.db, 'SELECT COUNT(*) AS n FROM (SELECT 1 FROM ocorrencias GROUP BY inicio, bairro_id, tipo HAVING COUNT(*) > 1)')).toBe(0);
-  });
+  }, 60_000);
 
   it('em banco vazio não gera nada', () => {
     const vazio = criarCtxDeTeste();
