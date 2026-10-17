@@ -114,7 +114,8 @@ describe('preverRisco', () => {
 
   it('cita "Previsão de chuva" só nos dias com chuva prevista', () => {
     const p = preverRisco(db, { agora: AGORA_PREDITIVO, horas: 168 });
-    const clima = new Map((db.prepare('SELECT data, chuva_mm FROM clima_dia').all() as { data: string; chuva_mm: number }[]).map((l) => [l.data, l.chuva_mm]));
+    // "Chuva prevista" = a previsão do tempo guardada (chuva_prevista_mm), não a chuva que vai cair.
+    const clima = new Map((db.prepare('SELECT data, chuva_prevista_mm AS mm FROM clima_dia').all() as { data: string; mm: number }[]).map((l) => [l.data, l.mm]));
     const diaLocal = (iso: string) => new Date(Date.parse(iso) - 3 * HORA).toISOString().slice(0, 10);
     const citaChuva = (c: CelulaRisco) => c.fatores.some((f) => f.nome === 'Previsão de chuva');
     const chuvosas = p.celulas.filter((c) => (clima.get(diaLocal(c.inicio)) ?? 0) > 0);
@@ -131,6 +132,13 @@ describe('preverRisco', () => {
     expect(explicacao.dadosUsados.length).toBeGreaterThan(0);
     expect(explicacao.confiabilidade.length).toBeGreaterThanOrEqual(2);
     for (const c of explicacao.confiabilidade) expect(Number.isFinite(c.valor)).toBe(true);
+  });
+
+  it('o "O que prevê" de 7 dias fala em blocos de 3 horas (as células são blocos, não horas)', () => {
+    const semana = preverRisco(db, { agora: AGORA_PREDITIVO, horas: 168 }).explicacao.oQuePreve;
+    expect(semana).toMatch(/blocos de 3 horas/);
+    expect(semana).not.toMatch(/cada hora/);
+    expect(preverRisco(db, { agora: AGORA_PREDITIVO, horas: 24 }).explicacao.oQuePreve).toMatch(/cada hora das próximas 24 horas/);
   });
 
   it('com corte `ate`, usa só o que aconteceu antes dele (igual a apagar o depois)', () => {

@@ -5,6 +5,7 @@ import { REGIOES, TURNOS } from '../../shared/dominio';
 import { dentroDeMarilia } from '../../shared/geo';
 import { schemaCaracteristicas, type TipoEquipamentoId } from '../../shared/tipos-equipamento';
 import { AGORA_PADRAO, criarCtxDeTeste, type CtxDeTeste } from '../test/ctx';
+import { quedasDeSinal } from '../preditivo/base';
 import { gerarCidade } from './cidade';
 import { preencherLacuna, semear, SEMENTE_PADRAO } from './semear';
 
@@ -205,6 +206,24 @@ describe('preencherLacuna', () => {
     const r = preencherLacuna(antigo.db, { agora: new Date(AGORA.getTime() + 5 * HORA), semente: SEMENTE_PADRAO, geo: antigo.geo });
     expect(r.horasGeradas).toBe(5);
     expect(n(antigo.db, 'SELECT COUNT(*) AS n FROM (SELECT 1 FROM ocorrencias GROUP BY inicio, bairro_id, tipo HAVING COUNT(*) > 1)')).toBe(0);
+  }, 60_000);
+
+  // A ingestão ao vivo grava em online_min o último minuto coberto da hora; se o servidor para às 15h40, a hora das 15h fica
+  // com 40 min. Ao reiniciar, essa hora entra no histórico e não pode virar "1 hora com sinal fraco" para todo equipamento.
+  it('reiniciar completa a hora em que o servidor parou: ninguém ganha "hora com sinal fraco" por isso', () => {
+    const vivo = criarCtxDeTeste();
+    const referencia = criarCtxDeTeste();
+    for (const c of [vivo, referencia]) semear(c.db, { agora: AGORA, semente: SEMENTE_PADRAO, geo: c.geo });
+    const ids = (vivo.db.prepare("SELECT id FROM equipamentos WHERE situacao = 'operacional'").all() as { id: number }[]).map((l) => l.id);
+    const parcial = vivo.db.prepare('INSERT INTO telemetria_hora (equipamento_id, hora, leituras, online_min, metricas) VALUES (?, ?, 20, 40, ?)');
+    for (const id of ids) parcial.run(id, AGORA.toISOString(), '{}'); // a hora das 15h, ao vivo, até 15h40
+    const reinicio = new Date(AGORA.getTime() + 3 * HORA);
+    for (const c of [vivo, referencia]) preencherLacuna(c.db, { agora: reinicio, semente: SEMENTE_PADRAO, geo: c.geo });
+    const fracas = (db: Database) => n(db, 'SELECT COUNT(*) AS n FROM telemetria_hora WHERE hora = ? AND online_min < 55', AGORA.toISOString());
+    expect(fracas(vivo.db)).toBe(fracas(referencia.db));
+    expect(fracas(vivo.db)).toBeLessThan(ids.length / 5);
+    const desde = new Date(reinicio.getTime() - 72 * HORA);
+    expect(quedasDeSinal(vivo.db, desde.getTime(), reinicio.getTime())).toEqual(quedasDeSinal(referencia.db, desde.getTime(), reinicio.getTime()));
   }, 60_000);
 
   it('em banco vazio não gera nada', () => {

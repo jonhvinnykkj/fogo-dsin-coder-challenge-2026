@@ -8,6 +8,7 @@ import type { FiltrosCentral } from '../../shared/schemas';
 import type {
   AgenteMapa, EquipamentoMapa, Indicadores, NivelAtencao, StatusBairro, StatusRegiao,
 } from '../../shared/modelos';
+import { formatarNumero } from '../../shared/formato';
 import { NOME_DO_TIPO, type TipoEquipamentoId } from '../../shared/tipos-equipamento';
 import { posicaoNoMapa, situacaoDaManutencao } from '../repositorios/equipamentos';
 import { dataLocal } from '../tempo';
@@ -170,6 +171,18 @@ const PESO_OCORRENCIA = 4;
 
 export const nivelDoIndice = (indice: number): NivelAtencao => (indice >= 60 ? 'critico' : indice >= 30 ? 'atencao' : 'normal');
 
+/**
+ * Ocorrências das últimas 3 h no índice: cada uma conta pelo `peso` gravado nela. Histórico e eventos injetados valem 1;
+ * as ao vivo valem 1 ÷ (8 × velocidade em que começaram), porque o simulador gera 8 vezes o ritmo real (× a velocidade).
+ * Assim o índice mede a cidade no ritmo real: 10 minutos a 60× não pintam todas as regiões de vermelho.
+ */
+function textoOcorrencias(n: number, soma: number): string {
+  const base = n === 1 ? `1 ocorrência nas últimas ${JANELA_OCORRENCIAS_H} h` : `${formatarNumero(n)} ocorrências nas últimas ${JANELA_OCORRENCIAS_H} h`;
+  if (Math.abs(soma - n) < 1e-9) return base;
+  const v = Math.round(soma * 10) / 10;
+  return `${base} (contam como ${formatarNumero(v, Number.isInteger(v) ? 0 : 1)} no ritmo real)`;
+}
+
 const doBairro = <T>(mapa: Map<number, T[]>, id: number): T[] => {
   let l = mapa.get(id);
   if (!l) mapa.set(id, (l = []));
@@ -187,23 +200,24 @@ export function calcularStatusRegioes(db: Database, agora: Date): StatusRegiao[]
     .prepare("SELECT bairro_id, criticidade, COUNT(*) AS n FROM alertas WHERE resolvido_em IS NULL AND bairro_id IS NOT NULL AND criticidade IN ('critica','alta') GROUP BY bairro_id, criticidade")
     .all() as { bairro_id: number; criticidade: Criticidade; n: number }[];
   const ocorrencias = db
-    .prepare('SELECT bairro_id, COUNT(*) AS n FROM ocorrencias WHERE inicio >= ? AND inicio <= ? GROUP BY bairro_id')
-    .all(desde, agora.toISOString()) as { bairro_id: number; n: number }[];
+    .prepare('SELECT bairro_id, COUNT(*) AS n, SUM(peso) AS soma FROM ocorrencias WHERE inicio >= ? AND inicio <= ? GROUP BY bairro_id')
+    .all(desde, agora.toISOString()) as { bairro_id: number; n: number; soma: number }[];
 
   const indispPorBairro = new Map<number, { tipo: TipoEquipamentoId; n: number }[]>();
   for (const l of indisponiveis) doBairro(indispPorBairro, l.bairro_id).push({ tipo: l.tipo, n: l.n });
   const criticosPorBairro = new Map<number, number>();
   const altosPorBairro = new Map<number, number>();
   for (const l of alertas) (l.criticidade === 'critica' ? criticosPorBairro : altosPorBairro).set(l.bairro_id, l.n);
-  const ocPorBairro = new Map(ocorrencias.map((l) => [l.bairro_id, l.n]));
+  const ocPorBairro = new Map(ocorrencias.map((l) => [l.bairro_id, l]));
 
-  const statusBairros: (StatusBairro & { regiao: Regiao; indisp: number; criticos: number; altos: number; oc: number })[] = bairros.map((b) => {
+  const statusBairros: (StatusBairro & { regiao: Regiao; indisp: number; criticos: number; altos: number; oc: number; ocPeso: number })[] = bairros.map((b) => {
     const grupos = (indispPorBairro.get(b.id) ?? []).sort((x, y) => y.n - x.n || x.tipo.localeCompare(y.tipo));
     const indisp = grupos.reduce((s, g) => s + g.n, 0);
     const criticos = criticosPorBairro.get(b.id) ?? 0;
     const altos = altosPorBairro.get(b.id) ?? 0;
-    const oc = ocPorBairro.get(b.id) ?? 0;
-    const indice = Math.min(100, PESO_INDISPONIVEL * indisp + PESO_ALERTA_CRITICO * criticos + PESO_ALERTA_ALTO * altos + PESO_OCORRENCIA * oc);
+    const oc = ocPorBairro.get(b.id)?.n ?? 0;
+    const ocPeso = ocPorBairro.get(b.id)?.soma ?? 0;
+    const indice = Math.min(100, Math.round(PESO_INDISPONIVEL * indisp + PESO_ALERTA_CRITICO * criticos + PESO_ALERTA_ALTO * altos + PESO_OCORRENCIA * ocPeso));
 
     const motivos: string[] = [];
     if (criticos) motivos.push(criticos === 1 ? '1 alerta crítico aberto' : `${criticos} alertas críticos abertos`);
@@ -212,15 +226,15 @@ export function calcularStatusRegioes(db: Database, agora: Date): StatusRegiao[]
       const [um, varios] = NOME_DO_TIPO[g.tipo];
       motivos.push(g.n === 1 ? `1 ${um} indisponível` : `${g.n} ${varios} indisponíveis`);
     }
-    if (oc) motivos.push(oc === 1 ? `1 ocorrência nas últimas ${JANELA_OCORRENCIAS_H} h` : `${oc} ocorrências nas últimas ${JANELA_OCORRENCIAS_H} h`);
+    if (oc) motivos.push(textoOcorrencias(oc, ocPeso));
 
-    return { bairroId: b.id, nome: b.nome, indice, nivel: nivelDoIndice(indice), motivos, regiao: b.regiao, indisp, criticos, altos, oc };
+    return { bairroId: b.id, nome: b.nome, indice, nivel: nivelDoIndice(indice), motivos, regiao: b.regiao, indisp, criticos, altos, oc, ocPeso };
   });
 
   return REGIOES.map((regiao) => {
     const dela = statusBairros.filter((b) => b.regiao === regiao);
     const indice = dela.reduce((m, b) => Math.max(m, b.indice), 0);
-    const soma = (campo: 'indisp' | 'criticos' | 'altos' | 'oc') => dela.reduce((s, b) => s + b[campo], 0);
+    const soma = (campo: 'indisp' | 'criticos' | 'altos' | 'oc' | 'ocPeso') => dela.reduce((s, b) => s + b[campo], 0);
     const pior = [...dela].sort((a, b) => b.indice - a.indice)[0];
     const motivos: string[] = [];
     if (pior && pior.indice > 0) motivos.push(`Maior pressão: ${pior.nome} (índice ${pior.indice})`);
@@ -231,7 +245,7 @@ export function calcularStatusRegioes(db: Database, agora: Date): StatusRegiao[]
     if (criticos) motivos.push(criticos === 1 ? '1 alerta crítico aberto' : `${criticos} alertas críticos abertos`);
     if (altos) motivos.push(altos === 1 ? '1 alerta alto aberto' : `${altos} alertas altos abertos`);
     if (indisp) motivos.push(indisp === 1 ? '1 equipamento indisponível' : `${indisp} equipamentos indisponíveis`);
-    if (oc) motivos.push(oc === 1 ? `1 ocorrência nas últimas ${JANELA_OCORRENCIAS_H} h` : `${oc} ocorrências nas últimas ${JANELA_OCORRENCIAS_H} h`);
+    if (oc) motivos.push(textoOcorrencias(oc, soma('ocPeso')));
     return {
       regiao,
       indice,

@@ -28,8 +28,7 @@ const cep = z
   .transform((v) => (v.includes('-') ? v : `${v.slice(0, 5)}-${v.slice(5)}`))
   .refine((v) => v >= '17500-000' && v <= '17539-999', 'O CEP precisa ser de Marília (17500-000 a 17539-999)');
 
-export const equipamentoInputSchema = z
-  .object({
+const camposEquipamento = z.object({
     tipo: opcaoDe(IDS_TIPO, 'Tipo'),
     numeroSerie: z.string({ required_error: 'Informe o número de série' }).trim().min(1, 'Informe o número de série').max(60),
     marca: z.string({ required_error: 'Informe a marca' }).trim().min(1, 'Informe a marca').max(60),
@@ -48,23 +47,35 @@ export const equipamentoInputSchema = z
     proximaManutencao: dataIso('Próxima manutenção').optional(),
     caracteristicas: z.record(z.unknown()).default({}),
     instaladoEm: dataIso('Data de instalação').optional(),
-  })
-  .superRefine((v, ctx) => {
-    if (!dentroDeMarilia(v.lat, v.lng)) {
-      ctx.addIssue({ code: 'custom', path: ['lat'], message: MSG_FORA });
-    }
-    if ((v.manutencaoNecessidade === 'agendada' || v.manutencaoNecessidade === 'periodica') && !v.proximaManutencao) {
-      ctx.addIssue({ code: 'custom', path: ['proximaManutencao'], message: 'Informe a data da próxima manutenção' });
-    }
-    if (v.manutencaoNecessidade === 'periodica' && !v.manutencaoPeriodicidadeDias) {
-      ctx.addIssue({ code: 'custom', path: ['manutencaoPeriodicidadeDias'], message: 'Informe a periodicidade em dias' });
-    }
-    const r = schemaCaracteristicas(v.tipo).safeParse(v.caracteristicas);
-    if (!r.success) {
-      for (const i of r.error.issues) ctx.addIssue({ code: 'custom', path: ['caracteristicas', ...i.path], message: i.message });
-    }
   });
+
+function regrasEquipamento(v: z.infer<typeof camposEquipamento> | z.infer<typeof camposEdicao>, ctx: z.RefinementCtx): void {
+  if (!dentroDeMarilia(v.lat, v.lng)) {
+    ctx.addIssue({ code: 'custom', path: ['lat'], message: MSG_FORA });
+  }
+  if ((v.manutencaoNecessidade === 'agendada' || v.manutencaoNecessidade === 'periodica') && !v.proximaManutencao) {
+    ctx.addIssue({ code: 'custom', path: ['proximaManutencao'], message: 'Informe a data da próxima manutenção' });
+  }
+  if (v.manutencaoNecessidade === 'periodica' && !v.manutencaoPeriodicidadeDias) {
+    ctx.addIssue({ code: 'custom', path: ['manutencaoPeriodicidadeDias'], message: 'Informe a periodicidade em dias' });
+  }
+  const r = schemaCaracteristicas(v.tipo).safeParse(v.caracteristicas);
+  if (!r.success) {
+    for (const i of r.error.issues) ctx.addIssue({ code: 'custom', path: ['caracteristicas', ...i.path], message: i.message });
+  }
+}
+
+export const equipamentoInputSchema = camposEquipamento.superRefine(regrasEquipamento);
 export type EquipamentoInput = z.infer<typeof equipamentoInputSchema>;
+
+/**
+ * Edição (PUT): os mesmos campos, mas o grupo de manutenção (necessidade, periodicidade, última e próxima) pode ficar de
+ * fora. Sem `manutencaoNecessidade`, o servidor mantém as quatro datas gravadas: o registro de manutenção e o simulador
+ * mudam essas datas, e o formulário aberto antes não pode desfazer. Com ela, o grupo vale inteiro (e é validado junto).
+ */
+const camposEdicao = camposEquipamento.extend({ manutencaoNecessidade: opcaoDe(NECESSIDADES_MANUTENCAO, 'Necessidade de manutenção').optional() });
+export const equipamentoEdicaoSchema = camposEdicao.superRefine(regrasEquipamento);
+export type EquipamentoEdicao = z.infer<typeof equipamentoEdicaoSchema>;
 
 export const agenteInputSchema = z
   .object({

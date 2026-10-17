@@ -146,6 +146,21 @@ describe('calcularStatusRegioes', () => {
     expect(b2s.nivel).toBe('critico');
   });
 
+  it('ocorrência ao vivo conta pelo peso guardado nela (ritmo real): 8 a 1× valem 1 ocorrência do histórico', () => {
+    const ctx = criarCtxDeTeste();
+    const [b, b2] = bairros(ctx);
+    const ins = ctx.db.prepare(
+      "INSERT INTO ocorrencias (tipo, gravidade, bairro_id, lat, lng, inicio, descricao, chuva, origem, peso) VALUES ('acidente', 2, ?, -22.2, -49.9, ?, '', 0, ?, ?)",
+    );
+    for (let i = 0; i < 8; i++) ins.run(b!.id, '2026-10-17T14:30:00.000Z', 'tempo_real', 1 / 8);
+    ins.run(b2!.id, '2026-10-17T14:30:00.000Z', 'injetado', 1); // evento injetado: peso cheio
+    const lista = calcularStatusRegioes(ctx.db, AGORA).flatMap((r) => r.bairros);
+    const bairro = lista.find((x) => x.bairroId === b!.id)!;
+    expect(bairro.indice).toBe(4);
+    expect(bairro.motivos).toEqual(['8 ocorrências nas últimas 3 h (contam como 1 no ritmo real)']);
+    expect(lista.find((x) => x.bairroId === b2!.id)).toMatchObject({ indice: 4, motivos: ['1 ocorrência nas últimas 3 h'] });
+  });
+
   it('bairro sem problemas fica normal, índice 0 e sem motivos; alerta resolvido não conta', () => {
     const ctx = criarCtxDeTeste();
     const [b] = bairros(ctx);

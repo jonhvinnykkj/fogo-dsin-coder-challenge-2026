@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { equipamentoInputSchema, filtrosEquipamentoSchema, manutencaoInputSchema, mudancaSituacaoSchema } from '../../shared/schemas';
+import { equipamentoEdicaoSchema, equipamentoInputSchema, filtrosEquipamentoSchema, manutencaoInputSchema, mudancaSituacaoSchema } from '../../shared/schemas';
 import * as servico from '../servicos/equipamentos';
 import { lerId } from './id';
 
@@ -31,9 +31,9 @@ export async function rotasEquipamentos(app: FastifyInstance): Promise<void> {
     schema: {
       tags,
       summary: 'Edita os dados cadastrais',
-      description: 'Não altera código, token, posição atual, último sinal nem a situação (use PATCH /situacao).',
+      description: 'Não altera código, token, posição atual, último sinal nem a situação (use PATCH /situacao). O grupo de manutenção (manutencaoNecessidade, manutencaoPeriodicidadeDias, ultimaManutencao, proximaManutencao) é opcional: sem manutencaoNecessidade, as datas gravadas ficam como estão.',
     },
-  }, async (req) => servico.atualizarEquipamento(ctx, id(req), equipamentoInputSchema.parse(req.body)));
+  }, async (req) => servico.atualizarEquipamento(ctx, id(req), equipamentoEdicaoSchema.parse(req.body)));
 
   app.patch('/api/equipamentos/:id/situacao', {
     schema: {
@@ -58,7 +58,7 @@ export async function rotasEquipamentos(app: FastifyInstance): Promise<void> {
     schema: {
       tags: ['Manutenção'],
       summary: 'Registra manutenção prevista ou concluída',
-      description: 'Corpo: { tipo: corretiva|preventiva, descricao, previstaPara?, concluidaEm? }. Concluída: atualiza última/próxima data e devolve o equipamento a "operacional" se estava em manutenção ou com mau funcionamento.',
+      description: 'Corpo: { tipo: corretiva|preventiva, descricao, previstaPara?, concluidaEm? }. Prevista: se já há uma do mesmo tipo em aberto, 409. Concluída: fecha a prevista do mesmo tipo (se houver), atualiza última/próxima data e devolve o equipamento a "operacional" se estava em manutenção ou com mau funcionamento.',
     },
   }, async (req, reply) => reply.code(201).send(servico.registrarManutencao(ctx, id(req), manutencaoInputSchema.parse(req.body))));
 }

@@ -1,7 +1,7 @@
 import type { Database } from 'better-sqlite3';
 import type { NecessidadeManutencao, Orgao, Regiao, SituacaoEquipamento } from '../../shared/dominio';
 import type { Equipamento, EquipamentoMapa, HistoricoSituacao, Pagina, PontoTelemetria, SituacaoManutencao } from '../../shared/modelos';
-import type { EquipamentoInput, FiltrosEquipamento } from '../../shared/schemas';
+import type { EquipamentoEdicao, EquipamentoInput, FiltrosEquipamento } from '../../shared/schemas';
 import { tipoPorId, type TipoEquipamentoId } from '../../shared/tipos-equipamento';
 import { somarDias } from '../tempo';
 import { condicaoBusca } from './busca';
@@ -119,18 +119,21 @@ export function inserirEquipamento(db: Database, e: EquipamentoInput, d: DadosNo
 /**
  * Atualiza os dados cadastrais. NÃO toca em código, token, situação, posição atual nem último sinal:
  * esses campos pertencem à telemetria/ao fluxo de situação e o formulário nunca os sobrescreve.
+ * O grupo de manutenção só é gravado quando veio (`manutencaoNecessidade` presente); sem ele, as datas ficam como estão.
  */
-export function atualizarEquipamento(db: Database, id: number, e: EquipamentoInput, agora: string): void {
+export function atualizarEquipamento(db: Database, id: number, e: EquipamentoEdicao, agora: string): void {
   db.prepare(
     `UPDATE equipamentos SET tipo = ?, numero_serie = ?, marca = ?, modelo = ?, orgao = ?, cep = ?, logradouro = ?, referencia = ?,
-       bairro_id = ?, lat = ?, lng = ?, manutencao_necessidade = ?, manutencao_periodicidade_dias = ?, ultima_manutencao = ?,
-       proxima_manutencao = ?, caracteristicas = ?, instalado_em = ?, atualizado_em = ?
+       bairro_id = ?, lat = ?, lng = ?, caracteristicas = ?, instalado_em = ?, atualizado_em = ?
      WHERE id = ?`,
   ).run(
     e.tipo, e.numeroSerie, e.marca, e.modelo, e.orgao, e.cep, e.logradouro, e.referencia, e.bairroId, e.lat, e.lng,
-    e.manutencaoNecessidade, e.manutencaoPeriodicidadeDias ?? null, e.ultimaManutencao ?? null, e.proximaManutencao ?? null,
     JSON.stringify(e.caracteristicas), e.instaladoEm ?? null, agora, id,
   );
+  if (e.manutencaoNecessidade !== undefined) {
+    db.prepare('UPDATE equipamentos SET manutencao_necessidade = ?, manutencao_periodicidade_dias = ?, ultima_manutencao = ?, proxima_manutencao = ? WHERE id = ?')
+      .run(e.manutencaoNecessidade, e.manutencaoPeriodicidadeDias ?? null, e.ultimaManutencao ?? null, e.proximaManutencao ?? null, id);
+  }
 }
 
 export function gravarSituacao(
@@ -142,7 +145,13 @@ export function gravarSituacao(
   agora: string,
 ): void {
   db.prepare('UPDATE equipamentos SET situacao = ?, atualizado_em = ? WHERE id = ?').run(para, agora, id);
-  db.prepare('INSERT INTO historico_situacao (equipamento_id, de, para, motivo, em) VALUES (?, ?, ?, ?, ?)').run(id, de, para, motivo, agora);
+  // Toda mudança gravada por aqui é ao vivo (simulador ou tela): a semente grava as do histórico direto, com origem 'historico'.
+  db.prepare("INSERT INTO historico_situacao (equipamento_id, de, para, motivo, em, origem) VALUES (?, ?, ?, ?, ?, 'ao_vivo')").run(id, de, para, motivo, agora);
+}
+
+/** Posição atual de volta ao ponto cadastrado (o patinete recuperado de um furto volta à base). */
+export function voltarParaBase(db: Database, id: number): void {
+  db.prepare('UPDATE equipamentos SET lat_atual = lat, lng_atual = lng WHERE id = ?').run(id);
 }
 
 export interface AjusteManutencao {

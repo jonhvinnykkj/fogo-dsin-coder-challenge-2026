@@ -3,8 +3,8 @@
 // Para cada um dos 14 dias completos antes de hoje:
 //   1. corta os dados na meia-noite que abre o dia (o modelo só vê o que aconteceu até a véspera) e recalcula tudo:
 //      base, perfis, razão de chuva e tendência (base.ts → calcularEstatisticas);
-//   2. prevê as 24 horas do dia e mais 2 (até as 2h da madrugada seguinte, fim da noite) para cada bairro (a chuva do dia
-//      entra como "previsão": na cidade sintética a previsão do tempo sempre se confirma);
+//   2. prevê as 24 horas do dia e mais 2 (até as 2h da madrugada seguinte, fim da noite) para cada bairro, com a previsão do
+//      tempo guardada para o dia (clima_dia.chuva_prevista_mm), não com a chuva que caiu nele;
 //   3. compara com o que aconteceu.
 // Erro médio absoluto (MAE) por bairro em blocos de 3 horas (0h–3h, 3h–6h… : 8 blocos por dia, como o mapa de 7 dias):
 //   média de |previsto − ocorrido| sobre bairros × blocos. Ex.: previu 1,2 e houve 2 → erro 0,8.
@@ -116,7 +116,7 @@ function explicarBacktest(r: Omit<ResultadoBacktest, 'explicacao'>, inicioMs: nu
     oQuePreve: `Quanto o mapa de risco teria acertado nos ${r.dias} dias antes de hoje (${fmtData(primeiro)} a ${fmtData(ultimo)}) se cada dia tivesse sido previsto na véspera.`,
     dadosUsados: [
       `Ocorrências registradas de ${diaMes(inicioMs)} a ${diaMes(fimMs - 1)}, por bairro e hora`,
-      'Para cada dia, o modelo foi refeito só com os dados até a meia-noite anterior (nada do próprio dia entra no cálculo)',
+      'Para cada dia, o modelo foi refeito só com os dados até a meia-noite anterior, e a chuva do dia entra pela previsão do tempo da véspera, não pela que caiu (nada do próprio dia entra no cálculo)',
       'Comparação: a média simples de ocorrências por hora de cada bairro, igual em todas as horas, sem horário, chuva nem tendência',
     ],
     comoAjuda: 'Diz se dá para confiar no mapa de risco antes de mexer na escala: quanto ele erra e se aponta os bairros certos.',

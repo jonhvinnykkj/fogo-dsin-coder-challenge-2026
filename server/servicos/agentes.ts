@@ -9,7 +9,7 @@ import { bairroExiste } from '../repositorios/bairros';
 import { equipamentoPorId } from '../repositorios/equipamentos';
 import { ocorrenciasDoAgente } from '../repositorios/ocorrencias';
 
-type Base = Pick<ContextoApp, 'db' | 'relogio'>;
+type Base = Pick<ContextoApp, 'db' | 'relogio'> & Partial<Pick<ContextoApp, 'simulador'>>;
 
 const agoraIso = (ctx: Base) => ctx.relogio.agora().toISOString();
 
@@ -33,21 +33,27 @@ export function detalheDoAgente(ctx: Base, id: number): AgenteDetalhe {
   return { ...exigirAgente(ctx, id), ocorrencias: ocorrenciasDoAgente(ctx.db, id, 20) };
 }
 
+// Toda mudança de cadastro avisa o simulador (`recarregar`): ele relê os agentes antes de designar o próximo.
+
 export function criarAgente(ctx: Base, dados: AgenteInput): AgenteDetalhe {
   validarReferencias(ctx, dados);
-  return detalheDoAgente(ctx, repo.inserirAgente(ctx.db, dados, agoraIso(ctx)));
+  const id = repo.inserirAgente(ctx.db, dados, agoraIso(ctx));
+  ctx.simulador?.recarregar();
+  return detalheDoAgente(ctx, id);
 }
 
 export function atualizarAgente(ctx: Base, id: number, dados: AgenteInput): AgenteDetalhe {
   exigirAgente(ctx, id);
   validarReferencias(ctx, dados, id);
   repo.atualizarAgente(ctx.db, id, dados, agoraIso(ctx));
+  ctx.simulador?.recarregar();
   return detalheDoAgente(ctx, id);
 }
 
 export function mudarSituacaoAgente(ctx: Base, id: number, situacao: SituacaoAgente): AgenteDetalhe {
   exigirAgente(ctx, id);
   repo.gravarSituacaoAgente(ctx.db, id, situacao, agoraIso(ctx));
+  ctx.simulador?.recarregar();
   return detalheDoAgente(ctx, id);
 }
 
@@ -57,4 +63,5 @@ export function excluirAgente(ctx: Base, id: number): void {
     throw conflito("Este agente tem histórico. Use a situação 'Fora de serviço' em vez de excluir.");
   }
   repo.removerAgente(ctx.db, id);
+  ctx.simulador?.recarregar(); // sai da memória do simulador antes da próxima designação
 }

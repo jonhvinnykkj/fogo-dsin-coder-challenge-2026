@@ -12,7 +12,7 @@ import { criarRng, derivarSemente } from './aleatorio';
 import { confiabilidadeDoModelo } from './catalogo-marcas';
 import { BAIRROS_FURTO_PATINETE, bairrosAlagaveis, fimDoUltimoTurno, gerarCidade, pesoOcorrenciaBairros } from './cidade';
 import {
-  chuvaDoDia, construirLinhaDoTempo, DIAS_HISTORICO, DIAS_PREVISAO, ESTADO, fatorRiscoEquipamento, gerarOcorrenciasDaHora, linhaTelemetria,
+  chuvaDoDia, construirLinhaDoTempo, DIAS_HISTORICO, DIAS_PREVISAO, ESTADO, fatorRiscoEquipamento, gerarOcorrenciasDaHora, linhaTelemetria, previsaoDeChuva,
   type ContextoHoras, type EquipamentoHist, type EquipamentoLigado, type EscolaHist, type EstadoHora, type FurtoPendente, type LinhaDoTempo,
 } from './historico';
 import { fatorLocalEquipamento } from './perfis';
@@ -77,18 +77,18 @@ export function semear(db: Database, { agora, semente, geo }: OpcoesSemente): Re
 
     const insEquipamento = db.prepare(`INSERT INTO equipamentos (codigo, tipo, numero_serie, marca, modelo, orgao, situacao, cep, logradouro,
         referencia, bairro_id, lat, lng, lat_atual, lng_atual, manutencao_necessidade, manutencao_periodicidade_dias, ultima_manutencao,
-        proxima_manutencao, caracteristicas, instalado_em, ultimo_sinal_em, token_dispositivo, criado_em, atualizado_em)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+        proxima_manutencao, caracteristicas, instalado_em, ultimo_sinal_em, token_dispositivo, criado_em, atualizado_em, proxima_manutencao_historico)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
     const ids = cidade.equipamentos.map((e, i) => {
       const l = linhas[i]!;
       const periodicidade = l.necessidade === 'nenhuma' || l.necessidade === 'agendada' ? null : e.periodicidadeDias;
       const criado = e.criadoEm;
       const atualizado = l.atualizadoEm && l.atualizadoEm > criado ? l.atualizadoEm : criado;
+      const proxima = l.necessidade === 'nenhuma' ? null : l.proximaManutencao;
       return Number(insEquipamento.run(
         e.codigo, e.tipo, e.numeroSerie, e.marca, e.modelo, e.orgao, e.situacao, e.cep, e.logradouro, e.referencia, e.bairro.id,
-        e.lat, e.lng, e.latAtual, e.lngAtual, l.necessidade, periodicidade, l.ultimaManutencao,
-        l.necessidade === 'nenhuma' ? null : l.proximaManutencao, JSON.stringify(e.caracteristicas),
-        e.instaladoEm ? dataLocal(e.instaladoEm) : null, iso(l.ultimoSinalEm), e.token, criado.toISOString(), atualizado.toISOString(),
+        e.lat, e.lng, e.latAtual, e.lngAtual, l.necessidade, periodicidade, l.ultimaManutencao, proxima, JSON.stringify(e.caracteristicas),
+        e.instaladoEm ? dataLocal(e.instaladoEm) : null, iso(l.ultimoSinalEm), e.token, criado.toISOString(), atualizado.toISOString(), proxima,
       ).lastInsertRowid);
     });
 
@@ -140,6 +140,9 @@ export function semear(db: Database, { agora, semente, geo }: OpcoesSemente): Re
  * Lacunas maiores que 60 dias são cortadas (só os últimos 60 dias são gerados).
  */
 export function preencherLacuna(db: Database, { agora, semente, geo }: OpcoesSemente): { horasGeradas: number } {
+  completarPrevisoesDeChuva(db, semente); // banco de antes da previsão guardada: preenche uma vez
+  // Banco de antes da rodada final (ou equipamento cadastrado pela tela): a próxima manutenção "do histórico" é a de agora.
+  db.prepare('UPDATE equipamentos SET proxima_manutencao_historico = proxima_manutencao WHERE proxima_manutencao_historico IS NULL AND proxima_manutencao IS NOT NULL').run();
   if (contar(db, 'equipamentos') === 0) return { horasGeradas: 0 };
   // `historico_ate` marca até onde o HISTÓRICO foi gerado. A telemetria ao vivo grava a hora corrente em telemetria_hora,
   // então MAX(hora) só serve de reserva para bancos antigos, criados antes dessa marca.
@@ -198,14 +201,31 @@ function numerarOrdensDeServico(linhas: LinhaDoTempo[], ano: string): void {
   }
 }
 
-/** Chuva observada do início da janela até hoje e previsão para os próximos 7 dias. Dias que passaram deixam de ser previsão. */
+/**
+ * Chuva do início da janela até 7 dias à frente: a que cai (`chuva_mm`; `previsto` = 1 nos dias que ainda não chegaram) e
+ * a previsão do tempo da véspera (`chuva_prevista_mm`, observada + erro, ver previsaoDeChuva). A previsão de um dia,
+ * uma vez guardada, não muda. Dias que passaram deixam de ser "previsto".
+ */
 function gravarClima(db: Database, semente: number, inicio: Date, agora: Date): void {
   const hoje = dataLocal(agora);
   const ultimo = somarDias(hoje, DIAS_PREVISAO);
-  const ins = db.prepare(`INSERT INTO clima_dia (data, chuva_mm, previsto) VALUES (?, ?, ?)
-    ON CONFLICT(data) DO UPDATE SET previsto = excluded.previsto`);
-  for (let d = dataLocal(inicio); d <= ultimo; d = somarDias(d, 1)) ins.run(d, chuvaDoDia(semente, d), d > hoje ? 1 : 0);
+  const ins = db.prepare(`INSERT INTO clima_dia (data, chuva_mm, previsto, chuva_prevista_mm) VALUES (?, ?, ?, ?)
+    ON CONFLICT(data) DO UPDATE SET previsto = excluded.previsto, chuva_prevista_mm = COALESCE(clima_dia.chuva_prevista_mm, excluded.chuva_prevista_mm)`);
+  for (let d = dataLocal(inicio); d <= ultimo; d = somarDias(d, 1)) {
+    const mm = chuvaDoDia(semente, d);
+    ins.run(d, mm, d > hoje ? 1 : 0, previsaoDeChuva(semente, d, mm));
+  }
   db.prepare('UPDATE clima_dia SET previsto = 0 WHERE data <= ? AND previsto = 1').run(hoje);
+}
+
+/** Dias sem previsão guardada (banco criado antes dela) ganham a previsão determinística a partir da chuva observada. */
+export function completarPrevisoesDeChuva(db: Database, semente: number): void {
+  const faltando = db.prepare('SELECT data, chuva_mm FROM clima_dia WHERE chuva_prevista_mm IS NULL').all() as { data: string; chuva_mm: number }[];
+  if (faltando.length === 0) return;
+  const upd = db.prepare('UPDATE clima_dia SET chuva_prevista_mm = ? WHERE data = ?');
+  db.transaction(() => {
+    for (const d of faltando) upd.run(previsaoDeChuva(semente, d.data, d.chuva_mm), d.data);
+  })();
 }
 
 export type EquipamentoSim = EquipamentoHist & { situacao: SituacaoEquipamento };
@@ -308,8 +328,11 @@ function gerarHoras(
 ): { ocorrencias: number; leituras: number } {
   const insOcorrencia: Statement = db.prepare(`INSERT INTO ocorrencias (tipo, gravidade, bairro_id, lat, lng, inicio, fim, equipamento_id, agente_id,
       descricao, chuva, origem) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'historico')`);
-  // OR IGNORE: se a telemetria ao vivo já gravou a hora corrente, a linha dela vale mais que a gerada.
-  const insTelemetria: Statement = db.prepare('INSERT OR IGNORE INTO telemetria_hora (equipamento_id, hora, leituras, online_min, metricas) VALUES (?, ?, ?, ?, ?)');
+  // Se a telemetria ao vivo já gravou a hora, as métricas dela valem mais que as geradas. Mas o online_min ao vivo é o último
+  // minuto coberto: na hora em que o servidor parou (ou ligou) ele fica incompleto, e a hora viraria "sinal fraco" para todo
+  // equipamento. A cidade continuou funcionando enquanto o servidor estava desligado: fica o maior dos dois.
+  const insTelemetria: Statement = db.prepare(`INSERT INTO telemetria_hora (equipamento_id, hora, leituras, online_min, metricas) VALUES (?, ?, ?, ?, ?)
+    ON CONFLICT(equipamento_id, hora) DO UPDATE SET online_min = MAX(online_min, excluded.online_min)`);
   const bateria = new Map<number, number>();
   let ocorrencias = 0;
   let leituras = 0;

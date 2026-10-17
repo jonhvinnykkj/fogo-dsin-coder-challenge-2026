@@ -224,6 +224,23 @@ describe('edição (PUT)', () => {
     expect((await ler(eq.id)).tipo).toBe('radar');
   });
 
+  // O formulário de edição só manda o grupo de manutenção (necessidade, periodicidade, última e próxima) quando a pessoa
+  // mexe nele. Sem o grupo, o PUT mantém o que está gravado: um reparo registrado enquanto o formulário estava aberto fica.
+  it('PUT sem o grupo de manutenção mantém as datas gravadas (ex.: reparo concluído com o formulário aberto)', async () => {
+    const eq = await criarOk({ manutencaoNecessidade: 'periodica', manutencaoPeriodicidadeDias: 30, proximaManutencao: '2026-10-01' });
+    const reparo = await app.inject({ method: 'POST', url: `/api/equipamentos/${eq.id}/manutencoes`, payload: { tipo: 'corretiva', descricao: 'Reparo', concluidaEm: '2026-10-17T14:00:00.000Z' } });
+    expect(reparo.json()).toMatchObject({ ultimaManutencao: '2026-10-17', proximaManutencao: '2026-11-16' });
+    const { manutencaoNecessidade: _n, manutencaoPeriodicidadeDias: _p, ultimaManutencao: _u, proximaManutencao: _x, ...semManutencao } = corpoEquipamento(ctx, { marca: 'Outra' });
+    const r = await app.inject({ method: 'PUT', url: `/api/equipamentos/${eq.id}`, payload: semManutencao });
+    expect(r.statusCode).toBe(200);
+    expect(r.json()).toMatchObject({ marca: 'Outra', manutencaoNecessidade: 'periodica', manutencaoPeriodicidadeDias: 30, ultimaManutencao: '2026-10-17', proximaManutencao: '2026-11-16' });
+    // Com o grupo, a edição da manutenção vale (e continua validada junto).
+    const comGrupo = await app.inject({ method: 'PUT', url: `/api/equipamentos/${eq.id}`, payload: corpoEquipamento(ctx, { manutencaoNecessidade: 'agendada', proximaManutencao: '2026-12-01' }) });
+    expect(comGrupo.json()).toMatchObject({ manutencaoNecessidade: 'agendada', proximaManutencao: '2026-12-01' });
+    const incompleto = await app.inject({ method: 'PUT', url: `/api/equipamentos/${eq.id}`, payload: corpoEquipamento(ctx, { manutencaoNecessidade: 'agendada' }) });
+    expect(incompleto.statusCode).toBe(400);
+  });
+
   it('devolve 404 ao editar equipamento inexistente', async () => {
     const r = await app.inject({ method: 'PUT', url: '/api/equipamentos/999', payload: corpoEquipamento(ctx) });
     expect(r.statusCode).toBe(404);
@@ -368,6 +385,26 @@ describe('manutenção', () => {
     expect(r2.json()).toMatchObject({ manutencaoNecessidade: 'periodica', proximaManutencao: '2026-10-22' });
   });
 
+  it('agendar a mesma manutenção duas vezes: 409 e uma linha "prevista" só; concluir fecha a que estava prevista', async () => {
+    const eq = await criarOk();
+    const primeira = await registrar(eq.id, { tipo: 'preventiva', descricao: 'Limpeza da lente', previstaPara: '2026-10-25' });
+    expect(primeira.statusCode).toBe(201);
+    const segunda = await registrar(eq.id, { tipo: 'preventiva', descricao: 'Limpeza da lente', previstaPara: '2026-10-26' });
+    expect(segunda.statusCode).toBe(409);
+    expect(segunda.json()).toEqual({ erro: 'Já existe uma manutenção prevista para este equipamento' });
+    const abertas = () => ctx.db.prepare('SELECT COUNT(*) AS n FROM manutencoes WHERE equipamento_id = ? AND concluida_em IS NULL').get(eq.id) as { n: number };
+    expect(abertas()).toEqual({ n: 1 });
+    // Outro tipo pode ser agendado.
+    expect((await registrar(eq.id, { tipo: 'corretiva', descricao: 'Trocar cabo', previstaPara: '2026-10-27' })).statusCode).toBe(201);
+
+    const concluida = await registrar(eq.id, { tipo: 'preventiva', descricao: 'Lente limpa', concluidaEm: '2026-10-17T14:00:00.000Z' });
+    expect(concluida.statusCode).toBe(201);
+    const preventivas = concluida.json().manutencoes.filter((m: { tipo: string }) => m.tipo === 'preventiva');
+    expect(preventivas).toHaveLength(1);
+    expect(preventivas[0]).toMatchObject({ previstaPara: '2026-10-25', concluidaEm: '2026-10-17T14:00:00.000Z', descricao: 'Lente limpa' });
+    expect(abertas()).toEqual({ n: 1 }); // sobra só a corretiva agendada
+  });
+
   it('exige previstaPara ou concluidaEm e descrição', async () => {
     const eq = await criarOk();
     const r = await registrar(eq.id, { tipo: 'corretiva', descricao: 'Sem datas' });
@@ -425,6 +462,17 @@ describe('telemetria e catálogos', () => {
     const tipos = (await app.inject({ method: 'GET', url: '/api/tipos-equipamento' })).json();
     expect(tipos).toHaveLength(13);
     expect(tipos[0]).toHaveProperty('campos');
+    // As métricas que POST /api/telemetria aceita, por tipo (chave, rótulo e unidade), vindas de shared/telemetria.ts.
+    const radar = tipos.find((t: { id: string }) => t.id === 'radar');
+    expect(radar.metricas).toEqual([
+      { chave: 'fluxo', rotulo: 'Fluxo de veículos', unidade: 'veículos/h' },
+      { chave: 'velocidadeMedia', rotulo: 'Velocidade média da via', unidade: 'km/h' },
+      { chave: 'infracoes', rotulo: 'Infrações registradas', unidade: 'infrações/h' },
+    ]);
+    for (const t of tipos) expect(t.metricas.length).toBeGreaterThan(0);
+    // A documentação da ingestão aponta para esta rota (e não para uma inexistente).
+    const docs = (await app.inject({ method: 'GET', url: '/api/docs/json' })).json();
+    expect(docs.paths['/api/telemetria'].post.description).toContain('GET /api/tipos-equipamento');
     const bairros = (await app.inject({ method: 'GET', url: '/api/bairros' })).json();
     expect(bairros.length).toBe(ctx.geo.bairros.length);
     expect(bairros[0].poligono.type).toBe('Polygon');

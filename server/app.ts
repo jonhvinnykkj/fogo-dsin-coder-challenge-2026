@@ -84,12 +84,16 @@ export async function criarApp(ctx: ContextoApp): Promise<FastifyInstance> {
   await app.register(rotasStream);
   await app.register(rotasPrevisoes);
 
-  // Interface compilada (npm run build): arquivos estáticos + fallback de SPA fora de /api.
+  // Interface compilada (npm run build): arquivos estáticos + fallback de SPA fora de /api. Caminho com extensão
+  // (/assets/index-abc.js, .css, .ico…) é arquivo: se não existe, 404 — uma aba aberta antes de um novo build não recebe o
+  // index.html no lugar do script.
   const temInterface = existsSync(PASTA_WEB);
   if (temInterface) await app.register(fastifyStatic, { root: PASTA_WEB });
   app.setNotFoundHandler((req, reply) => {
-    if (temInterface && req.method === 'GET' && !req.url.startsWith('/api')) return reply.sendFile('index.html');
-    return reply.code(404).send({ erro: 'Rota não encontrada' });
+    const caminho = req.url.split('?')[0]!;
+    const ehArquivo = /\.[a-z0-9]+$/i.test(caminho.slice(caminho.lastIndexOf('/') + 1));
+    if (temInterface && req.method === 'GET' && !caminho.startsWith('/api') && !ehArquivo) return reply.sendFile('index.html');
+    return reply.code(404).send({ erro: ehArquivo ? 'Arquivo não encontrado' : 'Rota não encontrada' });
   });
 
   return app;

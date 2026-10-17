@@ -16,7 +16,7 @@ import { agenteMapaPorId, gravarSituacaoAgente } from '../repositorios/agentes';
 import { equipamentoMapaPorId, gravarSituacao } from '../repositorios/equipamentos';
 import { encerrarOcorrencia, inserirOcorrencia } from '../repositorios/ocorrencias';
 import { criarRng, type Rng } from '../semente/aleatorio';
-import { BAIRROS_FURTO_PATINETE, FALHAS } from '../semente/historico';
+import { BAIRROS_FURTO_PATINETE, FALHAS, gravidadeMaxima } from '../semente/historico';
 import { atividadeVeiculo, gerarLeituraHora, tipoDoDia } from '../semente/perfis';
 import { montarContexto, SEMENTE_PADRAO } from '../semente/semear';
 import { calcularIndicadores } from '../servicos/central';
@@ -24,7 +24,8 @@ import { registrarManutencao } from '../servicos/equipamentos';
 import { dataLocal, inicioDaHora, partesLocais } from '../tempo';
 import { gerarOcorrenciasDaHora, type ContextoHoras, type OcorrenciaGerada } from '../semente/historico';
 import {
-  CHANCE_FALHA_MUDA, chanceDeFalha, chanceDeFurto, DESCRICOES_INJETADAS, DURACAO_OCORRENCIA_MIN, duracaoDaOcorrenciaMs, escalaDeOcorrencias, fracaoDePatinetesEmUso, VELOCIDADE_MS,
+  CHANCE_FALHA_MUDA, chanceDeFalha, chanceDeFurto, DESCRICOES_INJETADAS, DURACAO_OCORRENCIA_MIN, duracaoDaOcorrenciaMs, escalaDeOcorrencias, fracaoDePatinetesEmUso,
+  pesoNoIndice, VELOCIDADE_MS,
 } from './eventos-simulados';
 import { ingerirTelemetria } from './ingestao';
 import { alvoPorId } from './motor-alertas';
@@ -119,6 +120,8 @@ export class Simulador {
   private reparos: Reparo[] = [];
   private horaLocalAnterior: number | undefined;
   private estadoRecuperado = false;
+  /** O cadastro mudou fora do simulador (tela ou API): o próximo uso da memória relê o banco antes. */
+  private desatualizado = false;
 
   constructor(private readonly ctx: ContextoApp, opcoes: OpcoesSimulador = {}) {
     this.semente = opcoes.semente ?? SEMENTE_PADRAO;
@@ -162,6 +165,15 @@ export class Simulador {
     return { velocidade: this.velocidade, pausado: this.pausado, relogio: this.ctx.relogio.agora().toISOString() };
   }
 
+  /**
+   * Avisa que o cadastro mudou fora do simulador (equipamento ou agente criado, editado, excluído ou com a situação
+   * trocada pela tela). Antes de usar a memória de novo (próximo tick ou "simular evento"), ele relê o banco: quem foi
+   * criado já pode receber eventos e quem foi excluído some na hora.
+   */
+  recarregar(): void {
+    this.desatualizado = true;
+  }
+
   definir(mudanca: { velocidade?: EstadoSimulacao['velocidade']; pausado?: boolean }): EstadoSimulacao {
     if (mudanca.velocidade !== undefined) {
       if (!VELOCIDADES.includes(mudanca.velocidade)) throw invalido('Velocidade inválida: use 1, 10 ou 60');
@@ -184,25 +196,37 @@ export class Simulador {
     if (this.pausado) return;
     const agora = this.ctx.relogio.agora();
     this.tick++;
-    if (!this.ctxHoras || this.tick % RECARGA_TICKS === 0) this.carregar(agora);
+    if (!this.ctxHoras || this.desatualizado || this.tick % RECARGA_TICKS === 0) this.carregar(agora);
     else if (this.tick % SITUACOES_TICKS === 0) this.atualizarSituacoes();
 
     const sincronizando = this.sincronizar;
-    this.virarHora(agora);
-    this.moverEquipamentos(agora);
-    this.moverAgentes(agora);
-    this.enviarLeituras(agora, sincronizando);
+    // Cada etapa (e, dentro dela, cada equipamento, agente ou ocorrência) isola o próprio erro: um item com problema
+    // vai para o log e o resto do tick continua.
+    this.isolar('virada de hora', () => this.virarHora(agora));
+    this.isolar('movimento dos equipamentos', () => this.moverEquipamentos(agora));
+    this.isolar('movimento dos agentes', () => this.moverAgentes(agora));
+    this.isolar('leituras', () => this.enviarLeituras(agora, sincronizando));
     this.sincronizar = false;
-    this.sortearFalhasEFurtos(agora);
-    this.gerarOcorrenciasAoVivo(agora);
-    this.cumprirAgenda(agora);
-    if (sincronizando || this.tick % VARREDURA_TICKS === 0) this.ctx.motor.varrer(agora);
+    this.isolar('falhas e furtos', () => this.sortearFalhasEFurtos(agora));
+    this.isolar('ocorrências ao vivo', () => this.gerarOcorrenciasAoVivo(agora));
+    this.isolar('agenda', () => this.cumprirAgenda(agora));
+    if (sincronizando || this.tick % VARREDURA_TICKS === 0) this.isolar('varredura de alertas', () => this.ctx.motor.varrer(agora));
     this.ctx.barramento.descarregarPosicoes();
+  }
+
+  /** Roda `fn`; se der erro, registra no log com o que estava sendo feito e segue. */
+  private isolar(oQue: string, fn: () => void): void {
+    try {
+      fn();
+    } catch (erro) {
+      console.error(`Simulador: erro em ${oQue}`, erro);
+    }
   }
 
   // ---- Estado em memória ---------------------------------------------------------------------------------------
 
   private carregar(agora: Date): void {
+    this.desatualizado = false;
     const { ctx: horas, equipamentos: fatos } = montarContexto(this.ctx.db, this.ctx.geo, this.semente, agora);
     this.ctxHoras = horas;
     const indicePorBairro = new Map(horas.bairros.map((b) => [b.id, b.indice]));
@@ -215,12 +239,14 @@ export class Simulador {
     this.equipamentos = linhas.map((l) => {
       const f = fatoPorId.get(l.id);
       const ant = antes.get(l.id);
-      return {
+      const e: EqSim = {
         id: l.id, codigo: l.codigo, tipo: l.tipo, situacao: l.situacao, bairroId: l.bairro_id, bairroIndice: indicePorBairro.get(l.bairro_id) ?? -1,
         escala: f?.escala ?? 1, fatorRisco: f?.fatorRisco ?? 1, ...(f?.turnos && { turnos: f.turnos }), ...(f?.categoria && { categoria: f.categoria }),
         bairroQuente: l.tipo === 'patinete' && BAIRROS_FURTO_PATINETE.includes(l.bairro_nome), movel: MOVEIS.includes(l.tipo),
         lat: ant?.lat ?? l.lat_atual, lng: ant?.lng ?? l.lng_atual, alvo: ant?.alvo, destino: ant?.destino, viagem: ant?.viagem ?? 0, emMovimento: ant?.emMovimento ?? false,
       };
+      if (ant && ant.situacao !== l.situacao) this.adotarMudancaDeFora(e, l.situacao, l.lat_atual, l.lng_atual);
+      return e;
     });
 
     const antesAg = new Map(this.agentes.map((a) => [a.id, a]));
@@ -276,15 +302,33 @@ export class Simulador {
 
   /** Pega do banco a situação atual (a tela pode ter mudado um equipamento ou agente enquanto o simulador roda). */
   private atualizarSituacoes(): void {
-    const eq = new Map((this.ctx.db.prepare('SELECT id, situacao FROM equipamentos').all() as { id: number; situacao: SituacaoEquipamento }[]).map((l) => [l.id, l.situacao]));
-    for (const e of this.equipamentos) e.situacao = eq.get(e.id) ?? e.situacao;
+    const linhas = this.ctx.db.prepare('SELECT id, situacao, lat_atual, lng_atual FROM equipamentos').all() as { id: number; situacao: SituacaoEquipamento; lat_atual: number; lng_atual: number }[];
+    const eq = new Map(linhas.map((l) => [l.id, l]));
+    for (const e of this.equipamentos) {
+      const l = eq.get(e.id);
+      if (l && l.situacao !== e.situacao) this.adotarMudancaDeFora(e, l.situacao, l.lat_atual, l.lng_atual);
+    }
     const ag = new Map((this.ctx.db.prepare('SELECT id, situacao FROM agentes').all() as { id: number; situacao: SituacaoAgente }[]).map((l) => [l.id, l.situacao]));
     for (const a of this.agentes) a.situacao = ag.get(a.id) ?? a.situacao;
   }
 
+  /**
+   * A situação mudou fora do simulador (pela tela): a do banco vale. A posição também volta a ser a do banco (o patinete
+   * recuperado de um furto volta à base, ver mudarSituacao no serviço), a viagem em curso é esquecida e o equipamento sai
+   * do "silêncio" de uma falha muda: se voltou a operar, volta a transmitir.
+   */
+  private adotarMudancaDeFora(e: EqSim, situacao: SituacaoEquipamento, lat: number, lng: number): void {
+    e.situacao = situacao;
+    e.lat = lat;
+    e.lng = lng;
+    e.alvo = e.destino = undefined;
+    e.viagem = 0;
+    e.emMovimento = false;
+    this.mudos.delete(e.id);
+  }
 
   private garantirCarregado(agora: Date): void {
-    if (!this.ctxHoras) this.carregar(agora);
+    if (!this.ctxHoras || this.desatualizado) this.carregar(agora);
   }
 
   // ---- Turnos, movimento e leituras ---------------------------------------------------------------------------
@@ -296,16 +340,18 @@ export class Simulador {
     this.horaLocalAnterior = hora;
     if (anterior === undefined || anterior === hora) return;
     for (const a of this.agentes) {
-      const h = HORARIO_TURNO[a.turno];
-      if (h.inicio === hora && a.situacao === 'fora_de_servico') this.mudarSituacaoAgente(a, 'em_servico', agora);
-      else if (h.fim === hora && (a.situacao === 'em_servico' || a.situacao === 'em_ocorrencia') && !turnoCobreHora(a.turno, hora)) {
-        a.lat = a.baseLat;
-        a.lng = a.baseLng;
-        a.alvo = a.destino = undefined;
-        this.ctx.db.prepare('UPDATE agentes SET lat_atual = ?, lng_atual = ? WHERE id = ?').run(a.lat, a.lng, a.id);
-        this.mudarSituacaoAgente(a, 'fora_de_servico', agora);
-        this.abertas.filter((o) => o.agenteId === a.id).forEach((o) => delete o.agenteId);
-      }
+      this.isolar(`turno do agente ${a.id}`, () => {
+        const h = HORARIO_TURNO[a.turno];
+        if (h.inicio === hora && a.situacao === 'fora_de_servico') this.mudarSituacaoAgente(a, 'em_servico', agora);
+        else if (h.fim === hora && (a.situacao === 'em_servico' || a.situacao === 'em_ocorrencia') && !turnoCobreHora(a.turno, hora)) {
+          a.lat = a.baseLat;
+          a.lng = a.baseLng;
+          a.alvo = a.destino = undefined;
+          this.ctx.db.prepare('UPDATE agentes SET lat_atual = ?, lng_atual = ? WHERE id = ?').run(a.lat, a.lng, a.id);
+          this.mudarSituacaoAgente(a, 'fora_de_servico', agora);
+          this.abertas.filter((o) => o.agenteId === a.id).forEach((o) => delete o.agenteId);
+        }
+      });
     }
   }
 
@@ -358,7 +404,7 @@ export class Simulador {
         this.andarOuChegar(a, metros, () => escolherAlvoPerto(this.ctx.geo, this.rng, a.bairroIndice, { lat: a.baseLat, lng: a.baseLng }, 500));
       }
       if (a.lat !== antes.lat || a.lng !== antes.lng) {
-        atualizar.run(a.lat, a.lng, iso, a.id);
+        this.isolar(`posição do agente ${a.id}`, () => atualizar.run(a.lat, a.lng, iso, a.id));
         this.ctx.barramento.registrarPosicao({ tipo: 'agente', id: a.id, lat: a.lat, lng: a.lng });
       }
     }
@@ -382,7 +428,7 @@ export class Simulador {
     this.equipamentos.forEach((e, i) => {
       if (e.situacao !== 'operacional' && e.situacao !== 'mau_funcionamento') return;
       if (this.mudos.has(e.id)) return;
-      if (todos || e.emMovimento || (this.tick + i) % PERIODO_PARADO_TICKS === 0) this.enviar(e, agora);
+      if (todos || e.emMovimento || (this.tick + i) % PERIODO_PARADO_TICKS === 0) this.isolar(`leitura de ${e.codigo}`, () => this.enviar(e, agora));
     });
   }
 
@@ -392,9 +438,9 @@ export class Simulador {
     for (const e of this.equipamentos) {
       if (e.situacao !== 'operacional') continue;
       if (this.rng.chance(chanceDeFalha(e.tipo, e.fatorRisco, SEGUNDOS_POR_TICK, this.velocidade))) {
-        this.provocarFalha(e, agora);
+        this.isolar(`falha de ${e.codigo}`, () => this.provocarFalha(e, agora));
       } else if (e.tipo === 'patinete' && this.rng.chance(chanceDeFurto(e.bairroQuente, SEGUNDOS_POR_TICK, this.velocidade))) {
-        this.provocarFurto(e, agora, 'tempo_real');
+        this.isolar(`furto de ${e.codigo}`, () => this.provocarFurto(e, agora, 'tempo_real'));
       }
     }
   }
@@ -446,7 +492,10 @@ export class Simulador {
     e.emMovimento = false;
     e.destino = e.alvo = undefined;
     this.registrarOcorrencia(
-      { tipo: 'furto_vandalismo', gravidade: 2, bairroId: e.bairroId, ...local, equipamentoId: e.id, descricao: `Furto de ${e.tipo === 'patinete' ? 'patinete' : 'equipamento'} ${e.codigo}`, origem },
+      {
+        tipo: 'furto_vandalismo', gravidade: origem === 'injetado' ? gravidadeMaxima('furto_vandalismo') : 2, bairroId: e.bairroId, ...local, equipamentoId: e.id,
+        descricao: `Furto de ${e.tipo === 'patinete' ? 'patinete' : 'equipamento'} ${e.codigo}`, origem,
+      },
       agora, { alertar: false },
     );
     return alertas;
@@ -459,10 +508,12 @@ export class Simulador {
       const o = this.abertas[i]!;
       if (o.fimEm > agoraMs) continue;
       this.abertas.splice(i, 1);
-      const fechada = encerrarOcorrencia(this.ctx.db, o.id, agora.toISOString());
-      if (fechada) this.ctx.barramento.emitir({ tipo: 'ocorrencia', dados: fechada });
-      this.ctx.motor.resolverDaOcorrencia(o.id, agora);
-      if (o.agenteId !== undefined) this.liberarAgente(o.agenteId, agora);
+      this.isolar(`encerramento da ocorrência ${o.id}`, () => {
+        const fechada = encerrarOcorrencia(this.ctx.db, o.id, agora.toISOString());
+        if (fechada) this.ctx.barramento.emitir({ tipo: 'ocorrencia', dados: fechada });
+        this.ctx.motor.resolverDaOcorrencia(o.id, agora);
+        if (o.agenteId !== undefined) this.liberarAgente(o.agenteId, agora);
+      });
     }
     // Reparos: equipe a caminho, depois conclusão.
     const restantes: Reparo[] = [];
@@ -470,18 +521,21 @@ export class Simulador {
       if (r.em > agoraMs) { restantes.push(r); continue; }
       const e = this.equipamentos.find((x) => x.id === r.equipamentoId);
       if (!e || e.situacao !== (r.etapa === 'equipe' ? 'mau_funcionamento' : 'em_manutencao')) continue; // alguém mexeu pela tela: desiste
-      if (r.etapa === 'equipe') {
-        this.mudarSituacao(e, 'em_manutencao', 'Equipe de manutenção em atendimento', agora);
-        restantes.push({ equipamentoId: e.id, etapa: 'conclusao', em: agoraMs + (this.rng.int(120, 360) * 1000) / this.velocidade });
-      } else {
-        const sintoma = this.rng.escolher(FALHAS[e.tipo]).acao;
-        registrarManutencao(this.ctx, e.id, { tipo: 'corretiva', descricao: `Reparo concluído: ${sintoma}`, concluidaEm: agora.toISOString() });
-        e.situacao = 'operacional';
-        this.mudos.delete(e.id);
-        this.ctx.motor.resolverDoEquipamento(e.id, agora);
-        const mapa = equipamentoMapaPorId(this.ctx.db, e.id, dataLocal(agora));
-        if (mapa) this.ctx.barramento.emitir({ tipo: 'equipamento', dados: mapa });
-      }
+      // Reparo que dá erro sai da agenda (vai para o log) em vez de tentar de novo a cada tick.
+      this.isolar(`reparo de ${e.codigo}`, () => {
+        if (r.etapa === 'equipe') {
+          this.mudarSituacao(e, 'em_manutencao', 'Equipe de manutenção em atendimento', agora);
+          restantes.push({ equipamentoId: e.id, etapa: 'conclusao', em: agoraMs + (this.rng.int(120, 360) * 1000) / this.velocidade });
+        } else {
+          const sintoma = this.rng.escolher(FALHAS[e.tipo]).acao;
+          registrarManutencao(this.ctx, e.id, { tipo: 'corretiva', descricao: `Reparo concluído: ${sintoma}`, concluidaEm: agora.toISOString() });
+          e.situacao = 'operacional';
+          this.mudos.delete(e.id);
+          this.ctx.motor.resolverDoEquipamento(e.id, agora);
+          const mapa = equipamentoMapaPorId(this.ctx.db, e.id, dataLocal(agora));
+          if (mapa) this.ctx.barramento.emitir({ tipo: 'equipamento', dados: mapa });
+        }
+      });
     }
     this.reparos = restantes;
   }
@@ -491,7 +545,7 @@ export class Simulador {
   private gerarOcorrenciasAoVivo(agora: Date): void {
     const escala = escalaDeOcorrencias(SEGUNDOS_POR_TICK, this.velocidade);
     const geradas = gerarOcorrenciasDaHora({ ...this.ctxHoras!, agora }, inicioDaHora(agora), [], { rng: this.rng, escala });
-    for (const g of geradas) this.registrarOcorrenciaGerada(g, agora);
+    for (const g of geradas) this.isolar(`ocorrência ao vivo em ${g.bairroId}`, () => this.registrarOcorrenciaGerada(g, agora));
   }
 
   private registrarOcorrenciaGerada(g: OcorrenciaGerada, agora: Date): void {
@@ -516,7 +570,7 @@ export class Simulador {
     const criada = inserirOcorrencia(this.ctx.db, {
       tipo: o.tipo, gravidade: o.gravidade, bairroId: o.bairroId, lat: o.lat, lng: o.lng, inicio: agora.toISOString(),
       ...(o.equipamentoId !== undefined && { equipamentoId: o.equipamentoId }), ...(agente && { agenteId: agente.id }),
-      descricao: o.descricao, chuva: o.chuva ?? mm > 0, origem: o.origem,
+      descricao: o.descricao, chuva: o.chuva ?? mm > 0, origem: o.origem, peso: pesoNoIndice(o.origem, this.velocidade),
     });
     this.ctx.barramento.emitir({ tipo: 'ocorrencia', dados: criada });
     const minutos = this.rng.int(DURACAO_OCORRENCIA_MIN.minimo, DURACAO_OCORRENCIA_MIN.maximo);
@@ -576,7 +630,12 @@ export class Simulador {
   injetar(tipo: TipoEventoSimulado, alvoId?: number): Alerta[] {
     const agora = this.ctx.relogio.agora();
     this.garantirCarregado(agora);
-    const alvo = alvoId === undefined ? undefined : this.equipamentos.find((e) => e.id === alvoId);
+    let alvo = alvoId === undefined ? undefined : this.equipamentos.find((e) => e.id === alvoId);
+    if (alvoId !== undefined && !alvo) {
+      // Pode ter sido criado por fora sem aviso: relê o banco uma vez antes de desistir.
+      this.carregar(agora);
+      alvo = this.equipamentos.find((e) => e.id === alvoId);
+    }
     if (alvoId !== undefined && !alvo) throw naoEncontrado('Equipamento');
     const sortear = (tipos: readonly TipoEquipamentoId[] | undefined) => {
       const lista = this.equipamentos.filter((e) => e.situacao === 'operacional' && (!tipos || tipos.includes(e.tipo)));
@@ -602,7 +661,7 @@ export class Simulador {
         const altura = Number(alvoMotor?.caracteristicas.alturaAlertaCm);
         const base = sensor ? { bairroId: sensor.bairroId, lat: sensor.lat, lng: sensor.lng, equipamentoId: sensor.id } : { ...this.pontoSorteado(), };
         const { alerta } = this.registrarOcorrencia(
-          { tipo: 'alagamento', gravidade: 3, ...base, descricao: this.rng.escolher(DESCRICOES_INJETADAS.alagamento), origem: 'injetado' },
+          { tipo: 'alagamento', gravidade: gravidadeMaxima('alagamento'), ...base, descricao: this.rng.escolher(DESCRICOES_INJETADAS.alagamento), origem: 'injetado' },
           agora, { alertar: !(sensor && sensor.situacao === 'operacional' && Number.isFinite(altura)) },
         );
         if (sensor && sensor.situacao === 'operacional' && Number.isFinite(altura)) {
@@ -615,7 +674,8 @@ export class Simulador {
       case 'congestionamento': {
         const ref = alvo;
         const base = ref ? { bairroId: ref.bairroId, lat: ref.lat, lng: ref.lng, equipamentoId: ref.id } : this.pontoSorteado();
-        const gravidade = Number(this.rng.peso(tipo === 'acidente' ? { 2: 0.5, 3: 0.35, 4: 0.15 } : { 1: 0.3, 2: 0.5, 3: 0.2 })) as 1 | 2 | 3 | 4;
+        // Evento injetado usa a gravidade mais alta do tipo: o acidente injetado sempre abre alerta crítico.
+        const gravidade = gravidadeMaxima(tipo);
         const descricao = this.rng.escolher(DESCRICOES_INJETADAS[tipo]);
         const { alerta } = this.registrarOcorrencia(
           { tipo, gravidade, ...base, descricao: ref ? `${descricao} (próximo a ${ref.codigo})` : descricao, origem: 'injetado' },

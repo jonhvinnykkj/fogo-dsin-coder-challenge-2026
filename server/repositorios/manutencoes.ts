@@ -37,6 +37,18 @@ export function inserirManutencao(db: Database, m: NovaManutencao): number {
   return Number(r.lastInsertRowid);
 }
 
+/** Manutenção prevista e ainda não concluída do mesmo tipo (a mais antiga), ou undefined. */
+export function previstaEmAberto(db: Database, equipamentoId: number, tipo: 'corretiva' | 'preventiva'): number | undefined {
+  const l = db.prepare('SELECT id FROM manutencoes WHERE equipamento_id = ? AND tipo = ? AND concluida_em IS NULL ORDER BY aberta_em, id LIMIT 1')
+    .get(equipamentoId, tipo) as { id: number } | undefined;
+  return l?.id;
+}
+
+/** Conclui uma manutenção que estava prevista (fica a data prevista; a descrição passa a ser a do que foi feito). */
+export function concluirManutencao(db: Database, id: number, concluidaEm: string, descricao: string): void {
+  db.prepare('UPDATE manutencoes SET concluida_em = ?, descricao = ? WHERE id = ?').run(concluidaEm, descricao, id);
+}
+
 export function manutencoesDoEquipamento(db: Database, equipamentoId: number): Manutencao[] {
   return (
     db.prepare('SELECT * FROM manutencoes WHERE equipamento_id = ? ORDER BY aberta_em DESC, id DESC').all(equipamentoId) as LinhaManutencao[]

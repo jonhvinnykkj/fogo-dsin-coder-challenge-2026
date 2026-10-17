@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS equipamentos (
   manutencao_periodicidade_dias INTEGER,
   ultima_manutencao             TEXT,
   proxima_manutencao            TEXT,
+  proxima_manutencao_historico  TEXT,           -- a próxima manutenção no fim do histórico gerado (o modelo de falhas usa esta)
   caracteristicas               TEXT NOT NULL DEFAULT '{}',  -- JSON validado pelo tipo
   instalado_em                  TEXT,
   ultimo_sinal_em               TEXT,
@@ -52,7 +53,10 @@ CREATE TABLE IF NOT EXISTS historico_situacao (
   de              TEXT NOT NULL,
   para            TEXT NOT NULL,
   motivo          TEXT NOT NULL,
-  em              TEXT NOT NULL
+  em              TEXT NOT NULL,
+  -- 'historico' = gerada pela semente; 'ao_vivo' = simulador ou tela. As previsões aprendem só com 'historico'
+  -- (vale também depois de reiniciar, quando o fim do histórico anda para a frente).
+  origem          TEXT NOT NULL DEFAULT 'historico' CHECK (origem IN ('historico','ao_vivo'))
 );
 CREATE INDEX IF NOT EXISTS idx_historico_equipamento ON historico_situacao(equipamento_id, em);
 
@@ -93,7 +97,10 @@ CREATE TABLE IF NOT EXISTS ocorrencias (
   agente_id       INTEGER REFERENCES agentes(id),
   descricao       TEXT NOT NULL DEFAULT '',
   chuva           INTEGER NOT NULL DEFAULT 0 CHECK (chuva IN (0, 1)),
-  origem          TEXT NOT NULL CHECK (origem IN ('historico','tempo_real','injetado'))
+  origem          TEXT NOT NULL CHECK (origem IN ('historico','tempo_real','injetado')),
+  -- Quanto a ocorrência pesa no índice das regiões (Central): 1 para histórico e injetado; ao vivo, 1 ÷ (8 × velocidade
+  -- da simulação quando ela começou), porque o simulador gera 8 vezes o ritmo real (× a velocidade). Ver servicos/central.ts.
+  peso            REAL NOT NULL DEFAULT 1
 );
 CREATE INDEX IF NOT EXISTS idx_ocorrencias_inicio ON ocorrencias(inicio);
 CREATE INDEX IF NOT EXISTS idx_ocorrencias_bairro_inicio ON ocorrencias(bairro_id, inicio);
@@ -143,8 +150,9 @@ CREATE INDEX IF NOT EXISTS idx_alertas_dedup ON alertas(chave_dedup);
 
 CREATE TABLE IF NOT EXISTS clima_dia (
   data      TEXT PRIMARY KEY,                           -- YYYY-MM-DD
-  chuva_mm  REAL NOT NULL DEFAULT 0,
-  previsto  INTEGER NOT NULL DEFAULT 0 CHECK (previsto IN (0, 1))
+  chuva_mm  REAL NOT NULL DEFAULT 0,                    -- a que cai (nos dias futuros, a que vai cair na cidade sintética)
+  previsto  INTEGER NOT NULL DEFAULT 0 CHECK (previsto IN (0, 1)),
+  chuva_prevista_mm REAL                                -- previsão do tempo da véspera (observada + erro); as previsões usam esta
 );
 
 -- Chave/valor para o que não merece tabela própria. `historico_ate`: ISO da última hora de histórico gerada

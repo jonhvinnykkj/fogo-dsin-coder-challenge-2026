@@ -2,17 +2,17 @@
 import { randomBytes } from 'node:crypto';
 import type { SituacaoEquipamento } from '../../shared/dominio';
 import type { Equipamento, EquipamentoDetalhe, PainelManutencao, PontoTelemetria } from '../../shared/modelos';
-import type { EquipamentoInput, FiltrosEquipamento, ManutencaoInput, MudancaSituacao } from '../../shared/schemas';
+import type { EquipamentoEdicao, EquipamentoInput, FiltrosEquipamento, ManutencaoInput, MudancaSituacao } from '../../shared/schemas';
 import { tipoPorId } from '../../shared/tipos-equipamento';
 import type { ContextoApp } from '../contexto';
 import { conflito, dadosInvalidos, invalido, naoEncontrado } from '../erros';
 import { alertasDoEquipamento } from '../repositorios/alertas';
 import { bairroExiste } from '../repositorios/bairros';
 import * as repo from '../repositorios/equipamentos';
-import { inserirManutencao, manutencoesDoEquipamento } from '../repositorios/manutencoes';
+import { concluirManutencao, inserirManutencao, manutencoesDoEquipamento, previstaEmAberto } from '../repositorios/manutencoes';
 import { dataLocal, somarDias } from '../tempo';
 
-type Base = Pick<ContextoApp, 'db' | 'relogio'> & Partial<Pick<ContextoApp, 'motor'>>;
+type Base = Pick<ContextoApp, 'db' | 'relogio'> & Partial<Pick<ContextoApp, 'motor' | 'simulador' | 'barramento'>>;
 
 const agoraIso = (ctx: Base) => ctx.relogio.agora().toISOString();
 
@@ -22,7 +22,7 @@ function exigirEquipamento(ctx: Base, id: number): Equipamento {
   return e;
 }
 
-function validarReferencias(ctx: Base, dados: EquipamentoInput, ignorarId?: number): void {
+function validarReferencias(ctx: Base, dados: Pick<EquipamentoInput, 'bairroId' | 'numeroSerie'>, ignorarId?: number): void {
   if (!bairroExiste(ctx.db, dados.bairroId)) throw dadosInvalidos({ bairroId: 'Bairro não encontrado' });
   if (repo.numeroSerieEmUso(ctx.db, dados.numeroSerie, ignorarId)) {
     throw conflito('Já existe equipamento com este número de série');
@@ -61,14 +61,16 @@ export function criarEquipamento(ctx: Base, dados: EquipamentoInput): Equipament
     const codigo = `FOGO-${tipoPorId(dados.tipo).sigla}-${String(sequencial).padStart(4, '0')}`;
     return repo.inserirEquipamento(ctx.db, dados, { codigo, token: randomBytes(16).toString('hex'), agora });
   })();
+  ctx.simulador?.recarregar(); // já pode receber "Simular falha"
   return detalheDoEquipamento(ctx, id);
 }
 
 /**
  * Edição pelo formulário. Preserva o que pertence à telemetria e ao fluxo de situação
- * (posição atual, último sinal, situação, código, token): ver `repo.atualizarEquipamento`.
+ * (posição atual, último sinal, situação, código, token) e, se o grupo de manutenção não veio, as datas de manutenção:
+ * ver `repo.atualizarEquipamento`.
  */
-export function atualizarEquipamento(ctx: Base, id: number, dados: EquipamentoInput): EquipamentoDetalhe {
+export function atualizarEquipamento(ctx: Base, id: number, dados: EquipamentoEdicao): EquipamentoDetalhe {
   const atual = exigirEquipamento(ctx, id);
   // O código FOGO-<SIGLA>-nnnn nasce do tipo: trocá-lo deixaria o código mentindo.
   if (dados.tipo !== atual.tipo) {
@@ -77,16 +79,34 @@ export function atualizarEquipamento(ctx: Base, id: number, dados: EquipamentoIn
   }
   validarReferencias(ctx, dados, id);
   repo.atualizarEquipamento(ctx.db, id, dados, agoraIso(ctx));
+  ctx.simulador?.recarregar(); // bairro e ponto-base podem ter mudado
   return detalheDoEquipamento(ctx, id);
 }
 
+/**
+ * Mudança de situação pela tela (com motivo, vai para o histórico). Além de gravar:
+ * - saindo de "furtado" (recuperado ou dado como perdido): a posição atual volta ao ponto cadastrado e o alerta de furto
+ *   fecha (resolução manual: foi uma pessoa que registrou);
+ * - voltando a "operacional": fecham os alertas da falha (sem sinal, leitura fora do normal, falha);
+ * - o simulador relê o equipamento (posição e situação do banco) e, se ele estava calado por uma falha, volta a transmitir.
+ */
 export function mudarSituacao(ctx: Base, id: number, m: MudancaSituacao): EquipamentoDetalhe {
   const atual = exigirEquipamento(ctx, id);
   if (m.situacao === atual.situacao) throw invalido('O equipamento já está nesta situação');
   if (atual.situacao === 'furtado' && m.situacao === 'operacional' && m.recuperado !== true) {
     throw invalido('Registre a recuperação do equipamento antes de voltar a operar');
   }
-  repo.gravarSituacao(ctx.db, id, atual.situacao, m.situacao, m.motivo, agoraIso(ctx));
+  const agora = ctx.relogio.agora();
+  const saiDoFurto = atual.situacao === 'furtado';
+  ctx.db.transaction(() => {
+    repo.gravarSituacao(ctx.db, id, atual.situacao, m.situacao, m.motivo, agora.toISOString());
+    if (saiDoFurto) repo.voltarParaBase(ctx.db, id);
+  })();
+  if (saiDoFurto) ctx.motor?.resolverPorChave(`furto:${id}`, agora, 'manual');
+  if (m.situacao === 'operacional') ctx.motor?.resolverDoEquipamento(id, agora);
+  ctx.simulador?.recarregar();
+  const mapa = repo.equipamentoMapaPorId(ctx.db, id, dataLocal(agora));
+  if (mapa) ctx.barramento?.emitir({ tipo: 'equipamento', dados: mapa });
   return detalheDoEquipamento(ctx, id);
 }
 
@@ -96,6 +116,7 @@ export function excluirEquipamento(ctx: Base, id: number): void {
     throw conflito("Este equipamento tem histórico. Use a situação 'Desativado' em vez de excluir.");
   }
   repo.removerEquipamento(ctx.db, id);
+  ctx.simulador?.recarregar(); // sai da memória do simulador antes do próximo uso
 }
 
 const VOLTAM_A_OPERAR: SituacaoEquipamento[] = ['em_manutencao', 'mau_funcionamento'];
@@ -111,7 +132,10 @@ export function registrarManutencao(ctx: Base, id: number, m: ManutencaoInput): 
       }
       const concluidaEm = concluida.toISOString();
       const dia = dataLocal(concluida);
-      inserirManutencao(ctx.db, { equipamentoId: id, tipo: m.tipo, abertaEm: agora, previstaPara: m.previstaPara, concluidaEm, descricao: m.descricao });
+      // Havia uma do mesmo tipo prevista: é ela que foi feita (não fica "Prevista para…" para sempre ao lado da concluída).
+      const prevista = previstaEmAberto(ctx.db, id, m.tipo);
+      if (prevista !== undefined) concluirManutencao(ctx.db, prevista, concluidaEm, m.descricao);
+      else inserirManutencao(ctx.db, { equipamentoId: id, tipo: m.tipo, abertaEm: agora, previstaPara: m.previstaPara, concluidaEm, descricao: m.descricao });
       const periodica = eq.manutencaoNecessidade === 'periodica' && eq.manutencaoPeriodicidadeDias !== undefined;
       repo.gravarManutencaoDoEquipamento(
         ctx.db,
@@ -125,6 +149,8 @@ export function registrarManutencao(ctx: Base, id: number, m: ManutencaoInput): 
         repo.gravarSituacao(ctx.db, id, eq.situacao, 'operacional', 'Manutenção concluída', agora);
       }
     } else {
+      // Uma prevista em aberto do mesmo tipo basta: a segunda vira 409 (a interface mostra a mensagem).
+      if (previstaEmAberto(ctx.db, id, m.tipo) !== undefined) throw conflito('Já existe uma manutenção prevista para este equipamento');
       const prevista = m.previstaPara!.slice(0, 10);
       inserirManutencao(ctx.db, { equipamentoId: id, tipo: m.tipo, abertaEm: agora, previstaPara: prevista, descricao: m.descricao });
       repo.gravarManutencaoDoEquipamento(

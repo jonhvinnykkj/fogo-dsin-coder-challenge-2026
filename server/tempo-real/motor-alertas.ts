@@ -130,10 +130,13 @@ export class MotorAlertas {
     return criado;
   }
 
-  /** Resolve os alertas abertos com essa chave (e avisa a tela). */
-  resolverPorChave(chave: string, quando: Date = this.ctx.relogio.agora()): void {
+  /**
+   * Resolve os alertas abertos com essa chave (e avisa a tela). `resolucao` = 'manual' quando a causa foi uma pessoa
+   * (ex.: registrou a recuperação do patinete furtado); o padrão é a resolução automática.
+   */
+  resolverPorChave(chave: string, quando: Date = this.ctx.relogio.agora(), resolucao: 'manual' | 'automatica' = 'automatica'): void {
     const abertos = this.qAbertosPorChave.all(chave) as { id: number }[];
-    this.resolverIds(abertos.map((a) => a.id), quando);
+    this.resolverIds(abertos.map((a) => a.id), quando, resolucao);
     this.vistas.delete(chave);
     this.normais.delete(chave);
   }
@@ -158,14 +161,15 @@ export class MotorAlertas {
   //           entra em manutenção.
   //  Regra 4  falha_equipamento: fecha no reparo concluído (`resolverDoEquipamento`).
   //  Regra 5  alagamento de sensor: fecha quando o nível cai abaixo de 80% da altura de alerta.
-  //  Regra 6  furto_suspeito NÃO fecha sozinho (só gente confirma recuperação ou perda); manutencao_atrasada só fecha quando
-  //           a manutenção é registrada (`resolverPorManutencao`).
+  //  Regra 6  furto_suspeito NÃO fecha sozinho: fecha quando uma pessoa resolve o alerta ou tira o equipamento de "furtado"
+  //           (recuperado ou dado como perdido, ver mudarSituacao no serviço; fica como resolução manual);
+  //           manutencao_atrasada só fecha quando a manutenção é registrada (`resolverPorManutencao`).
 
   /** Grava a resolução automática (sem avisar ninguém). */
-  private fecharIds(ids: number[], quando: Date): Alerta[] {
+  private fecharIds(ids: number[], quando: Date, resolucao: 'manual' | 'automatica' = 'automatica'): Alerta[] {
     const fechados: Alerta[] = [];
     for (const id of ids) {
-      const resolvido = resolverAlerta(this.db, id, quando.toISOString(), 'automatica');
+      const resolvido = resolverAlerta(this.db, id, quando.toISOString(), resolucao);
       if (!resolvido) continue;
       fechados.push(resolvido);
       if (resolvido.equipamentoId !== undefined && resolvido.tipo === 'sem_sinal') this.calados.delete(resolvido.equipamentoId);
@@ -177,8 +181,8 @@ export class MotorAlertas {
     for (const a of alertas) this.ctx.barramento.emitir({ tipo: 'alerta', dados: a });
   }
 
-  private resolverIds(ids: number[], quando: Date): void {
-    this.avisar(this.fecharIds(ids, quando));
+  private resolverIds(ids: number[], quando: Date, resolucao: 'manual' | 'automatica' = 'automatica'): void {
+    this.avisar(this.fecharIds(ids, quando, resolucao));
   }
 
   /** Regra 1: a ocorrência acabou, então o alerta que ela abriu também acaba. */

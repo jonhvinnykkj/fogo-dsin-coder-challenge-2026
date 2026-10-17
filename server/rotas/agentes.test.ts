@@ -71,6 +71,14 @@ describe('agentes', () => {
     expect(depois).toMatchObject({ baseLogradouro: 'Rua Nova', latAtual: -22.2, lngAtual: -49.95, ultimoSinalEm: '2026-10-17T14:59:00.000Z' });
   });
 
+  it('PUT não mexe na situação (vem do turno e das ocorrências; só o PATCH a muda)', async () => {
+    const a = (await criar()).json();
+    ctx.db.prepare("UPDATE agentes SET situacao = 'em_ocorrencia' WHERE id = ?").run(a.id);
+    const put = await app.inject({ method: 'PUT', url: `/api/agentes/${a.id}`, payload: corpoAgente(ctx, { telefone: '(14) 98888-0000', situacao: 'em_servico' }) });
+    expect(put.statusCode).toBe(200);
+    expect(put.json()).toMatchObject({ telefone: '(14) 98888-0000', situacao: 'em_ocorrencia' });
+  });
+
   it('PATCH situação e vínculo com equipamento existente', async () => {
     const eq = (await app.inject({ method: 'POST', url: '/api/equipamentos', payload: corpoEquipamento(ctx) })).json();
     const a = (await criar({ equipamentoId: eq.id })).json();

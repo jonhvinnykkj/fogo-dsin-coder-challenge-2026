@@ -9,13 +9,15 @@
 //   média dos últimos 30 dias completos e variação da última semana contra a anterior. Ex.: 40 h → 34 h = −15%.
 // Falhas por 100 equipamentos de cada marca/modelo nos últimos 60 dias (falha = mudança para mau funcionamento).
 //   Ex.: 48 falhas em 20 câmeras VX-200 → 240 por 100.
+// Tudo só até o fim do histórico (fimDosDados = meta.historico_ate + 1 h): o que a simulação ao vivo faz (falhas, consertos,
+//   furtos, telemetria) não entra. O "hoje" das séries é o último dia com dados, e conta até o fim deles.
 import type { Database } from 'better-sqlite3';
 import { contaNaDisponibilidade, type SituacaoEquipamento } from '../../shared/dominio';
 import { formatarNumero } from '../../shared/formato';
 import type { ExplicacaoPrevisao, Tendencias } from '../../shared/modelos';
 import { TIPOS_EQUIPAMENTO, type TipoEquipamentoId } from '../../shared/tipos-equipamento';
 import { dataLocal, instanteLocal, somarDias } from '../tempo';
-import { arred, DIA_MS, falhasPorEquipamento, inicioDoHistorico, limitar, mediana, mudancasDeSituacao, situacaoNoInstante } from './base';
+import { arred, DIA_MS, falhasPorEquipamento, fimDosDados, inicioDoHistorico, limitar, mediana, mudancasDeSituacao, situacaoNoInstante } from './base';
 
 export const DIAS_SERIE = 30;
 export const DIAS_PROJECAO = 7;
@@ -48,10 +50,16 @@ interface Equip {
   marca: string;
   modelo: string;
   situacao: SituacaoEquipamento;
+  criado_em: string;
 }
 
 /** % de disponibilidade de cada tipo em cada dia de `datas` (o último dia conta só até `agora`). */
-function disponibilidadeDiaria(db: Database, equipamentos: Equip[], datas: string[], agoraMs: number): Map<TipoEquipamentoId, number[]> {
+function disponibilidadeDiaria(
+  equipamentos: Equip[],
+  mudancas: ReturnType<typeof mudancasDeSituacao>,
+  datas: string[],
+  agoraMs: number,
+): Map<TipoEquipamentoId, number[]> {
   const inicioMs = instanteLocal(datas[0]!, 0).getTime();
   const nDias = datas.length;
   const oper = new Map<TipoEquipamentoId, Float64Array>();
@@ -60,8 +68,6 @@ function disponibilidadeDiaria(db: Database, equipamentos: Equip[], datas: strin
     oper.set(t.id, new Float64Array(nDias));
     contado.set(t.id, new Float64Array(nDias));
   }
-  const mudancas = mudancasDeSituacao(db);
-
   const acumular = (tipo: TipoEquipamentoId, s: SituacaoEquipamento, de: number, ate: number) => {
     if (!contaNaDisponibilidade(s) || ate <= de) return;
     const o = oper.get(tipo)!;
@@ -100,14 +106,17 @@ function disponibilidadeDiaria(db: Database, equipamentos: Equip[], datas: strin
 }
 
 export function calcularTendencias(db: Database, { agora }: { agora: Date }): Tendencias {
-  const agoraMs = agora.getTime();
-  const hoje = dataLocal(agora);
+  // Fim dos dados: o histórico acaba aqui (a simulação ao vivo fica de fora). Equipamento cadastrado depois não tem passado.
+  const agoraMs = fimDosDados(db, agora);
+  const hoje = dataLocal(new Date(agoraMs - 1));
   const datas = Array.from({ length: DIAS_SERIE }, (_, k) => somarDias(hoje, k - DIAS_SERIE + 1));
-  const equipamentos = db.prepare('SELECT id, tipo, marca, modelo, situacao FROM equipamentos').all() as Equip[];
+  const equipamentos = (db.prepare('SELECT id, tipo, marca, modelo, situacao, criado_em FROM equipamentos').all() as Equip[])
+    .filter((e) => Date.parse(e.criado_em) < agoraMs);
+  const mudancas = mudancasDeSituacao(db);
 
   // 1. Disponibilidade por tipo. Calcula 60 dias: os 30 últimos viram a série; os 60 alimentam o teste retroativo.
   const datasLongas = Array.from({ length: 2 * DIAS_SERIE }, (_, k) => somarDias(hoje, k - 2 * DIAS_SERIE + 1));
-  const seriesLongas = disponibilidadeDiaria(db, equipamentos, datasLongas, agoraMs);
+  const seriesLongas = disponibilidadeDiaria(equipamentos, mudancas, datasLongas, agoraMs);
   const disponibilidadePorTipo = TIPOS_EQUIPAMENTO.map((t) => {
     const ys = seriesLongas.get(t.id)!.slice(-DIAS_SERIE);
     return { tipo: t.id, serie: ys.map((pct, i) => ({ data: datas[i]!, pct })), projecao7d: arred(projetar(ys, DIAS_PROJECAO), 1) };
@@ -121,7 +130,7 @@ export function calcularTendencias(db: Database, { agora }: { agora: Date }): Te
        FROM equipamentos e JOIN telemetria_hora t ON t.equipamento_id = e.id
        WHERE e.tipo = 'patinete' AND t.hora >= ? AND t.hora < ? GROUP BY e.bairro_id, dia`,
     )
-    .all(instanteLocal(diasUso[0]!, 0).toISOString(), instanteLocal(hoje, 0).toISOString()) as { bairro: number; dia: string; horas: number }[];
+    .all(instanteLocal(diasUso[0]!, 0).toISOString(), new Date(Math.min(instanteLocal(hoje, 0).getTime(), agoraMs)).toISOString()) as { bairro: number; dia: string; horas: number }[];
   const usoPorBairroDia = new Map<string, number>(linhasUso.map((l) => [`${l.bairro}|${l.dia}`, l.horas]));
   const bairrosComPatinete = db
     .prepare("SELECT DISTINCT b.id, b.nome FROM equipamentos e JOIN bairros b ON b.id = e.bairro_id WHERE e.tipo = 'patinete' ORDER BY b.nome")
@@ -146,7 +155,7 @@ export function calcularTendencias(db: Database, { agora }: { agora: Date }): Te
   const falhas = falhasPorEquipamento(db, desde, agoraMs);
   const porModelo = new Map<string, { marca: string; modelo: string; falhas: number; frota: number }>();
   for (const e of equipamentos) {
-    if (e.situacao === 'nao_instalado') continue;
+    if (situacaoNoInstante(e.situacao, mudancas.get(e.id), agoraMs - 1) === 'nao_instalado') continue;
     const chave = `${e.marca}|${e.modelo}`;
     const acc = porModelo.get(chave) ?? { marca: e.marca, modelo: e.modelo, falhas: 0, frota: 0 };
     acc.falhas += falhas.get(e.id) ?? 0;

@@ -1,8 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { dentroDeMarilia } from '../../shared/geo';
 import type { EventoFogo } from '../../shared/modelos';
+import { agenteInputSchema, equipamentoInputSchema } from '../../shared/schemas';
+import { criarAgente, excluirAgente } from '../servicos/agentes';
+import { criarEquipamento, excluirEquipamento, mudarSituacao } from '../servicos/equipamentos';
 import { criarCtxDeTeste, type CtxDeTeste, type RelogioDeTeste } from '../test/ctx';
-import { inserirEquipamentoDeTeste } from '../test/fabricas';
+import { corpoAgente, corpoEquipamento, inserirEquipamentoDeTeste } from '../test/fabricas';
 import { Simulador } from './simulador';
 
 afterEach(() => {
@@ -147,17 +150,17 @@ describe('Simulador', () => {
     expect(sim.injetar('falha', id)).toHaveLength(0); // já falhou: nada novo
   });
 
-  it("injetar('acidente') e ('congestionamento') criam ocorrência injetada e alerta (crítico só com gravidade 4)", () => {
-    const ctx = cidadezinha();
-    const sim = new Simulador(ctx, { semente: 11 });
-    const [acidente] = sim.injetar('acidente');
-    expect(acidente).toMatchObject({ tipo: 'acidente' });
-    expect(['alta', 'critica']).toContain(acidente!.criticidade);
-    const [cong] = sim.injetar('congestionamento');
-    expect(cong).toMatchObject({ tipo: 'congestionamento', criticidade: 'media' });
-    const o = ctx.db.prepare('SELECT tipo, origem, gravidade FROM ocorrencias ORDER BY id').all() as { tipo: string; origem: string; gravidade: number }[];
-    expect(o.map((x) => [x.tipo, x.origem])).toEqual([['acidente', 'injetado'], ['congestionamento', 'injetado']]);
-    expect(acidente!.criticidade).toBe(o[0]!.gravidade === 4 ? 'critica' : 'alta');
+  it("injetar usa a gravidade mais alta do tipo: acidente sempre gravidade 4 e alerta crítico; congestionamento 3", () => {
+    for (const semente of [1, 2, 3, 4, 5, 11]) {
+      const ctx = cidadezinha();
+      const sim = new Simulador(ctx, { semente });
+      const [acidente] = sim.injetar('acidente');
+      expect(acidente).toMatchObject({ tipo: 'acidente', criticidade: 'critica' });
+      const [cong] = sim.injetar('congestionamento');
+      expect(cong).toMatchObject({ tipo: 'congestionamento', criticidade: 'media' });
+      const o = ctx.db.prepare('SELECT tipo, origem, gravidade FROM ocorrencias ORDER BY id').all() as { tipo: string; origem: string; gravidade: number }[];
+      expect(o.map((x) => [x.tipo, x.origem, x.gravidade])).toEqual([['acidente', 'injetado', 4], ['congestionamento', 'injetado', 3]]);
+    }
   });
 
   it('injetar com alvo de tipo errado recusa com mensagem clara', () => {
@@ -241,6 +244,106 @@ describe('Simulador', () => {
     expect(ctx.db.prepare('SELECT situacao FROM agentes WHERE id = ?').get(aberta.agente_id)).toEqual({ situacao: 'em_servico' });
     expect(sit(ctx, 'FOGO-RAD-0002')).toBe('operacional');
     expect(ctx.db.prepare("SELECT COUNT(*) AS n FROM ocorrencias WHERE fim IS NULL AND origem = 'injetado'").get()).toEqual({ n: 0 });
+  });
+
+  const furtosDe = (ctx: CtxDeTeste, id: number) =>
+    ctx.db.prepare("SELECT id, resolvido_em FROM alertas WHERE tipo = 'furto_suspeito' AND equipamento_id = ? ORDER BY id").all(id) as { id: number; resolvido_em: string | null }[];
+
+  it('patinete furtado e recuperado volta à base: o alerta de furto fecha e nenhum novo aparece nos ticks seguintes', () => {
+    const ctx = cidadezinha();
+    const sim = new Simulador(ctx, { semente: 5 });
+    ctx.simulador = sim;
+    sim.passo();
+    const id = idDe(ctx, 'FOGO-PAT-0001');
+    sim.injetar('furto', id);
+    expect(furtosDe(ctx, id)).toHaveLength(1);
+    avancar(ctx, 2000);
+    sim.passo();
+
+    mudarSituacao(ctx, id, { situacao: 'operacional', motivo: 'Patinete recuperado pela Guarda', recuperado: true });
+    const pos = ctx.db.prepare('SELECT lat, lng, lat_atual, lng_atual FROM equipamentos WHERE id = ?').get(id) as { lat: number; lng: number; lat_atual: number; lng_atual: number };
+    expect([pos.lat_atual, pos.lng_atual]).toEqual([pos.lat, pos.lng]);
+    expect(furtosDe(ctx, id).filter((a) => a.resolvido_em === null)).toEqual([]);
+
+    for (let i = 0; i < 40; i++) {
+      avancar(ctx, 2000);
+      sim.passo();
+    }
+    expect(furtosDe(ctx, id)).toHaveLength(1); // só o original, já resolvido
+    const depois = ctx.db.prepare('SELECT lat_atual, lng_atual FROM equipamentos WHERE id = ?').get(id) as { lat_atual: number; lng_atual: number };
+    expect(dentroDeMarilia(depois.lat_atual, depois.lng_atual)).toBe(true);
+  });
+
+  it('mudar a situação pela tela para operacional fecha o alerta de falha e tira o equipamento do silêncio (não vira "sem sinal")', () => {
+    const ctx = cidadezinha();
+    const sim = new Simulador(ctx, { semente: 5 });
+    ctx.simulador = sim;
+    sim.passo();
+    const id = idDe(ctx, 'FOGO-RAD-0001');
+    // Falha "muda": o equipamento para de transmitir (o simulador decide no sorteio; aqui forçamos pelo banco e pela memória).
+    sim.injetar('falha', id);
+    (sim as unknown as { mudos: Set<number> }).mudos.add(id);
+    mudarSituacao(ctx, id, { situacao: 'operacional', motivo: 'Reiniciado pela equipe' });
+    expect(ctx.db.prepare("SELECT COUNT(*) AS n FROM alertas WHERE equipamento_id = ? AND tipo = 'falha_equipamento' AND resolvido_em IS NULL").get(id)).toEqual({ n: 0 });
+
+    const inicio = ctx.relogio.agora().getTime();
+    for (let i = 0; i < 30; i++) {
+      avancar(ctx, 40_000); // 20 min no total: passaria do limite de 15 min sem sinal
+      sim.passo();
+    }
+    const ultimo = (ctx.db.prepare('SELECT ultimo_sinal_em AS u FROM equipamentos WHERE id = ?').get(id) as { u: string }).u;
+    expect(Date.parse(ultimo)).toBeGreaterThan(inicio);
+    expect(ctx.db.prepare("SELECT COUNT(*) AS n FROM alertas WHERE equipamento_id = ? AND tipo = 'sem_sinal'").get(id)).toEqual({ n: 0 });
+  });
+
+  it('equipamento criado pela tela já pode receber "Simular falha"', () => {
+    const ctx = cidadezinha();
+    const sim = new Simulador(ctx, { semente: 5 });
+    ctx.simulador = sim;
+    sim.passo();
+    const novo = criarEquipamento(ctx, equipamentoInputSchema.parse(corpoEquipamento(ctx, { numeroSerie: 'SN-NOVO' })));
+    const alertas = sim.injetar('falha', novo.id);
+    expect(alertas.find((a) => a.tipo === 'falha_equipamento')).toMatchObject({ equipamentoId: novo.id });
+  });
+
+  it('equipamento e agente excluídos pela tela saem da memória do simulador na hora', () => {
+    const ctx = cidadezinha();
+    const sim = new Simulador(ctx, { semente: 5 });
+    ctx.simulador = sim;
+    const parado = criarEquipamento(ctx, equipamentoInputSchema.parse(corpoEquipamento(ctx, { numeroSerie: 'SN-PARADO', situacao: 'nao_instalado' })));
+    const ref = idDe(ctx, 'FOGO-RAD-0002');
+    const radar = ctx.db.prepare('SELECT lat, lng FROM equipamentos WHERE id = ?').get(ref) as { lat: number; lng: number };
+    // Um policial bem em cima do local do acidente: seria o mais próximo, se continuasse na memória.
+    const pm = criarAgente(ctx, agenteInputSchema.parse(corpoAgente(ctx, { matricula: 'PM-9', categoria: 'policial_militar', orgao: 'Polícia Militar', lat: radar.lat, lng: radar.lng })));
+    sim.passo();
+
+    excluirEquipamento(ctx, parado.id);
+    excluirAgente(ctx, pm.id);
+    expect(() => sim.injetar('falha', parado.id)).toThrow(/não encontrado/);
+    const [alerta] = sim.injetar('acidente', ref);
+    expect(alerta).toBeDefined();
+    const o = ctx.db.prepare("SELECT agente_id FROM ocorrencias WHERE tipo = 'acidente'").get() as { agente_id: number | null };
+    expect(o.agente_id).not.toBe(pm.id);
+  });
+
+  it('um equipamento com erro não interrompe o resto do tick: o erro vai para o log e os outros seguem', () => {
+    const ctx = cidadezinha();
+    const sim = new Simulador(ctx, { semente: 5 });
+    sim.passo();
+    // Some do banco "por fora" (sem avisar o simulador): a leitura dele falha dentro do tick.
+    const id = idDe(ctx, 'FOGO-RAD-0001');
+    ctx.db.prepare('DELETE FROM telemetria_hora WHERE equipamento_id = ?').run(id);
+    ctx.db.prepare('DELETE FROM equipamentos WHERE id = ?').run(id);
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    avancar(ctx, 2000);
+    sim.definir({ pausado: true });
+    sim.definir({ pausado: false }); // ao retomar, todos transmitem no próximo passo
+    expect(() => sim.passo()).not.toThrow();
+    expect(log).toHaveBeenCalled();
+    log.mockRestore();
+    const agora = ctx.relogio.agora().toISOString();
+    const atrasados = ctx.db.prepare("SELECT codigo FROM equipamentos WHERE situacao = 'operacional' AND ultimo_sinal_em <> ?").all(agora);
+    expect(atrasados).toEqual([]);
   });
 
   it('reinício muito depois: ocorrência velha é encerrada de imediato e equipamento em manutenção é concluído', () => {

@@ -10,8 +10,13 @@
 //     O servidor completa o histórico até a hora em que foi ligado (preencherLacuna), então ele não tem buracos.
 //   - Fim dos dados = última hora do histórico (meta.historico_ate) + 1 h, ou o corte pedido, o que vier antes.
 //   - Falhas de equipamento = mudanças de situação para 'mau_funcionamento' (historico_situacao): é o momento exato da
-//     falha. A previsão de falhas e as tendências usam a mesma definição.
-//   - Chuva: clima_dia (observada nos dias passados, prevista — previsto = 1 — nos próximos 7 dias).
+//     falha. A previsão de falhas e as tendências usam a mesma definição, e só as de origem 'historico' (as do simulador e
+//     da tela são 'ao_vivo': o simulador falha 150 vezes a taxa real × a velocidade). O corte no fim dos dados vale para
+//     tudo (falhas, quedas de sinal, uso de patinetes, disponibilidade); a origem segura também depois de reiniciar, quando
+//     o fim do histórico anda para a frente.
+//   - Chuva: clima_dia. Para APRENDER (fator chuva) usa a chuva que caiu nos dias passados (chuva_mm); para PREVER um dia
+//     (próximas 24 h, 7 dias e cada dia do teste retroativo) usa a previsão do tempo guardada (chuva_prevista_mm), a que
+//     existia na véspera. Assim nada do dia previsto entra na conta, nem a chuva que de fato caiu nele.
 import type { Database } from 'better-sqlite3';
 import { REGIOES, type Regiao, type SituacaoEquipamento } from '../../shared/dominio';
 import { partesLocais } from '../tempo';
@@ -114,8 +119,10 @@ export interface HistoricoOcorrencias {
   cidade: Float64Array;
   /** Soma de cada região em cada hora. */
   porRegiao: Map<Regiao, Float64Array>;
-  /** Chuva (mm) por data local YYYY-MM-DD, observada ou prevista. */
+  /** Chuva que caiu (mm) por data local YYYY-MM-DD: serve para aprender o fator chuva. */
   chuvaMm: Map<string, number>;
+  /** Previsão do tempo guardada (mm) por data local: é a que entra na previsão de cada dia. */
+  chuvaPrevistaMm: Map<string, number>;
 }
 
 /** Fim exclusivo dos dados de aprendizado: o corte (na hora cheia) ou a última hora do histórico + 1 h. */
@@ -157,8 +164,10 @@ export function carregarHistorico(db: Database, { ate, diasAntes }: { ate: Date;
     cidade[h]! += l.n;
     porRegiao.get(bairros[i]!.regiao)![h]! += l.n;
   }
-  const chuvaMm = new Map((db.prepare('SELECT data, chuva_mm FROM clima_dia').all() as { data: string; chuva_mm: number }[]).map((l) => [l.data, l.chuva_mm]));
-  return { bairros, inicioMs, fimMs, porBairro, cidade, porRegiao, chuvaMm };
+  const clima = db.prepare('SELECT data, chuva_mm, chuva_prevista_mm FROM clima_dia').all() as { data: string; chuva_mm: number; chuva_prevista_mm: number | null }[];
+  const chuvaMm = new Map(clima.map((l) => [l.data, l.chuva_mm]));
+  const chuvaPrevistaMm = new Map(clima.map((l) => [l.data, l.chuva_prevista_mm ?? 0]));
+  return { bairros, inicioMs, fimMs, porBairro, cidade, porRegiao, chuvaMm, chuvaPrevistaMm };
 }
 
 /** O que o modelo de risco aprende com as 8 semanas antes de um corte. */
@@ -200,13 +209,15 @@ export interface EstatisticasRisco {
  *   4,07/h → 57 ÷ 4,07 = 14,0; perfil da cidade nesse horário 1,22 → (14,0 + 8 × 1,22) ÷ (8 + 8) = 1,49
  *   (sozinha a região daria 14,0 ÷ 8 = 1,75; a cidade inteira, 1,22). Sábado às 22 h: 1,86; terça às 3 h: 0,36.
  * Chuva: média diária da cidade nos dias de chuva ÷ nos dias secos. Ex.: 12 dias de chuva e 43 secos → 1,15 (15% a mais).
- *   Fica no modelo por ser um padrão plantado e pedido no projeto, mesmo custando ≈ 0,9 ponto no teste retroativo (8,2% com
- *   chuva, 9,1% sem): o aumento é concentrado em acidentes e alagamentos, mas o fator é da cidade inteira e sobe também as
- *   horas calmas, onde o erro médio absoluto pune prever a mais.
+ *   Fica no modelo por ser um padrão plantado e pedido no projeto, mesmo custando ≈ 1,8 ponto no teste retroativo (7,3% com
+ *   a previsão de chuva guardada, 9,1% sem o fator; com a chuva observada eram 8,2%): o aumento é concentrado em acidentes e
+ *   alagamentos, mas o fator é da cidade inteira e sobe também as horas calmas, onde o erro médio absoluto pune prever a mais;
+ *   e a previsão do tempo erra às vezes (anuncia chuva que não vem ou não anuncia a que vem).
  * Tendência (da cidade): taxa das últimas 2 semanas ÷ taxa das 6 anteriores, limitada a 0,7–1,3. Ex.: 12,1/h ÷ 12,3/h = 0,98.
  *   É da cidade e não de cada bairro: em 2 semanas um bairro tem poucas ocorrências e a razão vira ruído (na semente,
- *   10 dos 65 bairros batiam no limite 0,7 ou 1,3 por puro acaso). Medido no teste retroativo: por bairro, ganho 7,9% e
- *   acerto dos 5 à noite 3,57 (abaixo dos 3,93 da média simples); da cidade, 8,2% e 4,00.
+ *   10 dos 65 bairros batiam no limite 0,7 ou 1,3 por puro acaso). Medido no teste retroativo, ainda com a chuva observada:
+ *   por bairro, ganho 7,9% e acerto dos 5 à noite 3,57 (abaixo dos 3,93 da média simples); da cidade, 8,2% e 4,00. Com a
+ *   previsão de chuva guardada (atual), da cidade: 7,3% e 4,0.
  */
 export function calcularEstatisticas(hist: HistoricoOcorrencias, corteMs: number): EstatisticasRisco {
   const fimMs = Math.min(hist.fimMs, inicioDaHoraMs(corteMs));
@@ -289,24 +300,32 @@ export function calcularEstatisticas(hist: HistoricoOcorrencias, corteMs: number
 
 // ---- Equipamentos: falhas e situação no tempo ---------------------------------------------------------------
 
-/** Falhas (mudanças para mau funcionamento) por equipamento em [desde, ate). */
+/** Falhas (mudanças para mau funcionamento) do histórico gerado, por equipamento, em [desde, ate). */
 export function falhasPorEquipamento(db: Database, desdeMs: number, ateMs: number): Map<number, number> {
   const linhas = db
-    .prepare("SELECT equipamento_id, COUNT(*) AS n FROM historico_situacao WHERE para = 'mau_funcionamento' AND em >= ? AND em < ? GROUP BY equipamento_id")
+    .prepare("SELECT equipamento_id, COUNT(*) AS n FROM historico_situacao WHERE para = 'mau_funcionamento' AND origem = 'historico' AND em >= ? AND em < ? GROUP BY equipamento_id")
     .all(iso(desdeMs), iso(ateMs)) as { equipamento_id: number; n: number }[];
   return new Map(linhas.map((l) => [l.equipamento_id, l.n]));
 }
 
-/** Mudanças de situação de cada equipamento, em ordem (para reconstruir a situação em qualquer instante). */
+/**
+ * Mudanças de situação do histórico gerado, por equipamento e em ordem (para reconstruir a situação em qualquer instante
+ * só com o histórico). Quem só mudou ao vivo ganha um marcador com a situação de antes da primeira mudança ao vivo
+ * (`emMs` infinito): para o histórico ele ficou nela o tempo todo.
+ */
 export function mudancasDeSituacao(db: Database): Map<number, { de: SituacaoEquipamento; para: SituacaoEquipamento; emMs: number }[]> {
-  const linhas = db.prepare('SELECT equipamento_id, de, para, em FROM historico_situacao ORDER BY equipamento_id, em, id').all() as {
-    equipamento_id: number; de: SituacaoEquipamento; para: SituacaoEquipamento; em: string;
+  const linhas = db.prepare('SELECT equipamento_id, de, para, em, origem FROM historico_situacao ORDER BY equipamento_id, em, id').all() as {
+    equipamento_id: number; de: SituacaoEquipamento; para: SituacaoEquipamento; em: string; origem: 'historico' | 'ao_vivo';
   }[];
   const mapa = new Map<number, { de: SituacaoEquipamento; para: SituacaoEquipamento; emMs: number }[]>();
   for (const l of linhas) {
     let lista = mapa.get(l.equipamento_id);
-    if (!lista) mapa.set(l.equipamento_id, (lista = []));
-    lista.push({ de: l.de, para: l.para, emMs: Date.parse(l.em) });
+    if (l.origem === 'historico') {
+      if (!lista) mapa.set(l.equipamento_id, (lista = []));
+      lista.push({ de: l.de, para: l.para, emMs: Date.parse(l.em) });
+    } else if (!lista) {
+      mapa.set(l.equipamento_id, [{ de: l.de, para: l.de, emMs: Infinity }]);
+    }
   }
   return mapa;
 }

@@ -18,13 +18,18 @@
 //   fator_manutenção = 1 + dias de manutenção atrasada ÷ 30, no máximo 3. Ex.: 40 dias → 2,33.
 //   fator_quedas    = 1 + horas com sinal fraco (menos de 55 min conectado) nas últimas 72 h ÷ 3. Ex.: 6 horas → 3.
 // O teste retroativo refaz a conta como se fosse 7 dias atrás e compara com as falhas que de fato aconteceram.
+// Dados: só até o fim do histórico (fimDosDados = meta.historico_ate + 1 h). Falhas, quedas de sinal e mudanças de situação
+// da simulação ao vivo (150 vezes a taxa real × a velocidade) não entram: o modelo é o aprendido com o histórico, e a lista
+// mostra os equipamentos em operação agora.
 import type { Database } from 'better-sqlite3';
 import type { SituacaoEquipamento } from '../../shared/dominio';
 import { formatarChance, formatarNumero } from '../../shared/formato';
 import type { ExplicacaoPrevisao, RespostaFalhas, RiscoFalha } from '../../shared/modelos';
 import { NOME_DO_TIPO, type TipoEquipamentoId } from '../../shared/tipos-equipamento';
 import { dataLocal } from '../tempo';
-import { arred, DIA_MS, falhasPorEquipamento, HORA_MS, inicioDaHoraMs, inicioDoHistorico, mediana, mudancasDeSituacao, quedasDeSinal, situacaoNoInstante } from './base';
+import {
+  arred, DIA_MS, falhasPorEquipamento, fimDosDados, HORA_MS, inicioDaHoraMs, inicioDoHistorico, mediana, mudancasDeSituacao, quedasDeSinal, situacaoNoInstante,
+} from './base';
 
 export const DIAS_TAXA = 60;
 export const HORIZONTE_DIAS = 7;
@@ -42,7 +47,10 @@ interface LinhaEquipamento {
   situacao: SituacaoEquipamento;
   instalado_em: string | null;
   proxima_manutencao: string | null;
+  /** A próxima manutenção no fim do histórico gerado (o simulador reagenda a do cadastro quando conclui um reparo). */
+  proxima_historico: string | null;
   bairro_nome: string;
+  criado_em: string;
 }
 
 interface RiscoInterno extends RiscoFalha {
@@ -58,28 +66,35 @@ export interface CalculoFalhas {
 const chaveModelo = (e: Pick<LinhaEquipamento, 'tipo' | 'marca' | 'modelo'>) => `${e.tipo}|${e.marca}|${e.modelo}`;
 
 /**
- * Riscos de falha calculados como se fosse `instanteMs` (só com dados anteriores a ele). Com `atual`, a situação de cada
- * equipamento é a do cadastro; sem ele (teste retroativo), é reconstruída pelo histórico de situação naquele instante.
+ * Riscos de falha calculados como se fosse `instanteMs`, só com dados anteriores a ele e ao fim do histórico. O modelo
+ * (taxas, equipamento típico, quedas de sinal, data da próxima manutenção) usa o que valia no fim dos dados, reconstruído
+ * pelo histórico. Com `atual`, a lista sai com os equipamentos em operação AGORA, cada um com a manutenção agendada agora
+ * (o cadastro); sem ele (teste retroativo), com os que estavam em operação naquele instante.
  */
 export function calcularRiscosDeFalha(db: Database, instanteMs: number, { atual = false }: { atual?: boolean } = {}): CalculoFalhas {
-  const equipamentos = db
-    .prepare('SELECT e.id, e.codigo, e.tipo, e.marca, e.modelo, e.situacao, e.instalado_em, e.proxima_manutencao, b.nome AS bairro_nome FROM equipamentos e JOIN bairros b ON b.id = e.bairro_id')
-    .all() as LinhaEquipamento[];
-  const mudancas = atual ? new Map() : mudancasDeSituacao(db);
-  const situacao = new Map(equipamentos.map((e) => [e.id, atual ? e.situacao : situacaoNoInstante(e.situacao, mudancas.get(e.id), instanteMs)]));
+  const fimMs = fimDosDados(db, new Date(instanteMs));
+  const equipamentos = (db
+    .prepare(`SELECT e.id, e.codigo, e.tipo, e.marca, e.modelo, e.situacao, e.instalado_em, e.proxima_manutencao,
+        COALESCE(e.proxima_manutencao_historico, e.proxima_manutencao) AS proxima_historico, b.nome AS bairro_nome, e.criado_em
+      FROM equipamentos e JOIN bairros b ON b.id = e.bairro_id`)
+    .all() as LinhaEquipamento[]);
+  const mudancas = mudancasDeSituacao(db);
+  // Situação no fim dos dados (a do modelo) e quem já existia nele (cadastrado depois não tem histórico para ensinar nada).
+  const noFim = new Map(equipamentos.map((e) => [e.id, situacaoNoInstante(e.situacao, mudancas.get(e.id), fimMs - 1)]));
+  const existia = (e: LinhaEquipamento) => Date.parse(e.criado_em) < fimMs;
   // Janela de 60 dias, ou menos se o histórico começa depois (teste retroativo).
-  const desde = Math.max(instanteMs - DIAS_TAXA * DIA_MS, inicioDoHistorico(db) ?? instanteMs - DIAS_TAXA * DIA_MS);
-  const diasJanela = Math.max(1, (instanteMs - desde) / DIA_MS);
-  const falhas = falhasPorEquipamento(db, desde, instanteMs);
-  const quedas = quedasDeSinal(db, instanteMs - HORAS_QUEDAS * HORA_MS, inicioDaHoraMs(instanteMs));
+  const desde = Math.max(fimMs - DIAS_TAXA * DIA_MS, inicioDoHistorico(db) ?? fimMs - DIAS_TAXA * DIA_MS);
+  const diasJanela = Math.max(1, (fimMs - desde) / DIA_MS);
+  const falhas = falhasPorEquipamento(db, desde, fimMs);
+  const quedas = quedasDeSinal(db, fimMs - HORAS_QUEDAS * HORA_MS, inicioDaHoraMs(fimMs));
   const hoje = dataLocal(new Date(instanteMs));
 
-  // Taxas por tipo e por modelo (frota = tudo que já estava instalado).
+  // Taxas por tipo e por modelo (frota = tudo que já estava instalado no fim dos dados).
   const porTipo = new Map<string, { falhas: number; frota: number }>();
   const porModelo = new Map<string, { falhas: number; frota: number }>();
   let falhasJanela = 0;
   for (const e of equipamentos) {
-    if (situacao.get(e.id) === 'nao_instalado') continue;
+    if (!existia(e) || noFim.get(e.id) === 'nao_instalado') continue;
     const f = falhas.get(e.id) ?? 0;
     falhasJanela += f;
     for (const [mapa, chave] of [[porTipo, e.tipo], [porModelo, chaveModelo(e)]] as const) {
@@ -99,24 +114,30 @@ export function calcularRiscosDeFalha(db: Database, instanteMs: number, { atual 
     return (m.falhas + K_MODELO) / (esperadas + K_MODELO);
   };
 
-  // Fatores de cada equipamento em operação.
-  const operacionais = equipamentos.filter((e) => situacao.get(e.id) === 'operacional').map((e) => {
+  // Fatores de cada equipamento que entra na conta: em operação no fim dos dados (o típico sai deles) ou na lista pedida.
+  const naLista = (e: LinhaEquipamento) => (atual ? e.situacao : noFim.get(e.id)) === 'operacional';
+  const noModelo = (e: LinhaEquipamento) => existia(e) && noFim.get(e.id) === 'operacional';
+  const fatores = (e: LinhaEquipamento, proxima: string | null) => {
     const fm = fatorModelo(e);
     const anos = e.instalado_em ? Math.max(0, (instanteMs - Date.parse(e.instalado_em)) / ANO_MS) : 0;
     const fi = 1 + anos / 5;
-    const atraso = e.proxima_manutencao ? Math.max(0, Math.round((Date.parse(hoje) - Date.parse(e.proxima_manutencao.slice(0, 10))) / DIA_MS)) : 0;
+    const atraso = proxima ? Math.max(0, Math.round((Date.parse(hoje) - Date.parse(proxima.slice(0, 10))) / DIA_MS)) : 0;
     const fman = Math.min(3, 1 + atraso / 30);
     const q = quedas.get(e.id) ?? 0;
     const fq = 1 + q / 3;
     return { e, f: { fm, fi, anos, fman, atraso, fq, quedas: q }, produto: fm * fi * fman * fq };
-  });
-  // Fator do equipamento típico (mediana) de cada tipo, entre os que estão em operação.
+  };
+  // Fator do equipamento típico (mediana) de cada tipo, entre os que estavam em operação no fim dos dados (com a data de
+  // manutenção do fim do histórico).
   const produtosDoTipo = new Map<string, number[]>();
-  for (const o of operacionais) produtosDoTipo.set(o.e.tipo, [...(produtosDoTipo.get(o.e.tipo) ?? []), o.produto]);
+  for (const e of equipamentos) {
+    if (noModelo(e)) produtosDoTipo.set(e.tipo, [...(produtosDoTipo.get(e.tipo) ?? []), fatores(e, e.proxima_historico).produto]);
+  }
   const tipico = new Map([...produtosDoTipo].map(([tipo, xs]) => [tipo, mediana(xs)]));
 
-  const riscos: RiscoInterno[] = operacionais.map(({ e, f, produto }) => {
-    const lambda = (lambdaTipo(e.tipo) / tipico.get(e.tipo)!) * produto;
+  const lista = equipamentos.filter(naLista).map((e) => fatores(e, atual ? e.proxima_manutencao : e.proxima_historico));
+  const riscos: RiscoInterno[] = lista.map(({ e, f, produto }) => {
+    const lambda = (lambdaTipo(e.tipo) / (tipico.get(e.tipo) ?? produto)) * produto;
     return {
       equipamentoId: e.id, codigo: e.codigo, tipo: e.tipo, marca: e.marca, modelo: e.modelo, bairroNome: e.bairro_nome,
       probabilidade: arred(1 - Math.exp(-HORIZONTE_DIAS * lambda), 4), lambda, fatores: fatoresDoEquipamento(e, f),
@@ -161,11 +182,12 @@ export interface RetroativoFalhas {
   equipamentos: number;
 }
 
-/** Refaz a previsão como se fosse 7 dias atrás e confere com o que aconteceu. */
+/** Refaz a previsão como se fosse 7 dias antes do fim dos dados e confere com o que aconteceu até o fim deles. */
 export function testeRetroativoFalhas(db: Database, agora: Date): RetroativoFalhas {
-  const corte = agora.getTime() - HORIZONTE_DIAS * DIA_MS;
+  const fim = fimDosDados(db, agora);
+  const corte = fim - HORIZONTE_DIAS * DIA_MS;
   const { riscos } = calcularRiscosDeFalha(db, corte);
-  const falharam = falhasPorEquipamento(db, corte, agora.getTime());
+  const falharam = falhasPorEquipamento(db, corte, fim);
   const top = new Set(riscos.slice(0, Math.ceil(riscos.length / 10)).map((r) => r.equipamentoId));
   let ocorridas = 0;
   let noTop = 0;

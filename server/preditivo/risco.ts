@@ -56,7 +56,8 @@ export function calcularTaxas(hist: HistoricoOcorrencias, est: EstatisticasRisco
   for (let t = 0; t < horas; t++) {
     const ms = inicioMs + t * HORA_MS;
     const p = partesLocais(new Date(ms));
-    const chovendo = (hist.chuvaMm.get(p.data) ?? 0) > 0;
+    // A previsão do tempo guardada para o dia (nunca a chuva observada: ver base.ts, "Chuva").
+    const chovendo = (hist.chuvaPrevistaMm.get(p.data) ?? 0) > 0;
     horasInfo.push({ ms, data: p.data, diaSemana: p.diaSemana, hora: p.hora, chuva: chovendo ? est.chuva.fator : 1, chovendo });
   }
   const nB = hist.bairros.length;
@@ -172,7 +173,7 @@ function explicarRisco({ est, taxas }: RiscoCalculado, horas: number, bt: Result
   return {
     oQuePreve: horas <= 24
       ? 'Quantas ocorrências cada bairro deve ter em cada hora das próximas 24 horas, num índice de 0 a 100 (100 = as horas mais arriscadas do período).'
-      : 'Quantas ocorrências cada bairro deve ter em cada hora dos próximos 7 dias, num índice de 0 a 100 (100 = as horas mais arriscadas da semana).',
+      : 'Quantas ocorrências cada bairro deve ter em blocos de 3 horas nos próximos 7 dias, num índice de 0 a 100 (100 = os blocos mais arriscados da semana).',
     dadosUsados: [
       `${formatarNumero(est.total)} ocorrências registradas de ${diaMes(est.inicioMs)} a ${diaMes(est.fimMs - 1)} (últimas ${semanas} semanas), contadas por bairro e hora`,
       'Horário típico de cada região em cada dia da semana (puxado para o da cidade quando a região tem poucos dados)',

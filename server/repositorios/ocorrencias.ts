@@ -44,15 +44,16 @@ export function ocorrenciasDoAgente(db: Database, agenteId: number, limite = 20)
   return linhas.map(paraOcorrencia);
 }
 
-export type NovaOcorrencia = Omit<Ocorrencia, 'id' | 'fim'>;
+/** `peso` = quanto conta no índice das regiões (padrão 1; ao vivo o simulador grava menos, ver schema.sql). */
+export type NovaOcorrencia = Omit<Ocorrencia, 'id' | 'fim'> & { peso?: number };
 
 export function inserirOcorrencia(db: Database, o: NovaOcorrencia): Ocorrencia {
   const r = db
     .prepare(
-      `INSERT INTO ocorrencias (tipo, gravidade, bairro_id, lat, lng, inicio, equipamento_id, agente_id, descricao, chuva, origem)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO ocorrencias (tipo, gravidade, bairro_id, lat, lng, inicio, equipamento_id, agente_id, descricao, chuva, origem, peso)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
-    .run(o.tipo, o.gravidade, o.bairroId, o.lat, o.lng, o.inicio, o.equipamentoId ?? null, o.agenteId ?? null, o.descricao, o.chuva ? 1 : 0, o.origem);
+    .run(o.tipo, o.gravidade, o.bairroId, o.lat, o.lng, o.inicio, o.equipamentoId ?? null, o.agenteId ?? null, o.descricao, o.chuva ? 1 : 0, o.origem, o.peso ?? 1);
   return ocorrenciaPorId(db, Number(r.lastInsertRowid))!;
 }
 

@@ -4,6 +4,7 @@
 // de demonstração: no mundo real um acidente aparece a cada ~40 min, o que deixaria a tela parada para quem avalia.
 // A velocidade (1×, 10×, 60×) multiplica de novo, e encurta o tempo de reparo e de encerramento das ocorrências.
 import type { TipoOcorrencia } from '../../shared/dominio';
+import type { Ocorrencia } from '../../shared/modelos';
 import type { TipoEquipamentoId } from '../../shared/tipos-equipamento';
 import { FALHAS_POR_DIA, FATOR_FURTO_BAIRRO_QUENTE, FURTOS_PATINETE_POR_DIA } from '../semente/historico';
 import { PERFIL_PATINETE, type TipoDia } from '../semente/perfis';
@@ -14,6 +15,7 @@ import { PERFIL_PATINETE, type TipoDia } from '../semente/perfis';
  * com 8 e 5 a 20 min ficam ~20 a 30, que a Central consegue mostrar como "o que está acontecendo agora".
  */
 export const FATOR_DEMO_OCORRENCIAS = 8;
+type TipoOrigem = Ocorrencia['origem'];
 /** Quanto dura uma ocorrência ao vivo, em minutos sorteados (antes do fator do tipo e da velocidade). */
 export const DURACAO_OCORRENCIA_MIN = { minimo: 5, maximo: 20 } as const;
 /** Falhas de equipamento: múltiplo da taxa histórica (~1 a cada 4 min a 1×). */
@@ -44,6 +46,16 @@ export function fracaoDePatinetesEmUso(tipoDoDia: TipoDia, hora: number, escalaL
   return Math.min(0.9, 0.16 * PERFIL_PATINETE[tipoDoDia][hora]! * escalaLocal * (chuva ? 0.45 : 1));
 }
 
+/**
+ * Quanto a ocorrência conta no índice das regiões da Central (gravado nela, em `peso`). Ao vivo o simulador gera
+ * FATOR_DEMO_OCORRENCIAS (8) vezes o ritmo real, × a velocidade da tela; cada ocorrência ao vivo pesa o inverso disso, e o
+ * índice mede a cidade no ritmo real em qualquer velocidade. Ex.: a 60×, 1 ÷ (8 × 60) = 1/480. Histórico e eventos
+ * injetados pelo botão contam inteiros (peso 1).
+ */
+export function pesoNoIndice(origem: TipoOrigem, velocidade: number): number {
+  return origem === 'tempo_real' ? 1 / (FATOR_DEMO_OCORRENCIAS * velocidade) : 1;
+}
+
 /** Quanto dura uma ocorrência ao vivo antes de ser encerrada (a 60× passa depressa, para a tela mostrar o ciclo todo). */
 export function duracaoDaOcorrenciaMs(tipo: TipoOcorrencia, minutosSorteados: number, velocidade: number): number {
   const fator = tipo === 'alagamento' ? 2 : tipo === 'acidente' ? 1.5 : 1;
@@ -54,7 +66,8 @@ export function duracaoDaOcorrenciaMs(tipo: TipoOcorrencia, minutosSorteados: nu
 export const VELOCIDADE_MS: Record<'patinete' | 'veiculo' | 'agente', number> = { patinete: 4.5, veiculo: 8, agente: 3 };
 
 export const DESCRICOES_INJETADAS: Record<'acidente' | 'congestionamento' | 'alagamento', readonly string[]> = {
-  acidente: ['Colisão traseira entre dois carros', 'Colisão lateral em cruzamento', 'Queda de motociclista', 'Colisão entre carro e moto', 'Atropelamento de pedestre'],
+  // Injetado = gravidade máxima (4): descrições de acidente grave.
+  acidente: ['Colisão grave com vítima presa nas ferragens', 'Atropelamento com vítima grave', 'Capotamento com feridos', 'Colisão entre carro e moto com vítima grave'],
   congestionamento: ['Trânsito parado por obra na pista', 'Fila longa após semáforo apagado', 'Via bloqueada por veículo quebrado'],
   alagamento: ['Água acumulada na pista após chuva forte'],
 };

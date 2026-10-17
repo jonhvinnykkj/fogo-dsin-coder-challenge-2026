@@ -79,12 +79,15 @@ export function inserirAgente(db: Database, a: AgenteInput, agora: string): numb
   return Number(r.lastInsertRowid);
 }
 
-/** Não toca em posição atual nem último sinal (vêm da telemetria). */
+/**
+ * Não toca em posição atual nem último sinal (vêm da telemetria) nem na situação (vem do turno e das ocorrências; muda só
+ * pelo PATCH /situacao): o formulário aberto antes não pode desfazer um "em ocorrência".
+ */
 export function atualizarAgente(db: Database, id: number, a: AgenteInput, agora: string): void {
   db.prepare(
-    `UPDATE agentes SET nome = ?, matricula = ?, categoria = ?, orgao = ?, situacao = ?, turno = ?, base_logradouro = ?, base_bairro_id = ?,
+    `UPDATE agentes SET nome = ?, matricula = ?, categoria = ?, orgao = ?, turno = ?, base_logradouro = ?, base_bairro_id = ?,
        lat = ?, lng = ?, equipamento_id = ?, telefone = ?, atualizado_em = ? WHERE id = ?`,
-  ).run(a.nome, a.matricula, a.categoria, a.orgao, a.situacao, a.turno, a.baseLogradouro, a.baseBairroId, a.lat, a.lng,
+  ).run(a.nome, a.matricula, a.categoria, a.orgao, a.turno, a.baseLogradouro, a.baseBairroId, a.lat, a.lng,
     a.equipamentoId ?? null, a.telefone ?? null, agora, id);
 }
 

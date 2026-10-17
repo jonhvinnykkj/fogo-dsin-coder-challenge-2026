@@ -26,7 +26,7 @@ export async function rotasAgentes(app: FastifyInstance): Promise<void> {
     async (req, reply) => reply.code(201).send(servico.criarAgente(ctx, agenteInputSchema.parse(req.body))));
 
   app.put('/api/agentes/:id', {
-    schema: { tags, summary: 'Edita os dados cadastrais (não altera a posição atual nem o último sinal)' },
+    schema: { tags, summary: 'Edita os dados cadastrais (não altera a posição atual, o último sinal nem a situação: use PATCH /situacao)' },
   }, async (req) => servico.atualizarAgente(ctx, id(req), agenteInputSchema.parse(req.body)));
 
   app.patch('/api/agentes/:id/situacao', {

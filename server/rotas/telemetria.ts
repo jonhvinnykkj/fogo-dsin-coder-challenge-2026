@@ -30,7 +30,7 @@ export async function rotasTelemetria(app: FastifyInstance): Promise<void> {
       summary: 'Recebe uma leitura de um dispositivo',
       description:
         'Autentica pelo cabeçalho `x-dispositivo-token` (o token do equipamento cadastrado, que precisa casar com o `codigo` do corpo). ' +
-        'Corpo: `{ codigo, em?, metricas: { fluxo: 412, ... }, lat?, lng? }`; as métricas válidas dependem do tipo (`GET /api/tipos`). ' +
+        'Corpo: `{ codigo, em?, metricas: { fluxo: 412, ... }, lat?, lng? }`; as métricas válidas dependem do tipo e estão em `GET /api/tipos-equipamento` (campo `metricas`). ' +
         'Responde 202 `{ aceita: true }`. A leitura atualiza o último sinal, a posição atual e a telemetria da hora, e pode gerar alertas.',
       headers: { type: 'object', properties: { 'x-dispositivo-token': { type: 'string', description: 'Token do dispositivo' } } },
       body: { type: 'object', additionalProperties: true },

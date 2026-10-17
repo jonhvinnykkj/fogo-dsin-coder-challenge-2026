@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { instanteLocal, somarDias } from '../tempo';
 import { executarBacktest } from './backtest';
 import { preverRisco } from './risco';
-import { AGORA_PREDITIVO, cidadeSemeada } from './test-helpers';
+import { AGORA_PREDITIVO, cidadeSemeada, copiaDaCidade } from './test-helpers';
 
 let db: Database;
 let resultado: ReturnType<typeof executarBacktest>;
@@ -27,7 +27,8 @@ describe('executarBacktest', () => {
 
   // Teto teórico: com as taxas verdadeiras do gerador do histórico (oráculo: gerarOcorrenciasDaHora repetido 600 vezes com
   // outras sementes, mesmos pesos, chuva e eventos), o ganho máximo nos blocos de 3 h foi ≈ 10% (9,9%, 10,5% e 10,0% em três
-  // janelas); o resto do erro é sorte (Poisson). O modelo chega a 8,2% nesta janela, ≈ 82% do teto. O limite de 6% deixa
+  // janelas); o resto do erro é sorte (Poisson). O modelo chega a 7,3% nesta janela (≈ 73% do teto), com a chuva do dia vinda
+  // da previsão do tempo guardada (com a chuva observada eram 8,2%, mas aí o dia avaliado vazava). O limite de 6% deixa
   // folga para variações da semente sem aceitar um modelo que não aprendeu o horário (o modelo antigo, só com a cidade
   // por tipo de dia, dava 7,5%; a média simples dá 0%).
   it('ganha da média simples por perto do teto teórico: pelo menos 6% a menos de erro nos blocos de 3 horas', () => {
@@ -83,6 +84,22 @@ describe('executarBacktest', () => {
     expect(blocos.size).toBe(65 * 8);
     const erro = [...blocos.values()].reduce((s, b) => s + Math.abs(b.previsto - b.ocorrido), 0) / blocos.size;
     expect(dia.mae).toBeCloseTo(erro, 2);
+  });
+
+  // "Nada do próprio dia entra": nem a chuva que caiu nele. O dia avaliado usa a previsão do tempo guardada (clima_dia,
+  // gerada na semente como a observada + erro), como faria quem prevê na véspera.
+  it('a chuva do dia avaliado entra pela previsão guardada: mudar a chuva observada daquele dia não muda a previsão dele', () => {
+    const copia = copiaDaCidade();
+    const antes = executarBacktest(copia, { agora: AGORA_PREDITIVO, dias: 14 });
+    const dia = antes.porDia.at(-1)!;
+    const { chuva_mm: observada } = copia.prepare('SELECT chuva_mm FROM clima_dia WHERE data = ?').get(dia.data) as { chuva_mm: number };
+    copia.prepare('UPDATE clima_dia SET chuva_mm = ? WHERE data = ?').run(observada > 0 ? 0 : 40, dia.data);
+    const depois = executarBacktest(copia, { agora: AGORA_PREDITIVO, dias: 14 });
+    expect(depois.porDia.at(-1)).toEqual(dia);
+    // A previsão guardada não é a observada copiada: em 60 dias ela erra (chove sem previsão ou o contrário) algumas vezes.
+    const erros = copia.prepare('SELECT COUNT(*) AS n FROM clima_dia WHERE (chuva_prevista_mm > 0) <> (chuva_mm > 0)').get() as { n: number };
+    expect(erros.n).toBeGreaterThan(0);
+    copia.close();
   });
 
   it('explica o teste retroativo para o gestor', () => {

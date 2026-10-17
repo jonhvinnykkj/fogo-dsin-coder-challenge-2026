@@ -81,6 +81,23 @@ export function chuvaDoDia(semente: number, data: string): number {
   return Math.round(Math.min(60, 2 + -Math.log(1 - rng.num()) * 13) * 10) / 10;
 }
 
+/** Acerto da previsão do tempo sintética: dias de chuva anunciados e dias secos anunciados como chuvosos (alarme falso). */
+export const PREVISAO_ACERTA_CHUVA = 0.8;
+export const PREVISAO_ALARME_FALSO = 0.1;
+
+/**
+ * Previsão do tempo para o dia, como estaria disponível na véspera (mm; 0 = sem chuva prevista). Determinística: depende
+ * só da semente, da data e da chuva que de fato cai (`chuvaDoDia`). Dia de chuva: 80% das vezes a previsão anuncia chuva,
+ * com a quantidade errada em até 40% para mais ou para menos; nos outros 20% anuncia tempo seco. Dia seco: 10% das vezes
+ * anuncia de 2 a 12 mm que não vêm. As previsões (risco e teste retroativo) usam esta; o histórico e o simulador, a observada.
+ */
+export function previsaoDeChuva(semente: number, data: string, observadaMm: number): number {
+  const rng = criarRng(derivarSemente(semente, 'previsao-chuva', data));
+  const arred1 = (x: number) => Math.round(x * 10) / 10;
+  if (observadaMm > 0) return rng.chance(PREVISAO_ACERTA_CHUVA) ? Math.max(0.5, arred1(observadaMm * rng.entre(0.6, 1.4))) : 0;
+  return rng.chance(PREVISAO_ALARME_FALSO) ? arred1(rng.entre(2, 12)) : 0;
+}
+
 // ---------------------------------------------------------------------------------------------------------------
 // Ocorrências
 
@@ -148,6 +165,12 @@ const GRAVIDADE: Record<TipoOcorrencia, Record<'1' | '2' | '3' | '4', number>> =
   alagamento: { 1: 0, 2: 0.4, 3: 0.4, 4: 0.2 },
   seguranca: { 1: 0.3, 2: 0.4, 3: 0.25, 4: 0.05 },
 };
+/** A gravidade mais alta que o tipo tem (eventos injetados pelo botão usam esta: demonstração previsível). */
+export function gravidadeMaxima(tipo: TipoOcorrencia): 1 | 2 | 3 | 4 {
+  const pesos = GRAVIDADE[tipo];
+  return (['4', '3', '2', '1'] as const).map(Number).find((g) => pesos[String(g) as '1' | '2' | '3' | '4'] > 0) as 1 | 2 | 3 | 4;
+}
+
 const DURACAO_MIN: Record<TipoOcorrencia, [number, number]> = {
   acidente: [25, 120], congestionamento: [15, 90], infracao: [5, 25], furto_vandalismo: [30, 180],
   veiculo_quebrado: [30, 150], alagamento: [60, 240], seguranca: [15, 90],
