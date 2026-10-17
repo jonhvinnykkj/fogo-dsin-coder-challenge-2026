@@ -8,6 +8,9 @@ import { carregarGeo } from './geo/marilia';
 import { contarBairros, inserirBairros } from './repositorios/bairros';
 import { preencherLacuna, semear, SEMENTE_PADRAO } from './semente/semear';
 import { relogioReal, type ContextoApp } from './contexto';
+import { Barramento } from './tempo-real/barramento';
+import { MotorAlertas } from './tempo-real/motor-alertas';
+import { Simulador } from './tempo-real/simulador';
 
 const porta = Number(process.env.PORT ?? 3333);
 const caminhoBanco = resolve(process.env.FOGO_DB ?? 'data/fogo.db');
@@ -38,18 +41,25 @@ if (lacuna.horasGeradas > 0) {
 // A carga em massa passa pelo WAL; devolve esse espaço ao disco antes de abrir o servidor.
 if (semente.criado || lacuna.horasGeradas > 0) db.pragma('wal_checkpoint(TRUNCATE)');
 
+const barramento = new Barramento();
 const ctx: ContextoApp = {
   db,
-  barramento: null, // Tarefa 6
+  barramento,
+  motor: new MotorAlertas({ db, barramento, relogio: relogioReal }),
   relogio: relogioReal,
   geo,
 };
+ctx.simulador = new Simulador(ctx);
 
 const app = await criarApp(ctx);
 await app.listen({ port: porta, host: '0.0.0.0' });
 console.log(`F.O.G.O. no ar em http://localhost:${porta} (banco: ${caminhoBanco})`);
+barramento.iniciarAgrupamento();
+ctx.simulador.iniciar();
 
 const encerrar = () => {
+  ctx.simulador?.parar();
+  barramento.parar();
   void app.close().finally(() => {
     db.close();
     process.exit(0);

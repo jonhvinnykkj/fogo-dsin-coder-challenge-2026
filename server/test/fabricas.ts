@@ -40,3 +40,40 @@ export function corpoAgente(ctx: ContextoApp, sobrescreve: Record<string, unknow
     ...sobrescreve,
   };
 }
+
+// ---- Cidade pequena para os testes de tempo real ----
+
+export interface EquipamentoDeTeste {
+  tipo: string;
+  codigo: string;
+  situacao?: string;
+  token?: string;
+  lat?: number;
+  lng?: number;
+  logradouro?: string;
+  ultimoSinalEm?: string | null;
+  caracteristicas?: Record<string, unknown>;
+  proximaManutencao?: string | null;
+}
+
+/** Insere um equipamento direto no banco (sem validar o tipo) e devolve o id. Usa o primeiro bairro. */
+export function inserirEquipamentoDeTeste(ctx: ContextoApp, e: EquipamentoDeTeste): number {
+  const b = ctx.db.prepare('SELECT id, lat, lng FROM bairros ORDER BY id LIMIT 1').get() as { id: number; lat: number; lng: number };
+  const lat = e.lat ?? b.lat;
+  const lng = e.lng ?? b.lng;
+  const agora = '2026-10-01T12:00:00.000Z';
+  const r = ctx.db.prepare(`INSERT INTO equipamentos (codigo, tipo, numero_serie, marca, modelo, orgao, situacao, cep, logradouro, referencia, bairro_id,
+      lat, lng, lat_atual, lng_atual, manutencao_necessidade, proxima_manutencao, caracteristicas, ultimo_sinal_em, token_dispositivo, criado_em, atualizado_em)
+    VALUES (?, ?, ?, 'Marca', 'Modelo', 'Secretaria de Mobilidade Urbana', ?, '17500-000', ?, '', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
+    e.codigo, e.tipo, `SN-${e.codigo}`, e.situacao ?? 'operacional', e.logradouro ?? 'Avenida Sampaio Vidal', b.id, lat, lng, lat, lng,
+    e.proximaManutencao ? 'periodica' : 'nenhuma', e.proximaManutencao ?? null, JSON.stringify(e.caracteristicas ?? {}),
+    e.ultimoSinalEm === undefined ? null : e.ultimoSinalEm, e.token ?? `token-${e.codigo}`, agora, agora,
+  );
+  return Number(r.lastInsertRowid);
+}
+
+/** Uma linha de telemetria_hora (métricas já como média da hora). */
+export function inserirTelemetriaDeTeste(ctx: ContextoApp, equipamentoId: number, hora: string, metricas: Record<string, number>, onlineMin = 60): void {
+  ctx.db.prepare('INSERT OR REPLACE INTO telemetria_hora (equipamento_id, hora, leituras, online_min, metricas) VALUES (?, ?, ?, ?, ?)')
+    .run(equipamentoId, hora, onlineMin, onlineMin, JSON.stringify(metricas));
+}

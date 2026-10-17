@@ -144,3 +144,10 @@ CREATE TABLE IF NOT EXISTS clima_dia (
   chuva_mm  REAL NOT NULL DEFAULT 0,
   previsto  INTEGER NOT NULL DEFAULT 0 CHECK (previsto IN (0, 1))
 );
+
+-- Chave/valor para o que não merece tabela própria. `historico_ate`: ISO da última hora de histórico gerada
+-- (a semente e o preenchimento de lacuna a gravam; a telemetria ao vivo da hora corrente não conta como histórico).
+CREATE TABLE IF NOT EXISTS meta (
+  chave  TEXT PRIMARY KEY,
+  valor  TEXT NOT NULL
+);

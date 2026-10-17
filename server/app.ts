@@ -14,6 +14,9 @@ import { rotasBairros } from './rotas/bairros';
 import { rotasEquipamentos } from './rotas/equipamentos';
 import { rotasManutencao } from './rotas/manutencao';
 import { rotasSaude } from './rotas/saude';
+import { rotasSimulacao } from './rotas/simulacao';
+import { rotasStream } from './rotas/stream';
+import { rotasTelemetria } from './rotas/telemetria';
 import { rotasTipos } from './rotas/tipos';
 
 const PASTA_WEB = fileURLToPath(new URL('../dist/web', import.meta.url));
@@ -58,6 +61,7 @@ export async function criarApp(ctx: ContextoApp): Promise<FastifyInstance> {
         { name: 'Agentes', description: 'Cadastro de agentes' },
         { name: 'Alertas', description: 'Feed de alertas' },
         { name: 'Manutenção', description: 'Ordens e painel de manutenção' },
+        { name: 'Tempo real', description: 'Ingestão de telemetria, simulação e fluxo de eventos (SSE)' },
       ],
     },
   });
@@ -70,6 +74,9 @@ export async function criarApp(ctx: ContextoApp): Promise<FastifyInstance> {
   await app.register(rotasAgentes);
   await app.register(rotasAlertas);
   await app.register(rotasManutencao);
+  await app.register(rotasTelemetria);
+  await app.register(rotasSimulacao);
+  await app.register(rotasStream);
 
   // Interface compilada (npm run build): arquivos estáticos + fallback de SPA fora de /api.
   const temInterface = existsSync(PASTA_WEB);

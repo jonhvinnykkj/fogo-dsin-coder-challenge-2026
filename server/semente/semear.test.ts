@@ -140,6 +140,11 @@ describe('semear', () => {
     expect(n(a.db, "SELECT COUNT(*) AS n FROM telemetria_hora t JOIN equipamentos e ON e.id = t.equipamento_id WHERE e.situacao = 'nao_instalado'")).toBe(0);
   });
 
+  it('marca em meta.historico_ate a última hora de histórico gerada', () => {
+    const marca = (a.db.prepare("SELECT valor FROM meta WHERE chave = 'historico_ate'").get() as { valor: string }).valor;
+    expect(marca).toBe(new Date(AGORA.getTime() - HORA).toISOString());
+  });
+
   it('não faz nada na segunda chamada', () => {
     const antes = [n(a.db, 'SELECT COUNT(*) AS n FROM equipamentos'), n(a.db, 'SELECT COUNT(*) AS n FROM agentes'), n(a.db, 'SELECT COUNT(*) AS n FROM ocorrencias')];
     const segunda = semear(a.db, { agora: AGORA, semente: SEMENTE_PADRAO, geo: a.geo });
@@ -186,9 +191,20 @@ describe('preencherLacuna', () => {
     expect(n(b.db, 'SELECT COUNT(*) AS n FROM clima_dia WHERE previsto = 1')).toBe(7);
     expect(n(b.db, "SELECT COUNT(*) AS n FROM clima_dia WHERE previsto = 1 AND data <= '2026-10-20'")).toBe(0);
 
+    expect((b.db.prepare("SELECT valor FROM meta WHERE chave = 'historico_ate'").get() as { valor: string }).valor).toBe(new Date(depois.getTime() - HORA).toISOString());
+
     // Rodar de novo no mesmo instante não gera nada.
     expect(preencherLacuna(b.db, { agora: depois, semente: SEMENTE_PADRAO, geo: b.geo }).horasGeradas).toBe(0);
     expect(n(b.db, 'SELECT COUNT(*) AS n FROM (SELECT 1 FROM ocorrencias GROUP BY inicio, bairro_id, tipo HAVING COUNT(*) > 1)')).toBe(0);
+  });
+
+  it('em banco antigo, sem a marca em meta, recomeça da última hora de telemetria', () => {
+    const antigo = criarCtxDeTeste();
+    semear(antigo.db, { agora: AGORA, semente: SEMENTE_PADRAO, geo: antigo.geo });
+    antigo.db.prepare("DELETE FROM meta WHERE chave = 'historico_ate'").run();
+    const r = preencherLacuna(antigo.db, { agora: new Date(AGORA.getTime() + 5 * HORA), semente: SEMENTE_PADRAO, geo: antigo.geo });
+    expect(r.horasGeradas).toBe(5);
+    expect(n(antigo.db, 'SELECT COUNT(*) AS n FROM (SELECT 1 FROM ocorrencias GROUP BY inicio, bairro_id, tipo HAVING COUNT(*) > 1)')).toBe(0);
   });
 
   it('em banco vazio não gera nada', () => {

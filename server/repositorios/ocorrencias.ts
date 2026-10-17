@@ -43,3 +43,25 @@ export function ocorrenciasDoAgente(db: Database, agenteId: number, limite = 20)
     .all(agenteId, limite) as LinhaOcorrencia[];
   return linhas.map(paraOcorrencia);
 }
+
+export type NovaOcorrencia = Omit<Ocorrencia, 'id' | 'fim'>;
+
+export function inserirOcorrencia(db: Database, o: NovaOcorrencia): Ocorrencia {
+  const r = db
+    .prepare(
+      `INSERT INTO ocorrencias (tipo, gravidade, bairro_id, lat, lng, inicio, equipamento_id, agente_id, descricao, chuva, origem)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .run(o.tipo, o.gravidade, o.bairroId, o.lat, o.lng, o.inicio, o.equipamentoId ?? null, o.agenteId ?? null, o.descricao, o.chuva ? 1 : 0, o.origem);
+  return ocorrenciaPorId(db, Number(r.lastInsertRowid))!;
+}
+
+export function ocorrenciaPorId(db: Database, id: number): Ocorrencia | undefined {
+  const l = db.prepare('SELECT * FROM ocorrencias WHERE id = ?').get(id) as LinhaOcorrencia | undefined;
+  return l && paraOcorrencia(l);
+}
+
+export function encerrarOcorrencia(db: Database, id: number, fim: string): Ocorrencia | undefined {
+  db.prepare('UPDATE ocorrencias SET fim = ? WHERE id = ? AND fim IS NULL').run(fim, id);
+  return ocorrenciaPorId(db, id);
+}

@@ -1,6 +1,6 @@
 import type { Database } from 'better-sqlite3';
 import type { CategoriaAgente, Orgao, Regiao, SituacaoAgente, Turno } from '../../shared/dominio';
-import type { Agente, Pagina } from '../../shared/modelos';
+import type { Agente, AgenteMapa, Pagina } from '../../shared/modelos';
 import type { AgenteInput, FiltrosAgente } from '../../shared/schemas';
 import { condicaoBusca } from './busca';
 
@@ -119,4 +119,12 @@ export function listarAgentes(db: Database, f: FiltrosAgente): Pagina<Agente> {
     .prepare(`${SELECT}${onde} ORDER BY a.nome, a.id LIMIT ? OFFSET ?`)
     .all(...params, f.porPagina, (f.pagina - 1) * f.porPagina) as LinhaAgente[];
   return { itens: linhas.map(paraAgente), total, pagina: f.pagina, porPagina: f.porPagina };
+}
+
+/** Ponto do mapa de um agente (posição ATUAL). */
+export function agenteMapaPorId(db: Database, id: number): AgenteMapa | undefined {
+  const l = db.prepare('SELECT id, nome, categoria, situacao, lat_atual, lng_atual, base_bairro_id FROM agentes WHERE id = ?').get(id) as
+    | { id: number; nome: string; categoria: CategoriaAgente; situacao: SituacaoAgente; lat_atual: number; lng_atual: number; base_bairro_id: number }
+    | undefined;
+  return l && { id: l.id, nome: l.nome, categoria: l.categoria, situacao: l.situacao, lat: l.lat_atual, lng: l.lng_atual, bairroId: l.base_bairro_id };
 }

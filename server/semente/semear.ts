@@ -39,6 +39,10 @@ export interface ResultadoSemente {
 const contar = (db: Database, tabela: string) => (db.prepare(`SELECT COUNT(*) AS n FROM ${tabela}`).get() as { n: number }).n;
 const iso = (d: Date | null) => (d ? d.toISOString() : null);
 
+function gravarHistoricoAte(db: Database, ultimaHora: Date): void {
+  db.prepare("INSERT INTO meta (chave, valor) VALUES ('historico_ate', ?) ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor").run(ultimaHora.toISOString());
+}
+
 /**
  * Cria cidade e histórico num banco sem equipamentos. Com equipamentos já cadastrados, não faz nada (reiniciar
  * não duplica). Também não semeia se já houver agentes, para não colidir com matrículas cadastradas à mão.
@@ -117,6 +121,7 @@ export function semear(db: Database, { agora, semente, geo }: OpcoesSemente): Re
     const linhaPorId = new Map(ids.map((id, i) => [id, linhas[i]!]));
     const estados = equipamentos.map((e) => linhaPorId.get(e.id)!.estados);
     const totais = gerarHoras(db, ctx, equipamentos, janela.inicio, janela.horas, (i, h) => estados[i]![h] as EstadoHora, furtosPorHora);
+    gravarHistoricoAte(db, new Date(fim.getTime() - HORA));
 
     return {
       criado: true,
@@ -136,7 +141,10 @@ export function semear(db: Database, { agora, semente, geo }: OpcoesSemente): Re
  */
 export function preencherLacuna(db: Database, { agora, semente, geo }: OpcoesSemente): { horasGeradas: number } {
   if (contar(db, 'equipamentos') === 0) return { horasGeradas: 0 };
-  const ultimaTelemetria = (db.prepare('SELECT MAX(hora) AS m FROM telemetria_hora').get() as { m: string | null }).m;
+  // `historico_ate` marca até onde o HISTÓRICO foi gerado. A telemetria ao vivo grava a hora corrente em telemetria_hora,
+  // então MAX(hora) só serve de reserva para bancos antigos, criados antes dessa marca.
+  const marcada = (db.prepare("SELECT valor FROM meta WHERE chave = 'historico_ate'").get() as { valor: string } | undefined)?.valor;
+  const ultimaTelemetria = marcada ?? (db.prepare('SELECT MAX(hora) AS m FROM telemetria_hora').get() as { m: string | null }).m;
   const ultimaOcorrencia = (db.prepare("SELECT MAX(inicio) AS m FROM ocorrencias WHERE origem = 'historico'").get() as { m: string | null }).m;
   const referencia = ultimaTelemetria ?? ultimaOcorrencia;
   if (!referencia) return { horasGeradas: 0 };
@@ -164,6 +172,7 @@ export function preencherLacuna(db: Database, { agora, semente, geo }: OpcoesSem
       if (e.situacao === 'operacional' || e.situacao === 'mau_funcionamento') sinal.run(new Date(agora.getTime() - rng.int(5, 90) * 1000).toISOString(), e.id);
     }
     atualizarTurnos(db, agora, rng);
+    gravarHistoricoAte(db, new Date(fim.getTime() - HORA));
   })();
   return { horasGeradas: horas };
 }
@@ -199,7 +208,7 @@ function gravarClima(db: Database, semente: number, inicio: Date, agora: Date): 
   db.prepare('UPDATE clima_dia SET previsto = 0 WHERE data <= ? AND previsto = 1').run(hoje);
 }
 
-type EquipamentoSim = EquipamentoHist & { situacao: SituacaoEquipamento };
+export type EquipamentoSim = EquipamentoHist & { situacao: SituacaoEquipamento };
 
 interface LinhaEquipamentoDb {
   id: number;
@@ -219,7 +228,7 @@ interface LinhaEquipamentoDb {
 }
 
 /** Lê do banco o que a geração hora a hora precisa (vale para a semente e para a lacuna). */
-function montarContexto(db: Database, geo: GeoMarilia, semente: number, agora: Date): { ctx: ContextoHoras; equipamentos: EquipamentoSim[] } {
+export function montarContexto(db: Database, geo: GeoMarilia, semente: number, agora: Date): { ctx: ContextoHoras; equipamentos: EquipamentoSim[] } {
   const pesos = pesoOcorrenciaBairros(geo, semente);
   const alagaveis = bairrosAlagaveis(geo, semente);
   const indiceGeo = new Map(geo.bairros.map((b, i) => [b.nome, i]));
@@ -299,7 +308,8 @@ function gerarHoras(
 ): { ocorrencias: number; leituras: number } {
   const insOcorrencia: Statement = db.prepare(`INSERT INTO ocorrencias (tipo, gravidade, bairro_id, lat, lng, inicio, fim, equipamento_id, agente_id,
       descricao, chuva, origem) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'historico')`);
-  const insTelemetria: Statement = db.prepare('INSERT INTO telemetria_hora (equipamento_id, hora, leituras, online_min, metricas) VALUES (?, ?, ?, ?, ?)');
+  // OR IGNORE: se a telemetria ao vivo já gravou a hora corrente, a linha dela vale mais que a gerada.
+  const insTelemetria: Statement = db.prepare('INSERT OR IGNORE INTO telemetria_hora (equipamento_id, hora, leituras, online_min, metricas) VALUES (?, ?, ?, ?, ?)');
   const bateria = new Map<number, number>();
   let ocorrencias = 0;
   let leituras = 0;

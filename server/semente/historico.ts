@@ -248,8 +248,15 @@ const indiceDaHora = (hora: Date) => Math.floor(hora.getTime() / HORA);
  * Ocorrências da hora que começa em `hora` (UTC, minutos zerados). Determinística: o sorteio usa a semente e o
  * índice da hora, então gerar a mesma hora de novo (semente ou lacuna) dá o mesmo resultado.
  */
-export function gerarOcorrenciasDaHora(ctx: ContextoHoras, hora: Date, furtos: readonly FurtoPendente[] = []): OcorrenciaGerada[] {
-  const rng = criarRng(derivarSemente(ctx.semente, 'ocorrencias', indiceDaHora(hora)));
+export function gerarOcorrenciasDaHora(
+  ctx: ContextoHoras,
+  hora: Date,
+  furtos: readonly FurtoPendente[] = [],
+  aoVivo: { rng: Rng; escala: number } | undefined = undefined,
+): OcorrenciaGerada[] {
+  // Ao vivo (simulador): sorteio do próprio simulador e `escala` = fração da hora (× velocidade) que esta chamada representa.
+  const rng = aoVivo?.rng ?? criarRng(derivarSemente(ctx.semente, 'ocorrencias', indiceDaHora(hora)));
+  const escala = aoVivo?.escala ?? 1;
   const p = partesLocais(hora);
   const td = tipoDoDia(p.diaSemana);
   const mm = ctx.chuvaMm(p.data);
@@ -311,7 +318,7 @@ export function gerarOcorrenciasDaHora(ctx: ContextoHoras, hora: Date, furtos: r
       for (let i = 0; i < pesos.length; i++) pesos[i]! /= total;
       total = 1;
     }
-    const n = rng.poisson(base * total);
+    const n = rng.poisson(base * total * escala);
     for (let k = 0; k < n; k++) {
       let alvo = rng.num() * total;
       let i = 0;
@@ -422,7 +429,7 @@ export const FALHAS_POR_DIA: Record<TipoEquipamentoId, number> = {
 export const FURTOS_PATINETE_POR_DIA = 0.006;
 export const FATOR_FURTO_BAIRRO_QUENTE = 3;
 
-const FALHAS: Record<TipoEquipamentoId, { sintoma: string; acao: string }[]> = {
+export const FALHAS: Record<TipoEquipamentoId, { sintoma: string; acao: string }[]> = {
   radar: [{ sintoma: 'radar sem leitura de veículos', acao: 'troca do laço indutivo danificado' },
     { sintoma: 'fotos de flagrante sem foco', acao: 'limpeza e ajuste da câmera de flagrante' },
     { sintoma: 'radar sem comunicação com a central', acao: 'troca do modem 4G' }],

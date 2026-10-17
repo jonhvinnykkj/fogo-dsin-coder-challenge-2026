@@ -8,6 +8,8 @@ import { migrar } from '../db/migrar';
 import { inserirBairros } from '../repositorios/bairros';
 import { carregarGeo, type GeoMarilia } from '../geo/marilia';
 import type { ContextoApp, Relogio } from '../contexto';
+import { Barramento } from '../tempo-real/barramento';
+import { MotorAlertas } from '../tempo-real/motor-alertas';
 
 export const AGORA_PADRAO = '2026-10-17T15:00:00.000Z';
 
@@ -43,10 +45,7 @@ export function criarCtxDeTeste(opcoes: OpcoesCtxDeTeste = {}): CtxDeTeste {
   const db = abrirBanco(':memory:');
   migrar(db);
   inserirBairros(db, geo);
-  return {
-    db,
-    barramento: null,
-    relogio: opcoes.relogio ?? criarRelogioDeTeste(opcoes.agora),
-    geo,
-  };
+  const relogio = opcoes.relogio ?? criarRelogioDeTeste(opcoes.agora);
+  const barramento = new Barramento();
+  return { db, barramento, motor: new MotorAlertas({ db, barramento, relogio }), relogio, geo };
 }
