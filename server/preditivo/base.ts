@@ -200,9 +200,13 @@ export interface EstatisticasRisco {
  *   4,07/h → 57 ÷ 4,07 = 14,0; perfil da cidade nesse horário 1,22 → (14,0 + 8 × 1,22) ÷ (8 + 8) = 1,49
  *   (sozinha a região daria 14,0 ÷ 8 = 1,75; a cidade inteira, 1,22). Sábado às 22 h: 1,86; terça às 3 h: 0,36.
  * Chuva: média diária da cidade nos dias de chuva ÷ nos dias secos. Ex.: 12 dias de chuva e 43 secos → 1,15 (15% a mais).
+ *   Fica no modelo por ser um padrão plantado e pedido no projeto, mesmo custando ≈ 0,9 ponto no teste retroativo (8,2% com
+ *   chuva, 9,1% sem): o aumento é concentrado em acidentes e alagamentos, mas o fator é da cidade inteira e sobe também as
+ *   horas calmas, onde o erro médio absoluto pune prever a mais.
  * Tendência (da cidade): taxa das últimas 2 semanas ÷ taxa das 6 anteriores, limitada a 0,7–1,3. Ex.: 12,1/h ÷ 12,3/h = 0,98.
  *   É da cidade e não de cada bairro: em 2 semanas um bairro tem poucas ocorrências e a razão vira ruído (na semente,
- *   10 dos 65 bairros batiam no limite 0,7 ou 1,3 por puro acaso e pioravam o teste retroativo).
+ *   10 dos 65 bairros batiam no limite 0,7 ou 1,3 por puro acaso). Medido no teste retroativo: por bairro, ganho 7,9% e
+ *   acerto dos 5 à noite 3,57 (abaixo dos 3,93 da média simples); da cidade, 8,2% e 4,00.
  */
 export function calcularEstatisticas(hist: HistoricoOcorrencias, corteMs: number): EstatisticasRisco {
   const fimMs = Math.min(hist.fimMs, inicioDaHoraMs(corteMs));
