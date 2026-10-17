@@ -15,22 +15,38 @@ beforeAll(() => {
 const nivelEsperado = (indice: number): NivelRisco => (indice < 25 ? 'baixo' : indice < 50 ? 'moderado' : indice < 75 ? 'alto' : 'critico');
 const semExplicacao = (celulas: CelulaRisco[]) => celulas.map((c) => `${c.bairroId}|${c.inicio}|${c.taxaEsperada}`);
 
+/** Célula (hora ou bloco de 3 h) do bairro que contém o instante. */
+const celulaEm = (celulas: CelulaRisco[], bairroId: number, quando: Date, granularidade: number) =>
+  celulas.find((c) => c.bairroId === bairroId && Date.parse(c.inicio) <= quando.getTime() && quando.getTime() < Date.parse(c.inicio) + granularidade * HORA);
+
 describe('preverRisco', () => {
   it('Centro na sexta às 22 h tem índice maior que na terça às 3 h (agora = quinta 12 h, 7 dias)', () => {
     const p = preverRisco(db, { agora: AGORA_PREDITIVO, horas: 168 });
     const centro = bairroPorNome(db, 'Centro');
-    const celula = (inicio: Date) => p.celulas.find((c) => c.bairroId === centro && c.inicio === inicio.toISOString());
-    const sexta22 = celula(instanteLocal('2026-10-16', 22));
-    const terca3 = celula(instanteLocal('2026-10-20', 3));
+    const sexta22 = celulaEm(p.celulas, centro, instanteLocal('2026-10-16', 22), 3);
+    const terca3 = celulaEm(p.celulas, centro, instanteLocal('2026-10-20', 3), 3);
     expect(sexta22).toBeDefined();
     expect(terca3).toBeDefined();
     expect(sexta22!.indice).toBeGreaterThan(terca3!.indice);
   });
 
-  it('uma célula por bairro e hora, a partir da hora atual, com início em ISO UTC', () => {
+  it('redescobre a noite de sexta no Centro: sexta às 22 h acima da média de segunda a quinta às 22 h', () => {
+    const p = preverRisco(db, { agora: AGORA_PREDITIVO, horas: 168 });
+    const centro = bairroPorNome(db, 'Centro');
+    const sexta = celulaEm(p.celulas, centro, instanteLocal('2026-10-16', 22), 3)!;
+    // Na janela de quinta 12 h a quinta 12 h: quinta (hoje), segunda, terça e quarta às 22 h.
+    const semana = ['2026-10-15', '2026-10-19', '2026-10-20', '2026-10-21'].map((d) => celulaEm(p.celulas, centro, instanteLocal(d, 22), 3)!);
+    const media = (xs: number[]) => xs.reduce((s, x) => s + x, 0) / xs.length;
+    expect(sexta.indice).toBeGreaterThan(media(semana.map((c) => c.indice)));
+    expect(sexta.taxaEsperada).toBeGreaterThan(1.4 * media(semana.map((c) => c.taxaEsperada)));
+    expect(sexta.fatores.map((f) => f.nome)).toContain('Região Centro na sexta à noite');
+  });
+
+  it('24 h: uma célula por bairro e hora, a partir da hora atual, com início em ISO UTC', () => {
     const p = preverRisco(db, { agora: AGORA_PREDITIVO, horas: 24 });
     const bairros = (db.prepare('SELECT COUNT(*) AS n FROM bairros').get() as { n: number }).n;
     expect(p.horas).toBe(24);
+    expect(p.granularidadeHoras).toBe(1);
     expect(p.celulas).toHaveLength(bairros * 24);
     const inicios = [...new Set(p.celulas.map((c) => c.inicio))].sort();
     expect(inicios[0]).toBe(AGORA_PREDITIVO.toISOString());
@@ -38,8 +54,35 @@ describe('preverRisco', () => {
     expect(Date.parse(inicios[23]!) - Date.parse(inicios[0]!)).toBe(23 * HORA);
   });
 
-  it('todo índice fica entre 0 e 100, o nível segue o índice e toda célula tem ao menos um fator', () => {
+  it('7 dias: blocos de 3 horas (65 × 56 células), fatores só a partir do índice 25, resposta abaixo de 600 KB', () => {
     const p = preverRisco(db, { agora: AGORA_PREDITIVO, horas: 168 });
+    const bairros = (db.prepare('SELECT COUNT(*) AS n FROM bairros').get() as { n: number }).n;
+    expect(bairros).toBe(65);
+    expect(p.granularidadeHoras).toBe(3);
+    expect(p.celulas).toHaveLength(65 * 56);
+    const inicios = [...new Set(p.celulas.map((c) => c.inicio))].sort();
+    expect(inicios).toHaveLength(56);
+    expect(inicios[0]).toBe(AGORA_PREDITIVO.toISOString()); // 12 h em São Paulo já é começo de bloco
+    for (const i of inicios) expect(new Date(Date.parse(i) - 3 * HORA).getUTCHours() % 3).toBe(0); // 0h, 3h, 6h… locais
+    for (const c of p.celulas) {
+      expect(c.indice).toBeGreaterThanOrEqual(0);
+      expect(c.indice).toBeLessThanOrEqual(100);
+      expect(c.nivel).toBe(nivelEsperado(c.indice));
+      if (c.indice < 25) expect(c.fatores).toEqual([]);
+      else {
+        expect(c.fatores.length).toBeGreaterThanOrEqual(1);
+        expect(c.fatores.length).toBeLessThanOrEqual(3);
+      }
+    }
+    // O bloco soma as 3 horas: o total da semana bate com a previsão hora a hora das primeiras 24 h.
+    const porHora = preverRisco(db, { agora: AGORA_PREDITIVO, horas: 24 }).celulas.reduce((s, c) => s + c.taxaEsperada, 0);
+    const porBloco = p.celulas.filter((c) => Date.parse(c.inicio) < AGORA_PREDITIVO.getTime() + 24 * HORA).reduce((s, c) => s + c.taxaEsperada, 0);
+    expect(porBloco).toBeCloseTo(porHora, 0);
+    expect(JSON.stringify(p).length).toBeLessThan(600 * 1024);
+  });
+
+  it('24 h: todo índice fica entre 0 e 100, o nível segue o índice e toda célula tem ao menos um fator', () => {
+    const p = preverRisco(db, { agora: AGORA_PREDITIVO, horas: 24 });
     for (const c of p.celulas) {
       expect(c.indice).toBeGreaterThanOrEqual(0);
       expect(c.indice).toBeLessThanOrEqual(100);
@@ -55,18 +98,18 @@ describe('preverRisco', () => {
     expect(p.celulas.some((c) => c.nivel === 'baixo')).toBe(true);
   });
 
-  it('nomeia os fatores em português: dia e período, bairro', () => {
-    const p = preverRisco(db, { agora: AGORA_PREDITIVO, horas: 168 });
+  it('nomeia os fatores em português: região, dia e período; bairro', () => {
+    const p = preverRisco(db, { agora: AGORA_PREDITIVO, horas: 24 });
     const centro = bairroPorNome(db, 'Centro');
-    // Sexta às 18 h: pico de saída do trabalho (perfil de dia útil ≈ 2×) no bairro mais movimentado.
-    const sexta18 = p.celulas.find((c) => c.bairroId === centro && c.inicio === instanteLocal('2026-10-16', 18).toISOString())!;
-    const nomes = sexta18.fatores.map((f) => f.nome);
-    expect(nomes).toContain('Sexta à noite');
+    // Quinta às 18 h: pico de saída do trabalho no bairro mais movimentado.
+    const quinta18 = celulaEm(p.celulas, centro, instanteLocal('2026-10-15', 18), 1)!;
+    const nomes = quinta18.fatores.map((f) => f.nome);
+    expect(nomes).toContain('Região Centro na quinta à noite');
     expect(nomes).toContain('Bairro com histórico alto');
-    expect(sexta18.fatores.find((f) => f.nome === 'Sexta à noite')!.peso).toBeGreaterThan(1.5);
-    // Terça às 3 h: a madrugada pesa para baixo.
-    const terca3 = p.celulas.find((c) => c.bairroId === centro && c.inicio === instanteLocal('2026-10-20', 3).toISOString())!;
-    expect(terca3.fatores.find((f) => f.nome === 'Terça de madrugada')!.peso).toBeLessThan(0.7);
+    expect(quinta18.fatores.find((f) => f.nome === 'Região Centro na quinta à noite')!.peso).toBeGreaterThan(1.5);
+    // Sexta às 3 h: a madrugada pesa para baixo.
+    const sexta3 = celulaEm(p.celulas, centro, instanteLocal('2026-10-16', 3), 1)!;
+    expect(sexta3.fatores.find((f) => f.nome === 'Região Centro na sexta de madrugada')!.peso).toBeLessThan(0.7);
   });
 
   it('cita "Previsão de chuva" só nos dias com chuva prevista', () => {

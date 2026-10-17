@@ -182,8 +182,9 @@ function explicarReforco(recs: RecomendacaoReforco[], agentes: number, bt: Resul
       'Turnos: manhã 6h–14h, tarde 14h–22h, noite 22h–6h e madrugada 0h–6h (plantão que reforça a noite)',
     ],
     comoAjuda: recs.length > 0
-      ? `Diz quantos agentes mover, de onde, para onde e em que horário (${plural(movidos, 'remanejamento', 'remanejamentos')} sugeridos) para que nenhuma região fique sobrecarregada.`
-      : 'Confirma que a escala atual já está equilibrada: nenhuma região fica 20% acima da carga média por agente.',
+      ? `Diz quantos agentes mover, de onde, para onde e em que horário (${plural(movidos, 'remanejamento', 'remanejamentos')} sugeridos): equilibra a carga até no máximo 20% acima da média da cidade, `
+        + 'sem deixar a região de origem mais carregada que a de destino e com no máximo 3 mudanças por turno.'
+      : 'Confirma que a escala atual já está equilibrada: nenhuma região passa de 20% acima da carga média por agente da cidade (ou mover alguém deixaria a origem mais carregada que o destino).',
     confiabilidade: confiabilidadeDoRisco(bt),
   };
 }

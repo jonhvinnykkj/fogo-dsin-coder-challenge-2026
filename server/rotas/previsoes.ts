@@ -44,10 +44,11 @@ export async function rotasPrevisoes(app: FastifyInstance): Promise<void> {
   app.get('/api/previsoes/risco', {
     schema: {
       tags,
-      summary: 'Risco de ocorrências por bairro e hora (próximas 24 h ou 7 dias)',
-      description: 'Parâmetro `horas`: 24 (padrão) ou 168. Taxa esperada = base do bairro (8 semanas, suavizada) × perfil da cidade (dia útil, sábado ou domingo × hora) '
-        + '× fator chuva do dia (razão chuva/seco do histórico) × tendência (2 semanas ÷ 6 anteriores, 0,7 a 1,3). Índice = 100 × taxa ÷ percentil 99 da janela; '
-        + 'baixo < 25, moderado < 50, alto < 75, crítico ≥ 75. A confiabilidade vem do teste retroativo.',
+      summary: 'Risco de ocorrências por bairro: de hora em hora (24 h) ou em blocos de 3 horas (7 dias)',
+      description: 'Parâmetro `horas`: 24 (padrão, células de 1 hora) ou 168 (blocos de 3 horas no relógio de São Paulo, `granularidadeHoras: 3`; fatores só nos blocos '
+        + 'com índice ≥ 25). Taxa esperada = base do bairro (8 semanas, suavizada) × perfil da região do bairro (dia da semana × hora, puxado para o da cidade) '
+        + '× fator chuva do dia (razão chuva/seco do histórico) × tendência da cidade (2 semanas ÷ 6 anteriores, 0,7 a 1,3). Índice = 100 × taxa ÷ percentil 99 '
+        + 'da janela; baixo < 25, moderado < 50, alto < 75, crítico ≥ 75. A confiabilidade vem do teste retroativo.',
     },
   }, async (req) => risco(filtroRiscoSchema.parse(req.query).horas));
 
@@ -55,8 +56,8 @@ export async function rotasPrevisoes(app: FastifyInstance): Promise<void> {
     schema: {
       tags,
       summary: 'Teste retroativo do risco nos 14 dias antes de hoje',
-      description: 'Cada dia é previsto só com dados até a véspera e comparado com o ocorrido: erro médio por bairro e hora do modelo e da média simples de cada bairro, '
-        + 'ganho percentual e acerto dos 5 bairros mais arriscados (0 a 5).',
+      description: 'Cada dia é previsto só com dados até a véspera e comparado com o ocorrido: erro médio por bairro em blocos de 3 horas do modelo e da média '
+        + 'simples de cada bairro, ganho percentual e acerto dos 5 bairros mais arriscados entre 18h e 2h (0 a 5), também para a média simples.',
     },
   }, async () => backtest());
 

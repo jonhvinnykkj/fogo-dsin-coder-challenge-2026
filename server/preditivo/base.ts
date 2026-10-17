@@ -13,7 +13,7 @@
 //     falha. A previsão de falhas e as tendências usam a mesma definição.
 //   - Chuva: clima_dia (observada nos dias passados, prevista — previsto = 1 — nos próximos 7 dias).
 import type { Database } from 'better-sqlite3';
-import type { Regiao, SituacaoEquipamento } from '../../shared/dominio';
+import { REGIOES, type Regiao, type SituacaoEquipamento } from '../../shared/dominio';
 import { partesLocais } from '../tempo';
 
 export const HORA_MS = 3_600_000;
@@ -27,13 +27,13 @@ const FILTRO_ORIGEM = `origem IN (${ORIGENS_APRENDIZADO.map((o) => `'${o}'`).joi
 export const SEMANAS_BASE = 8;
 /** Peso da média da cidade na base do bairro, em horas de observação ("horas-equivalentes"). */
 export const K_SUAVIZACAO = 20;
-/** Tendência: últimas 2 semanas contra as 6 anteriores, limitada a 0,7–1,3. */
+/** Tendência da cidade: últimas 2 semanas contra as 6 anteriores, limitada a 0,7–1,3. */
 export const DIAS_TENDENCIA = 14;
 export const TENDENCIA_MIN = 0.7;
 export const TENDENCIA_MAX = 1.3;
 
-export type TipoDia = 'util' | 'sabado' | 'domingo';
-export const tipoDeDia = (diaSemana: number): TipoDia => (diaSemana === 0 ? 'domingo' : diaSemana === 6 ? 'sabado' : 'util');
+/** Peso do perfil da cidade no perfil de cada região, em horas de observação daquele horário ("horas-equivalentes"). */
+export const K_PERFIL = 8;
 
 export const iso = (ms: number) => new Date(ms).toISOString();
 export const inicioDaHoraMs = (ms: number) => Math.floor(ms / HORA_MS) * HORA_MS;
@@ -59,16 +59,16 @@ export function mediana(valores: readonly number[]): number {
 
 // ---- Rótulos para o gestor ----------------------------------------------------------------------------------
 
-const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 const DIAS_MINUSC = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
 
 export function periodoDoDia(hora: number): string {
   return hora < 6 ? 'de madrugada' : hora < 12 ? 'de manhã' : hora < 18 ? 'à tarde' : 'à noite';
 }
 
-/** "Sexta à noite", "Terça de madrugada"… (hora local). */
-export function rotuloDiaPeriodo(diaSemana: number, hora: number): string {
-  return `${DIAS[diaSemana]} ${periodoDoDia(hora)}`;
+/** "Região Centro na sexta à noite", "Zona Sul no domingo à tarde"… (hora local). */
+export function rotuloRegiaoHorario(r: Regiao, diaSemana: number, hora: number): string {
+  const regiao = r === 'Centro' ? 'Região Centro' : `Zona ${r}`;
+  return `${regiao} ${diaSemana === 0 || diaSemana === 6 ? 'no' : 'na'} ${DIAS_MINUSC[diaSemana]} ${periodoDoDia(hora)}`;
 }
 
 export const nomeDoDia = (diaSemana: number) => DIAS_MINUSC[diaSemana]!;
@@ -112,6 +112,8 @@ export interface HistoricoOcorrencias {
   porBairro: Float64Array[];
   /** Soma da cidade em cada hora. */
   cidade: Float64Array;
+  /** Soma de cada região em cada hora. */
+  porRegiao: Map<Regiao, Float64Array>;
   /** Chuva (mm) por data local YYYY-MM-DD, observada ou prevista. */
   chuvaMm: Map<string, number>;
 }
@@ -140,6 +142,7 @@ export function carregarHistorico(db: Database, { ate, diasAntes }: { ate: Date;
   const indice = new Map(bairros.map((b, i) => [b.id, i]));
   const porBairro = bairros.map(() => new Float64Array(horas));
   const cidade = new Float64Array(horas);
+  const porRegiao = new Map<Regiao, Float64Array>(REGIOES.map((r) => [r, new Float64Array(horas)]));
   const linhas = db
     .prepare(
       `SELECT bairro_id, substr(inicio, 1, 13) AS hora, COUNT(*) AS n FROM ocorrencias
@@ -152,9 +155,10 @@ export function carregarHistorico(db: Database, { ate, diasAntes }: { ate: Date;
     if (i === undefined || h < 0 || h >= horas) continue;
     porBairro[i]![h]! += l.n;
     cidade[h]! += l.n;
+    porRegiao.get(bairros[i]!.regiao)![h]! += l.n;
   }
   const chuvaMm = new Map((db.prepare('SELECT data, chuva_mm FROM clima_dia').all() as { data: string; chuva_mm: number }[]).map((l) => [l.data, l.chuva_mm]));
-  return { bairros, inicioMs, fimMs, porBairro, cidade, chuvaMm };
+  return { bairros, inicioMs, fimMs, porBairro, cidade, porRegiao, chuvaMm };
 }
 
 /** O que o modelo de risco aprende com as 8 semanas antes de um corte. */
@@ -170,10 +174,12 @@ export interface EstatisticasRisco {
   base: number[];
   /** Média simples de cada bairro (ocorrências/hora), sem suavizar: é a previsão "ingênua" do teste retroativo. */
   bruta: number[];
-  /** Tendência de cada bairro (0,7 a 1,3). */
-  tendencia: number[];
-  /** Perfil da cidade: taxa da hora (local) em cada tipo de dia ÷ taxa média. 1 = hora comum. */
-  perfil: Record<TipoDia, number[]>;
+  /** Tendência da cidade (0,7 a 1,3): vale para todos os bairros. */
+  tendencia: number;
+  /** Perfil da cidade: perfilCidade[dia da semana][hora local] = taxa da cidade naquele horário ÷ taxa média. 1 = hora comum. */
+  perfilCidade: number[][];
+  /** Perfil de cada região (mesma régua, relativo à média da própria região), puxado para o da cidade com K_PERFIL. */
+  perfilRegiao: Map<Regiao, number[][]>;
   /** Razão chuva/seco: média de ocorrências num dia de chuva ÷ num dia seco (dias completos da janela). */
   chuva: { fator: number; diasChuva: number; diasSecos: number };
 }
@@ -185,10 +191,18 @@ export interface EstatisticasRisco {
  *   Ex. (semente padrão): bairro Centro, 1.692 ocorrências em 1.344 h, bairro médio 0,189/h →
  *   (1.692 + 20 × 0,189) ÷ (1.344 + 20) = 1,243/h (sem suavizar: 1,259). Com poucas horas de dados a média pesa mais;
  *   com 8 semanas ela quase não mexe.
- * Perfil (dia útil / sábado / domingo × hora): taxa da cidade naquela hora ÷ taxa média da cidade.
- *   Ex.: dia útil às 18 h = 2,15 (mais que o dobro de uma hora comum); às 3 h = 0,36.
+ * Perfil da cidade (dia da semana × hora local): taxa da cidade naquele horário ÷ taxa média da cidade.
+ * Perfil da região (o que entra na conta): o mesmo, mas da região do bairro e relativo à média da própria região, puxado
+ *   para o da cidade como se a cidade tivesse K_PERFIL = 8 horas de observação a mais naquele horário:
+ *     perfil_região = (ocorrências da região no horário ÷ taxa média da região + 8 × perfil_cidade) ÷ (horas do horário + 8)
+ *   Cada horário (ex.: sexta às 22 h) aparece 8 vezes em 8 semanas, então o que a região mostrou e o que a cidade mostra
+ *   pesam igual. Ex. (semente padrão): região Centro, sexta às 22 h: 57 ocorrências nessas 8 horas, média da região
+ *   4,07/h → 57 ÷ 4,07 = 14,0; perfil da cidade nesse horário 1,22 → (14,0 + 8 × 1,22) ÷ (8 + 8) = 1,49
+ *   (sozinha a região daria 14,0 ÷ 8 = 1,75; a cidade inteira, 1,22). Sábado às 22 h: 1,86; terça às 3 h: 0,36.
  * Chuva: média diária da cidade nos dias de chuva ÷ nos dias secos. Ex.: 12 dias de chuva e 43 secos → 1,15 (15% a mais).
- * Tendência: taxa das últimas 2 semanas ÷ taxa das 6 anteriores, limitada a 0,7–1,3. Ex.: 1,22/h ÷ 1,24/h = 0,98.
+ * Tendência (da cidade): taxa das últimas 2 semanas ÷ taxa das 6 anteriores, limitada a 0,7–1,3. Ex.: 12,1/h ÷ 12,3/h = 0,98.
+ *   É da cidade e não de cada bairro: em 2 semanas um bairro tem poucas ocorrências e a razão vira ruído (na semente,
+ *   10 dos 65 bairros batiam no limite 0,7 ou 1,3 por puro acaso e pioravam o teste retroativo).
  */
 export function calcularEstatisticas(hist: HistoricoOcorrencias, corteMs: number): EstatisticasRisco {
   const fimMs = Math.min(hist.fimMs, inicioDaHoraMs(corteMs));
@@ -198,17 +212,24 @@ export function calcularEstatisticas(hist: HistoricoOcorrencias, corteMs: number
   const horas = h1 - h0;
   const nB = hist.bairros.length;
 
-  // Perfil e chuva: uma passada pelas horas da janela (hora local).
-  const somaSlot: Record<TipoDia, number[]> = { util: Array(24).fill(0), sabado: Array(24).fill(0), domingo: Array(24).fill(0) };
-  const horasSlot: Record<TipoDia, number[]> = { util: Array(24).fill(0), sabado: Array(24).fill(0), domingo: Array(24).fill(0) };
+  // Perfis e chuva: uma passada pelas horas da janela (hora local). Horário = dia da semana (0 = domingo) × hora.
+  const grade = () => Array.from({ length: 7 }, () => Array<number>(24).fill(0));
+  const horasSlot = grade();
+  const somaCidade = grade();
+  const somaRegiao = new Map<Regiao, number[][]>(REGIOES.map((r) => [r, grade()]));
+  const totalRegiao = new Map<Regiao, number>(REGIOES.map((r) => [r, 0]));
   const dias = new Map<string, { n: number; horas: number }>();
   let total = 0;
   for (let h = h0; h < h1; h++) {
     const n = hist.cidade[h]!;
     const p = partesLocais(new Date(hist.inicioMs + h * HORA_MS));
-    const td = tipoDeDia(p.diaSemana);
-    somaSlot[td][p.hora]! += n;
-    horasSlot[td][p.hora]!++;
+    horasSlot[p.diaSemana]![p.hora]!++;
+    somaCidade[p.diaSemana]![p.hora]! += n;
+    for (const r of REGIOES) {
+      const nr = hist.porRegiao.get(r)![h]!;
+      somaRegiao.get(r)![p.diaSemana]![p.hora]! += nr;
+      totalRegiao.set(r, totalRegiao.get(r)! + nr);
+    }
     const d = dias.get(p.data) ?? { n: 0, horas: 0 };
     d.n += n;
     d.horas++;
@@ -216,9 +237,16 @@ export function calcularEstatisticas(hist: HistoricoOcorrencias, corteMs: number
     total += n;
   }
   const mediaCidadeHora = horas > 0 ? total / horas : 0;
-  const perfil = {} as Record<TipoDia, number[]>;
-  for (const td of ['util', 'sabado', 'domingo'] as TipoDia[]) {
-    perfil[td] = somaSlot[td].map((s, hora) => (horasSlot[td][hora]! > 0 && mediaCidadeHora > 0 ? s / horasSlot[td][hora]! / mediaCidadeHora : 1));
+  const perfilCidade = somaCidade.map((linha, dia) =>
+    linha.map((soma, hora) => (horasSlot[dia]![hora]! > 0 && mediaCidadeHora > 0 ? soma / horasSlot[dia]![hora]! / mediaCidadeHora : 1)));
+  const perfilRegiao = new Map<Regiao, number[][]>();
+  for (const r of REGIOES) {
+    const mediaRegiaoHora = horas > 0 ? totalRegiao.get(r)! / horas : 0;
+    perfilRegiao.set(r, somaRegiao.get(r)!.map((linha, dia) => linha.map((soma, hora) => {
+      const cidade = perfilCidade[dia]![hora]!;
+      if (mediaRegiaoHora === 0) return cidade;
+      return (soma / mediaRegiaoHora + K_PERFIL * cidade) / (horasSlot[dia]![hora]! + K_PERFIL);
+    })));
   }
 
   let somaChuva = 0;
@@ -231,28 +259,28 @@ export function calcularEstatisticas(hist: HistoricoOcorrencias, corteMs: number
   }
   const fatorChuva = diasChuva > 0 && diasSecos > 0 && somaSeco > 0 ? somaChuva / diasChuva / (somaSeco / diasSecos) : 1;
 
-  // Base, média simples e tendência de cada bairro.
+  // Base e média simples de cada bairro.
   const mediaBairro = horas > 0 ? total / nB / horas : 0;
-  const hRecente = Math.max(h0, h1 - DIAS_TENDENCIA * 24);
   const base: number[] = [];
   const bruta: number[] = [];
-  const tendencia: number[] = [];
   for (let i = 0; i < nB; i++) {
     const serie = hist.porBairro[i]!;
-    let antes = 0;
-    let recente = 0;
-    for (let h = h0; h < hRecente; h++) antes += serie[h]!;
-    for (let h = hRecente; h < h1; h++) recente += serie[h]!;
-    const n = antes + recente;
+    let n = 0;
+    for (let h = h0; h < h1; h++) n += serie[h]!;
     base.push(horas + K_SUAVIZACAO > 0 ? (n + K_SUAVIZACAO * mediaBairro) / (horas + K_SUAVIZACAO) : 0);
     bruta.push(horas > 0 ? n / horas : 0);
-    const horasAntes = hRecente - h0;
-    const horasRecente = h1 - hRecente;
-    const taxaAntes = horasAntes > 0 ? antes / horasAntes : 0;
-    tendencia.push(taxaAntes > 0 && horasRecente > 0 ? limitar(recente / horasRecente / taxaAntes, TENDENCIA_MIN, TENDENCIA_MAX) : 1);
   }
 
-  return { inicioMs, fimMs, horas, total, mediaBairro, base, bruta, tendencia, perfil, chuva: { fator: fatorChuva, diasChuva, diasSecos } };
+  // Tendência da cidade: ritmo das últimas 2 semanas ÷ ritmo das 6 anteriores.
+  const hRecente = Math.max(h0, h1 - DIAS_TENDENCIA * 24);
+  let antes = 0;
+  let recente = 0;
+  for (let h = h0; h < hRecente; h++) antes += hist.cidade[h]!;
+  for (let h = hRecente; h < h1; h++) recente += hist.cidade[h]!;
+  const taxaAntes = hRecente > h0 ? antes / (hRecente - h0) : 0;
+  const tendencia = taxaAntes > 0 && h1 > hRecente ? limitar(recente / (h1 - hRecente) / taxaAntes, TENDENCIA_MIN, TENDENCIA_MAX) : 1;
+
+  return { inicioMs, fimMs, horas, total, mediaBairro, base, bruta, tendencia, perfilCidade, perfilRegiao, chuva: { fator: fatorChuva, diasChuva, diasSecos } };
 }
 
 // ---- Equipamentos: falhas e situação no tempo ---------------------------------------------------------------

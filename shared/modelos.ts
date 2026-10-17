@@ -228,6 +228,8 @@ export interface CelulaRisco {
 export interface PrevisaoRisco {
   geradoEm: string;
   horas: number;
+  /** 1 = uma célula por hora (24 h); 3 = blocos de 3 horas (168 h): `inicio` = começo do bloco, `taxaEsperada` = soma do bloco. */
+  granularidadeHoras: 1 | 3;
   celulas: CelulaRisco[];
   explicacao: ExplicacaoPrevisao;
 }
@@ -239,6 +241,8 @@ export interface ResultadoBacktest {
   ganhoPct: number;
   /** 0 a 5. */
   acertoTop5Medio: number;
+  /** O mesmo acerto escolhendo os 5 bairros pela média simples (comparação honesta). */
+  acertoTop5IngenuoMedio: number;
   porDia: { data: string; acertoTop5: number; mae: number }[];
   explicacao: ExplicacaoPrevisao;
 }

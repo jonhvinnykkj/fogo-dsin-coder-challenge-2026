@@ -2,16 +2,19 @@
 //
 // Para cada um dos 14 dias completos antes de hoje:
 //   1. corta os dados na meia-noite que abre o dia (o modelo só vê o que aconteceu até a véspera) e recalcula tudo:
-//      base, perfil, razão de chuva e tendência (base.ts → calcularEstatisticas);
-//   2. prevê as 24 horas do dia para cada bairro (a chuva do dia entra como "previsão": na cidade sintética a previsão
-//      do tempo sempre se confirma);
-//   3. compara com o que aconteceu, bairro a bairro e hora a hora.
-// Erro médio absoluto (MAE) = média de |previsto − ocorrido| sobre bairros × horas.
-//   Ex.: previu 0,40 e houve 1 → erro 0,60; previu 0,05 e houve 0 → erro 0,05.
-// Comparação ingênua = média simples de ocorrências por hora de cada bairro nas mesmas 8 semanas (sem horário, chuva
-// nem tendência). Ganho = (erro ingênuo − erro do modelo) ÷ erro ingênuo. Ex.: (0,25 − 0,21) ÷ 0,25 = 16%.
-// Acerto dos 5 = dos 5 bairros com maior total previsto no dia, quantos ficaram entre os 5 com mais ocorrências
-//   (empate com o 5º conta como acerto). Média dos 14 dias, de 0 a 5.
+//      base, perfis, razão de chuva e tendência (base.ts → calcularEstatisticas);
+//   2. prevê as 24 horas do dia e mais 2 (até as 2h da madrugada seguinte, fim da noite) para cada bairro (a chuva do dia
+//      entra como "previsão": na cidade sintética a previsão do tempo sempre se confirma);
+//   3. compara com o que aconteceu.
+// Erro médio absoluto (MAE) por bairro em blocos de 3 horas (0h–3h, 3h–6h… : 8 blocos por dia, como o mapa de 7 dias):
+//   média de |previsto − ocorrido| sobre bairros × blocos. Ex.: previu 1,2 e houve 2 → erro 0,8.
+//   Por que blocos e não horas: numa hora um bairro tem em média 0,19 ocorrência (quase sempre 0 ou 1); nessa escala
+//   qualquer previsão erra perto do mesmo tanto e o erro não mostra quem acerta o horário.
+// Comparação ingênua = média simples de ocorrências por hora de cada bairro nas mesmas 8 semanas, espalhada igual pelas
+//   horas (no bloco: 3 × a média). Ganho = (erro ingênuo − erro do modelo) ÷ erro ingênuo. Ex.: (0,90 − 0,78) ÷ 0,90 = 13%.
+// Acerto dos 5 = na janela da noite (18h às 2h, onde estão as noites movimentadas), dos 5 bairros com maior total previsto,
+//   quantos ficaram entre os 5 com mais ocorrências (empate com o 5º conta). Média dos dias, de 0 a 5. A média simples
+//   também é avaliada assim (os 5 bairros de maior média). Se a madrugada seguinte ainda não tem dados, usa 18h–24h.
 // As contagens são carregadas uma vez (carregarHistorico) e recortadas em memória a cada dia.
 import type { Database } from 'better-sqlite3';
 import { formatarNumero } from '../../shared/formato';
@@ -21,6 +24,11 @@ import { arred, calcularEstatisticas, carregarHistorico, DIA_MS, diaMes, fimDosD
 import { calcularTaxas } from './risco';
 
 const TOP = 5;
+/** Horas previstas por dia: as 24 do dia e mais 2 (a noite vai até as 2h). */
+const HORAS_PREVISTAS = 26;
+const HORAS_BLOCO = 3;
+/** Janela da noite, em horas desde a meia-noite do dia avaliado: 18h até 2h do dia seguinte. */
+const NOITE = { de: 18, ate: 26 };
 
 export function executarBacktest(db: Database, { agora, dias = 14 }: { agora: Date; dias?: number }): ResultadoBacktest {
   const fimMs = fimDosDados(db, agora);
@@ -29,56 +37,64 @@ export function executarBacktest(db: Database, { agora, dias = 14 }: { agora: Da
   const datas = Array.from({ length: dias }, (_, k) => somarDias(ultimoDia, k - dias));
   const hist = carregarHistorico(db, { ate: new Date(fimMs), diasAntes: dias + SEMANAS_BASE * 7 + 1 });
   const nB = hist.bairros.length;
+  const blocos = 24 / HORAS_BLOCO;
 
   const porDia: ResultadoBacktest['porDia'] = [];
   let somaModelo = 0;
   let somaIngenuo = 0;
   let somaTop = 0;
   let somaTopIngenuo = 0;
-  let avaliados = 0;
   for (const data of datas) {
     const corte = instanteLocal(data, 0).getTime();
     const h0 = Math.round((corte - hist.inicioMs) / HORA_MS);
     if (h0 < 0 || corte + DIA_MS > hist.fimMs) continue; // dia sem dados completos
     const est = calcularEstatisticas(hist, corte);
     if (est.horas === 0) continue;
-    const { taxas } = calcularTaxas(hist, est, corte, 24);
+    const horas = corte + HORAS_PREVISTAS * HORA_MS <= hist.fimMs ? HORAS_PREVISTAS : 24;
+    const { taxas } = calcularTaxas(hist, est, corte, horas);
+    const real = (i: number, t: number) => hist.porBairro[i]![h0 + t]!;
 
     let erroModelo = 0;
     let erroIngenuo = 0;
-    const previstoDia: number[] = [];
-    const ocorridoDia: number[] = [];
+    const noitePrevista: number[] = [];
+    const noiteOcorrida: number[] = [];
     for (let i = 0; i < nB; i++) {
-      let prev = 0;
-      let real = 0;
-      for (let t = 0; t < 24; t++) {
-        const p = taxas[i * 24 + t]!;
-        const r = hist.porBairro[i]![h0 + t]!;
-        erroModelo += Math.abs(p - r);
-        erroIngenuo += Math.abs(est.bruta[i]! - r);
-        prev += p;
-        real += r;
+      for (let b = 0; b < blocos; b++) {
+        let prev = 0;
+        let ocorr = 0;
+        for (let k = 0; k < HORAS_BLOCO; k++) {
+          prev += taxas[i * horas + b * HORAS_BLOCO + k]!;
+          ocorr += real(i, b * HORAS_BLOCO + k);
+        }
+        erroModelo += Math.abs(prev - ocorr);
+        erroIngenuo += Math.abs(HORAS_BLOCO * est.bruta[i]! - ocorr);
       }
-      previstoDia.push(prev);
-      ocorridoDia.push(real);
+      let prevNoite = 0;
+      let realNoite = 0;
+      for (let t = NOITE.de; t < Math.min(NOITE.ate, horas); t++) {
+        prevNoite += taxas[i * horas + t]!;
+        realNoite += real(i, t);
+      }
+      noitePrevista.push(prevNoite);
+      noiteOcorrida.push(realNoite);
     }
-    const celulas = nB * 24;
-    const acerto = acertoTop(previstoDia, ocorridoDia, TOP);
-    somaTopIngenuo += acertoTop(est.bruta, ocorridoDia, TOP);
+    const celulas = nB * blocos;
+    const acerto = acertoTop(noitePrevista, noiteOcorrida, TOP);
     porDia.push({ data, acertoTop5: acerto, mae: arred(erroModelo / celulas, 4) });
     somaModelo += erroModelo / celulas;
     somaIngenuo += erroIngenuo / celulas;
     somaTop += acerto;
-    avaliados++;
+    somaTopIngenuo += acertoTop(est.bruta, noiteOcorrida, TOP);
   }
 
+  const avaliados = porDia.length;
   const maeModelo = avaliados ? arred(somaModelo / avaliados, 4) : 0;
   const maeIngenuo = avaliados ? arred(somaIngenuo / avaliados, 4) : 0;
   const ganhoPct = maeIngenuo > 0 ? arred((100 * (maeIngenuo - maeModelo)) / maeIngenuo, 1) : 0;
   const acertoTop5Medio = avaliados ? arred(somaTop / avaliados, 1) : 0;
-  const acertoTop5Ingenuo = avaliados ? arred(somaTopIngenuo / avaliados, 1) : 0;
-  const resultado = { dias: avaliados, maeModelo, maeIngenuo, ganhoPct, acertoTop5Medio, porDia };
-  return { ...resultado, explicacao: explicarBacktest(resultado, acertoTop5Ingenuo, hist.inicioMs, fimMs) };
+  const acertoTop5IngenuoMedio = avaliados ? arred(somaTopIngenuo / avaliados, 1) : 0;
+  const resultado = { dias: avaliados, maeModelo, maeIngenuo, ganhoPct, acertoTop5Medio, acertoTop5IngenuoMedio, porDia };
+  return { ...resultado, explicacao: explicarBacktest(resultado, hist.inicioMs, fimMs) };
 }
 
 /** Quantos dos `top` maiores previstos ficaram entre os `top` maiores ocorridos (empate com o último conta). */
@@ -89,7 +105,7 @@ export function acertoTop(previsto: number[], ocorrido: number[], top: number): 
   return escolhidos.filter((i) => ocorrido[i]! >= corte && ocorrido[i]! > 0).length;
 }
 
-function explicarBacktest(r: Omit<ResultadoBacktest, 'explicacao'>, topIngenuo: number, inicioMs: number, fimMs: number): ExplicacaoPrevisao {
+function explicarBacktest(r: Omit<ResultadoBacktest, 'explicacao'>, inicioMs: number, fimMs: number): ExplicacaoPrevisao {
   const primeiro = r.porDia[0]?.data;
   const ultimo = r.porDia.at(-1)?.data;
   const fmtData = (d: string | undefined) => (d ? `${d.slice(8, 10)}/${d.slice(5, 7)}` : '—');
@@ -99,19 +115,19 @@ function explicarBacktest(r: Omit<ResultadoBacktest, 'explicacao'>, topIngenuo: 
     dadosUsados: [
       `Ocorrências registradas de ${diaMes(inicioMs)} a ${diaMes(fimMs - 1)}, por bairro e hora`,
       'Para cada dia, o modelo foi refeito só com os dados até a meia-noite anterior (nada do próprio dia entra no cálculo)',
-      'Comparação: a média simples de ocorrências por hora de cada bairro, sem horário, chuva nem tendência',
+      'Comparação: a média simples de ocorrências por hora de cada bairro, igual em todas as horas, sem horário, chuva nem tendência',
     ],
     comoAjuda: 'Diz se dá para confiar no mapa de risco antes de mexer na escala: quanto ele erra e se aponta os bairros certos.',
     confiabilidade: [
       {
-        metrica: 'Erro médio do modelo (ocorrências por bairro e hora)',
+        metrica: 'Erro médio do modelo (ocorrências por bairro a cada 3 horas)',
         valor: r.maeModelo,
-        descricao: `Em média o modelo errou ${formatarNumero(r.maeModelo, 2)} ocorrência por bairro em cada hora.`,
+        descricao: `Medido em blocos de 3 horas por bairro (8 por dia): em média o modelo errou ${formatarNumero(r.maeModelo, 2)} ocorrência por bloco.`,
       },
       {
-        metrica: 'Erro médio da média simples',
+        metrica: 'Erro médio da média simples (por bairro a cada 3 horas)',
         valor: r.maeIngenuo,
-        descricao: `Repetir a média de cada bairro errou ${formatarNumero(r.maeIngenuo, 2)}.`,
+        descricao: `Repetir a média de cada bairro, igual em todas as horas, errou ${formatarNumero(r.maeIngenuo, 2)} por bloco.`,
       },
       {
         metrica: 'Erro a menos que a média simples (%)',
@@ -121,14 +137,14 @@ function explicarBacktest(r: Omit<ResultadoBacktest, 'explicacao'>, topIngenuo: 
           : `O modelo errou ${formatarNumero(-r.ganhoPct, 1)}% mais que a média simples: não use o mapa sem conferir.`,
       },
       {
-        metrica: 'Acerto dos 5 bairros mais arriscados (0 a 5)',
+        metrica: 'Acerto dos 5 bairros mais arriscados à noite (0 a 5)',
         valor: r.acertoTop5Medio,
-        descricao: `Dos 5 bairros apontados como mais arriscados, em média ${formatarNumero(r.acertoTop5Medio, 1)} estiveram mesmo entre os 5 com mais ocorrências do dia (melhor dia: ${melhor} de 5).`,
+        descricao: `Entre 18h e 2h, dos 5 bairros apontados como mais arriscados, em média ${formatarNumero(r.acertoTop5Medio, 1)} estiveram mesmo entre os 5 com mais ocorrências (melhor dia: ${melhor} de 5).`,
       },
       {
-        metrica: 'Acerto dos 5 bairros pela média simples (0 a 5)',
-        valor: topIngenuo,
-        descricao: `Para comparar: escolher os 5 bairros pela média simples acertaria ${formatarNumero(topIngenuo, 1)}. Os bairros mais movimentados mudam pouco; o ganho do modelo está em dizer a hora.`,
+        metrica: 'Acerto dos 5 bairros pela média simples à noite (0 a 5)',
+        valor: r.acertoTop5IngenuoMedio,
+        descricao: `Para comparar: escolher sempre os 5 bairros de maior média acertaria ${formatarNumero(r.acertoTop5IngenuoMedio, 1)}.`,
       },
     ],
   };
