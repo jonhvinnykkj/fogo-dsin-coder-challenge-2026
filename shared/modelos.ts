@@ -254,6 +254,14 @@ export interface RecomendacaoReforco {
   motivo: string;
 }
 
+/** Resposta de GET /api/previsoes/reforco. */
+export interface RespostaReforco {
+  geradoEm: string;
+  horas: number;
+  recomendacoes: RecomendacaoReforco[];
+  explicacao: ExplicacaoPrevisao;
+}
+
 export interface RiscoFalha {
   equipamentoId: number;
   codigo: string;
@@ -264,6 +272,13 @@ export interface RiscoFalha {
   /** Probabilidade de falha em 7 dias, 0 a 1. */
   probabilidade: number;
   fatores: { nome: string; contribuicao: number }[];
+}
+
+/** Resposta de GET /api/previsoes/falhas (ranking completo, do maior risco para o menor). */
+export interface RespostaFalhas {
+  geradoEm: string;
+  itens: RiscoFalha[];
+  explicacao: ExplicacaoPrevisao;
 }
 
 export interface Tendencias {

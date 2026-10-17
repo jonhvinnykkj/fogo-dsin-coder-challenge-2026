@@ -14,6 +14,7 @@ import { rotasBairros } from './rotas/bairros';
 import { rotasCentral } from './rotas/central';
 import { rotasEquipamentos } from './rotas/equipamentos';
 import { rotasManutencao } from './rotas/manutencao';
+import { rotasPrevisoes } from './rotas/previsoes';
 import { rotasSaude } from './rotas/saude';
 import { rotasSimulacao } from './rotas/simulacao';
 import { rotasStream } from './rotas/stream';
@@ -64,6 +65,7 @@ export async function criarApp(ctx: ContextoApp): Promise<FastifyInstance> {
         { name: 'Manutenção', description: 'Ordens e painel de manutenção' },
         { name: 'Central', description: 'Indicadores, mapa e situação das regiões da central de operações' },
         { name: 'Tempo real', description: 'Ingestão de telemetria, simulação e fluxo de eventos (SSE)' },
+        { name: 'Previsões', description: 'Cidade preditiva: risco por bairro e hora, teste retroativo, reforço de agentes, falhas, tendências e resumo do dia' },
       ],
     },
   });
@@ -80,6 +82,7 @@ export async function criarApp(ctx: ContextoApp): Promise<FastifyInstance> {
   await app.register(rotasTelemetria);
   await app.register(rotasSimulacao);
   await app.register(rotasStream);
+  await app.register(rotasPrevisoes);
 
   // Interface compilada (npm run build): arquivos estáticos + fallback de SPA fora de /api.
   const temInterface = existsSync(PASTA_WEB);

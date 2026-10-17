@@ -143,6 +143,23 @@ export const TIPOS_EQUIPAMENTO: TipoEquipamento[] = [
   },
 ];
 
+/** Singular e plural de cada tipo, para frases como "2 câmeras indisponíveis". Tipado: tipo novo no catálogo obriga a completar. */
+export const NOME_DO_TIPO: Record<TipoEquipamentoId, [string, string]> = {
+  radar: ['radar', 'radares'],
+  camera: ['câmera', 'câmeras'],
+  balanca: ['balança', 'balanças'],
+  fiscal_rotativo: ['veículo de fiscalização do rotativo', 'veículos de fiscalização do rotativo'],
+  cancela: ['cancela', 'cancelas'],
+  transporte: ['veículo de transporte', 'veículos de transporte'],
+  totem_rotativo: ['totem do rotativo', 'totens do rotativo'],
+  patinete: ['patinete', 'patinetes'],
+  moto_agente: ['moto de agente', 'motos de agente'],
+  viatura: ['viatura', 'viaturas'],
+  semaforo: ['semáforo', 'semáforos'],
+  painel_mensagem: ['painel de mensagem', 'painéis de mensagem'],
+  sensor_alagamento: ['sensor de alagamento', 'sensores de alagamento'],
+};
+
 const POR_ID = new Map(TIPOS_EQUIPAMENTO.map((t) => [t.id, t]));
 
 export function tipoPorId(id: TipoEquipamentoId): TipoEquipamento {

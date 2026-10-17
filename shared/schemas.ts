@@ -163,3 +163,8 @@ export type FiltrosCentral = z.infer<typeof filtrosCentralSchema>;
 export const filtroOcorrenciasSchema = z.object({
   horas: z.coerce.number({ invalid_type_error: 'Horas: informe um número' }).int('Horas: informe um número inteiro').min(1, 'Horas: de 1 a 168').max(168, 'Horas: de 1 a 168').default(24),
 });
+
+/** GET /api/previsoes/risco: próximas 24 horas ou próximos 7 dias. */
+export const filtroRiscoSchema = z.object({
+  horas: z.coerce.number({ invalid_type_error: 'Horas: use 24 ou 168' }).refine((h) => h === 24 || h === 168, 'Horas: use 24 ou 168').default(24),
+});
