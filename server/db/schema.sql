@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS telemetria_hora (
   online_min      INTEGER NOT NULL DEFAULT 0,
   metricas        TEXT NOT NULL DEFAULT '{}',           -- JSON
   PRIMARY KEY (equipamento_id, hora)
-);
+) WITHOUT ROWID;                                        -- ~450 mil linhas: a chave é o próprio índice (sem cópia)
 
 CREATE TABLE IF NOT EXISTS manutencoes (
   id              INTEGER PRIMARY KEY,

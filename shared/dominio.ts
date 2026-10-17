@@ -15,6 +15,20 @@ export type SituacaoAgente = (typeof SITUACOES_AGENTE)[number];
 export const TURNOS = ['manha', 'tarde', 'noite', 'madrugada'] as const;
 export type Turno = (typeof TURNOS)[number];
 
+/** Horário de cada turno em hora local [início, fim). A noite atravessa a meia-noite; a madrugada é o plantão reduzido. */
+export const HORARIO_TURNO: Record<Turno, { inicio: number; fim: number }> = {
+  manha: { inicio: 6, fim: 14 },
+  tarde: { inicio: 14, fim: 22 },
+  noite: { inicio: 22, fim: 6 },
+  madrugada: { inicio: 0, fim: 6 },
+};
+
+/** O turno cobre a hora local (0 a 23)? */
+export function turnoCobreHora(turno: Turno, hora: number): boolean {
+  const { inicio, fim } = HORARIO_TURNO[turno];
+  return inicio < fim ? hora >= inicio && hora < fim : hora >= inicio || hora < fim;
+}
+
 export const REGIOES = ['Centro', 'Norte', 'Sul', 'Leste', 'Oeste'] as const;
 export type Regiao = (typeof REGIOES)[number];
 
