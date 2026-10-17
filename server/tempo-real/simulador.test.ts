@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { dentroDeMarilia } from '../../shared/geo';
 import type { EventoFogo } from '../../shared/modelos';
-import { criarCtxDeTeste, type CtxDeTeste } from '../test/ctx';
+import { criarCtxDeTeste, type CtxDeTeste, type RelogioDeTeste } from '../test/ctx';
 import { inserirEquipamentoDeTeste } from '../test/fabricas';
 import { Simulador } from './simulador';
 
@@ -190,5 +190,71 @@ describe('Simulador', () => {
     expect((ctx.db.prepare('SELECT COUNT(*) AS n FROM telemetria_hora').get() as { n: number }).n).toBeGreaterThan(5);
     sim.parar();
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  const MIN = 60_000;
+  const idDe = (ctx: CtxDeTeste, codigo: string) => (ctx.db.prepare('SELECT id FROM equipamentos WHERE codigo = ?').get(codigo) as { id: number }).id;
+  const sit = (ctx: CtxDeTeste, codigo: string) => (ctx.db.prepare('SELECT situacao FROM equipamentos WHERE codigo = ?').get(codigo) as { situacao: string }).situacao;
+  const avancar = (ctx: CtxDeTeste, ms: number) => {
+    const r = ctx.relogio as RelogioDeTeste;
+    r.definir(new Date(r.agora().getTime() + ms));
+  };
+
+  it('ciclo da falha: mau funcionamento → em manutenção → operacional, com alertas resolvidos (relógio de teste)', () => {
+    const ctx = cidadezinha();
+    const sim = new Simulador(ctx, { semente: 5 });
+    sim.passo();
+    sim.injetar('falha', idDe(ctx, 'FOGO-RAD-0001'));
+    expect(sit(ctx, 'FOGO-RAD-0001')).toBe('mau_funcionamento');
+    avancar(ctx, 6 * MIN);
+    sim.passo();
+    expect(sit(ctx, 'FOGO-RAD-0001')).toBe('em_manutencao');
+    avancar(ctx, 7 * MIN);
+    sim.passo();
+    expect(sit(ctx, 'FOGO-RAD-0001')).toBe('operacional');
+    expect(ctx.db.prepare("SELECT COUNT(*) AS n FROM manutencoes WHERE equipamento_id = ? AND tipo = 'corretiva' AND concluida_em IS NOT NULL").get(idDe(ctx, 'FOGO-RAD-0001'))).toEqual({ n: 1 });
+    expect(ctx.db.prepare("SELECT COUNT(*) AS n FROM alertas WHERE equipamento_id = ? AND resolvido_em IS NULL AND tipo IN ('falha_equipamento','sem_sinal','anomalia_leitura')").get(idDe(ctx, 'FOGO-RAD-0001'))).toEqual({ n: 0 });
+  });
+
+  it('reinício: ocorrência aberta, agente em ocorrência e reparo pendente são reconstruídos do banco e terminam', () => {
+    const ctx = cidadezinha();
+    const antes = new Simulador(ctx, { semente: 5 });
+    antes.passo();
+    antes.injetar('acidente');
+    antes.injetar('falha', idDe(ctx, 'FOGO-RAD-0002'));
+    const aberta = ctx.db.prepare("SELECT id, agente_id FROM ocorrencias WHERE tipo = 'acidente' AND origem = 'injetado'").get() as { id: number; agente_id: number | null };
+    expect(aberta.agente_id).not.toBeNull();
+    expect(ctx.db.prepare('SELECT situacao FROM agentes WHERE id = ?').get(aberta.agente_id)).toEqual({ situacao: 'em_ocorrencia' });
+
+    // "Reinício": a memória do simulador antigo se perde; um novo assume o mesmo banco 30 min depois.
+    antes.parar();
+    avancar(ctx, 30 * MIN);
+    const depois = new Simulador(ctx, { semente: 6 });
+    depois.passo();
+    avancar(ctx, 40 * MIN);
+    depois.passo();
+    avancar(ctx, 30 * MIN);
+    depois.passo();
+
+    const o = ctx.db.prepare('SELECT fim FROM ocorrencias WHERE id = ?').get(aberta.id) as { fim: string | null };
+    expect(o.fim).not.toBeNull();
+    expect(ctx.db.prepare('SELECT situacao FROM agentes WHERE id = ?').get(aberta.agente_id)).toEqual({ situacao: 'em_servico' });
+    expect(sit(ctx, 'FOGO-RAD-0002')).toBe('operacional');
+    expect(ctx.db.prepare("SELECT COUNT(*) AS n FROM ocorrencias WHERE fim IS NULL AND origem = 'injetado'").get()).toEqual({ n: 0 });
+  });
+
+  it('reinício muito depois: ocorrência velha é encerrada de imediato e equipamento em manutenção é concluído', () => {
+    const ctx = cidadezinha();
+    const antes = new Simulador(ctx, { semente: 5 });
+    antes.passo();
+    antes.injetar('congestionamento');
+    ctx.db.prepare("UPDATE equipamentos SET situacao = 'em_manutencao' WHERE codigo = 'FOGO-CAM-0001'").run();
+    avancar(ctx, 3 * 3_600_000);
+    const depois = new Simulador(ctx, { semente: 6 });
+    depois.passo();
+    expect(ctx.db.prepare("SELECT COUNT(*) AS n FROM ocorrencias WHERE fim IS NULL AND origem = 'injetado'").get()).toEqual({ n: 0 });
+    avancar(ctx, 7 * MIN);
+    depois.passo();
+    expect(sit(ctx, 'FOGO-CAM-0001')).toBe('operacional');
   });
 });

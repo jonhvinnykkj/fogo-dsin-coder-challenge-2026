@@ -112,6 +112,7 @@ export class Simulador {
   private readonly abertas: OcorrenciaAberta[] = [];
   private reparos: Reparo[] = [];
   private horaLocalAnterior: number | undefined;
+  private estadoRecuperado = false;
 
   constructor(private readonly ctx: ContextoApp, opcoes: OpcoesSimulador = {}) {
     this.semente = opcoes.semente ?? SEMENTE_PADRAO;
@@ -214,6 +215,42 @@ export class Simulador {
         ...(a.equipamento_id !== null && { equipamentoId: a.equipamento_id }), lat: ant?.lat ?? a.lat_atual, lng: ant?.lng ?? a.lng_atual, alvo: ant?.alvo, destino: ant?.destino,
       };
     });
+    if (!this.estadoRecuperado) {
+      this.estadoRecuperado = true;
+      this.recuperarEstado(agora);
+    }
+  }
+
+  /**
+   * Depois de uma reinicialização a agenda (ocorrências abertas, reparos) só existia na memória. Reconstrói a partir do banco
+   * para nada ficar preso: ocorrência ao vivo sem `fim`, agente em ocorrência, equipamento em manutenção ou com falha.
+   */
+  private recuperarEstado(agora: Date): void {
+    const agoraMs = agora.getTime();
+    const pendentes = this.ctx.db.prepare("SELECT id, tipo, inicio, agente_id FROM ocorrencias WHERE fim IS NULL AND origem IN ('tempo_real', 'injetado') ORDER BY id").all() as {
+      id: number; tipo: Ocorrencia['tipo']; inicio: string; agente_id: number | null;
+    }[];
+    for (const o of pendentes) {
+      const idade = agoraMs - Date.parse(o.inicio);
+      if (idade >= duracaoDaOcorrenciaMs(o.tipo, 40, 1)) {
+        // Já passou da duração máxima: encerra agora.
+        const fechada = encerrarOcorrencia(this.ctx.db, o.id, agora.toISOString());
+        if (fechada) this.ctx.barramento.emitir({ tipo: 'ocorrencia', dados: fechada });
+      } else {
+        this.abertas.push({ id: o.id, fimEm: agoraMs + duracaoDaOcorrenciaMs(o.tipo, this.rng.int(1, 10), this.velocidade), ...(o.agente_id !== null && { agenteId: o.agente_id }) });
+      }
+    }
+    // Agente em ocorrência que nenhuma ocorrência aberta reivindica volta ao serviço (ou sai, se o turno acabou).
+    const hora = partesLocais(agora).hora;
+    for (const a of this.agentes) {
+      if (a.situacao !== 'em_ocorrencia' || this.abertas.some((x) => x.agenteId === a.id)) continue;
+      a.destino = a.alvo = undefined;
+      this.mudarSituacaoAgente(a, turnoCobreHora(a.turno, hora) ? 'em_servico' : 'fora_de_servico', agora);
+    }
+    for (const e of this.equipamentos) {
+      if (e.situacao === 'em_manutencao') this.reparos.push({ equipamentoId: e.id, etapa: 'conclusao', em: agoraMs + (this.rng.int(120, 360) * 1000) / this.velocidade });
+      else if (e.situacao === 'mau_funcionamento') this.reparos.push({ equipamentoId: e.id, etapa: 'equipe', em: agoraMs + (this.rng.int(120, 300) * 1000) / this.velocidade });
+    }
   }
 
   /** Pega do banco a situação atual (a tela pode ter mudado um equipamento ou agente enquanto o simulador roda). */

@@ -88,6 +88,7 @@ describe('simulação e stream (rotas)', () => {
     expect(tipoRuim.statusCode).toBe(400);
     const semAlvo = await app.inject({ method: 'POST', url: '/api/simulacao/eventos', payload: { tipo: 'falha', alvoId: 99999 } });
     expect(semAlvo.statusCode).toBe(404);
+    expect(semAlvo.json().erro).toBe('Equipamento não encontrado');
   });
 
   it('sem simulador a rota responde 503 em português', async () => {
