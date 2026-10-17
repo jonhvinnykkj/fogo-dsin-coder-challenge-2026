@@ -100,8 +100,12 @@ export function registrarManutencao(ctx: Base, id: number, m: ManutencaoInput): 
   const agora = agoraIso(ctx);
   ctx.db.transaction(() => {
     if (m.concluidaEm) {
-      const concluidaEm = new Date(m.concluidaEm).toISOString();
-      const dia = concluidaEm.slice(0, 10);
+      const concluida = new Date(m.concluidaEm);
+      if (concluida.getTime() > ctx.relogio.agora().getTime() + 5 * 60_000) {
+        throw dadosInvalidos({ concluidaEm: 'A data de conclusão não pode estar no futuro' });
+      }
+      const concluidaEm = concluida.toISOString();
+      const dia = dataLocal(concluida);
       inserirManutencao(ctx.db, { equipamentoId: id, tipo: m.tipo, abertaEm: agora, previstaPara: m.previstaPara, concluidaEm, descricao: m.descricao });
       const periodica = eq.manutencaoNecessidade === 'periodica' && eq.manutencaoPeriodicidadeDias !== undefined;
       repo.gravarManutencaoDoEquipamento(

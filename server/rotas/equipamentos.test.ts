@@ -310,6 +310,23 @@ describe('manutenção', () => {
     expect(corpo.manutencoes[0]).toMatchObject({ tipo: 'corretiva', concluidaEm: '2026-10-10T12:00:00.000Z' });
   });
 
+  it('usa a data local de São Paulo: 23h do dia 17 não vira dia 18', async () => {
+    const eq = await criarOk({ manutencaoNecessidade: 'periodica', manutencaoPeriodicidadeDias: 30, proximaManutencao: '2026-10-01' });
+    relogio().definir('2026-10-18T03:00:00.000Z');
+    const r = await registrar(eq.id, { tipo: 'preventiva', descricao: 'Revisão noturna', concluidaEm: '2026-10-18T02:00:00Z' });
+    expect(r.statusCode).toBe(201);
+    expect(r.json()).toMatchObject({ ultimaManutencao: '2026-10-17', proximaManutencao: '2026-11-16' });
+  });
+
+  it('recusa conclusão no futuro (mais de 5 minutos além de agora)', async () => {
+    const eq = await criarOk();
+    const r = await registrar(eq.id, { tipo: 'corretiva', descricao: 'Data errada', concluidaEm: '2026-10-17T16:00:00.000Z' });
+    expect(r.statusCode).toBe(400);
+    expect(r.json()).toEqual({ erro: 'Dados inválidos', campos: { concluidaEm: 'A data de conclusão não pode estar no futuro' } });
+    const ok = await registrar(eq.id, { tipo: 'corretiva', descricao: 'Dentro da tolerância', concluidaEm: '2026-10-17T15:04:00.000Z' });
+    expect(ok.statusCode).toBe(201);
+  });
+
   it('concluir manutenção não periódica zera a próxima data e a necessidade', async () => {
     const eq = await criarOk({ manutencaoNecessidade: 'agendada', proximaManutencao: '2026-10-20' });
     const r = await registrar(eq.id, { tipo: 'preventiva', descricao: 'Revisão geral', concluidaEm: '2026-10-17T10:00:00.000Z' });
