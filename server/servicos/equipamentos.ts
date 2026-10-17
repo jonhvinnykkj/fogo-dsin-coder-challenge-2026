@@ -69,7 +69,12 @@ export function criarEquipamento(ctx: Base, dados: EquipamentoInput): Equipament
  * (posição atual, último sinal, situação, código, token): ver `repo.atualizarEquipamento`.
  */
 export function atualizarEquipamento(ctx: Base, id: number, dados: EquipamentoInput): EquipamentoDetalhe {
-  exigirEquipamento(ctx, id);
+  const atual = exigirEquipamento(ctx, id);
+  // O código FOGO-<SIGLA>-nnnn nasce do tipo: trocá-lo deixaria o código mentindo.
+  if (dados.tipo !== atual.tipo) {
+    const mensagem = 'O tipo do equipamento não pode ser alterado';
+    throw invalido(mensagem, { tipo: mensagem });
+  }
   validarReferencias(ctx, dados, id);
   repo.atualizarEquipamento(ctx.db, id, dados, agoraIso(ctx));
   return detalheDoEquipamento(ctx, id);

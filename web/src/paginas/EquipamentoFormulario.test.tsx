@@ -1,15 +1,16 @@
 // Formulário de equipamento: campos por tipo, validação no cliente e erros do servidor no campo certo.
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { act } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Bairro } from '../../../shared/modelos';
 import EquipamentoFormulario from './EquipamentoFormulario';
 
 // O mapa (Leaflet) não roda no jsdom: o seletor de ponto vira um stub com os mesmos campos de erro.
 vi.mock('../componentes/SeletorPontoMapa', () => ({
-  SeletorPontoMapa: ({ erro }: { erro?: string }) => <div data-testid="seletor-mapa">{erro && <p role="alert">{erro}</p>}</div>,
+  SeletorPontoMapa: ({ erro, idErro }: { erro?: string; idErro?: string }) => <div data-testid="seletor-mapa">{erro && <p id={idErro} role="alert">{erro}</p>}</div>,
 }));
 
 const BAIRRO: Bairro = {
@@ -70,5 +71,148 @@ describe('EquipamentoFormulario', () => {
     expect(screen.getByText(/Velocidade máxima precisa ficar entre 10 a 120 km\/h/)).toBeInTheDocument();
     // Só a consulta dos bairros saiu; nenhum POST.
     expect(fetchFalso.mock.calls.filter(([, init]) => (init as RequestInit | undefined)?.method === 'POST')).toHaveLength(0);
+  });
+});
+
+// ---------------------------------------------------------------- edição, erros do servidor e ViaCEP
+
+const EQUIPAMENTO = {
+  id: 5, codigo: 'FOGO-RAD-0005', tipo: 'radar', numeroSerie: 'SN-5', marca: 'Perkons', modelo: 'SC-400', orgao: 'Secretaria de Mobilidade Urbana',
+  situacao: 'mau_funcionamento', cep: '17500-000', logradouro: 'Avenida Sampaio Vidal', referencia: '', bairroId: 1, bairroNome: 'Centro', regiao: 'Centro',
+  lat: -22.2138, lng: -49.9508, latAtual: -22.2, lngAtual: -49.95, ultimoSinalEm: '2026-10-17T14:59:00.000Z', criadoEm: '2026-10-01T10:00:00.000Z', atualizadoEm: '2026-10-17T14:59:00.000Z',
+  manutencaoNecessidade: 'nenhuma', caracteristicas: { modalidade: 'velocidade', velocidadeMaxima: 60, faixas: 2, sentido: 'Centro' },
+  tokenDispositivo: 'segredo', historico: [], manutencoes: [], alertas: [],
+};
+
+const json = (corpo: unknown, status = 200) => new Response(JSON.stringify(corpo), { status });
+
+function renderizarEdicao() {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={qc}>
+      <MemoryRouter initialEntries={['/equipamentos/5/editar']}>
+        <Routes>
+          <Route path="/equipamentos/:id/editar" element={<EquipamentoFormulario />} />
+          <Route path="/equipamentos/:id" element={<p>Ficha aberta</p>} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
+function rotear(extra: (url: string, init?: RequestInit) => Response | Promise<Response> | undefined) {
+  fetchFalso.mockImplementation(async (url: string, init?: RequestInit) => {
+    const u = String(url);
+    const r = extra(u, init);
+    if (r) return r;
+    if (u.startsWith('/api/bairros')) return json([BAIRRO]);
+    if (u === '/api/equipamentos/5') return json(EQUIPAMENTO);
+    return json({ erro: `Chamada inesperada: ${init?.method ?? 'GET'} ${u}` }, 500);
+  });
+}
+
+describe('edição', () => {
+  it('trava o tipo e o PUT não leva código, token, posição atual nem último sinal', async () => {
+    const u = userEvent.setup();
+    let corpo: Record<string, unknown> | undefined;
+    rotear((url, init) => {
+      if (url === '/api/equipamentos/5' && init?.method === 'PUT') {
+        corpo = JSON.parse(String(init.body));
+        return json(EQUIPAMENTO);
+      }
+    });
+    renderizarEdicao();
+
+    const tipo = await screen.findByLabelText('Tipo de equipamento');
+    expect(tipo).toBeDisabled();
+    await u.clear(screen.getByLabelText('Modelo'));
+    await u.type(screen.getByLabelText('Modelo'), 'SC-500');
+    await u.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+
+    await screen.findByText('Ficha aberta');
+    expect(corpo).toBeDefined();
+    expect(corpo!.modelo).toBe('SC-500');
+    for (const chave of ['codigo', 'token', 'tokenDispositivo', 'latAtual', 'lngAtual', 'ultimoSinalEm', 'id']) expect(corpo).not.toHaveProperty(chave);
+    // Segue o cadastro carregado (o servidor ignora a situação no PUT; só o PATCH a muda).
+    expect(corpo!.tipo).toBe('radar');
+    expect(corpo!.situacao).toBe('mau_funcionamento');
+  });
+
+  it('mostra cada erro 400 do servidor no lugar certo e mantém o que foi digitado', async () => {
+    const u = userEvent.setup();
+    rotear((url, init) => {
+      if (url === '/api/equipamentos/5' && init?.method === 'PUT') {
+        return json({ erro: 'Dados inválidos', campos: { 'caracteristicas.velocidadeMaxima': 'O servidor não aceitou esta velocidade', lat: 'A coordenada precisa ficar dentro de Marília' } }, 400);
+      }
+    });
+    renderizarEdicao();
+
+    await u.clear(await screen.findByLabelText('Marca'));
+    await u.type(screen.getByLabelText('Marca'), 'Outra Marca');
+    await u.click(screen.getByRole('button', { name: 'Salvar alterações' }));
+
+    const velocidade = await screen.findByLabelText(/Velocidade máxima/);
+    await waitFor(() => expect(velocidade).toHaveAttribute('aria-invalid', 'true'));
+    expect(screen.getByText('O servidor não aceitou esta velocidade')).toBeInTheDocument();
+
+    const mensagemLat = within(screen.getByTestId('seletor-mapa')).getByText('A coordenada precisa ficar dentro de Marília');
+    expect(screen.getByLabelText('Latitude')).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByLabelText('Latitude')).toHaveAttribute('aria-describedby', mensagemLat.id);
+    expect(screen.getByLabelText('Longitude')).toHaveAttribute('aria-describedby', mensagemLat.id);
+    expect(screen.getByLabelText('Marca')).toHaveValue('Outra Marca');
+  });
+});
+
+describe('ViaCEP', () => {
+  const viacep = (resposta: () => Response | Promise<Response>) => rotear((url) => (url.startsWith('https://viacep.com.br/') ? resposta() : undefined));
+
+  it('preenche o logradouro vazio com o endereço do CEP', async () => {
+    const u = userEvent.setup();
+    viacep(() => json({ logradouro: 'Avenida Sampaio Vidal', bairro: 'Centro' }));
+    renderizar();
+    await u.type(screen.getByLabelText('CEP'), '17500000');
+    await waitFor(() => expect(screen.getByLabelText('Logradouro')).toHaveValue('Avenida Sampaio Vidal'));
+    expect(fetchFalso).toHaveBeenCalledWith('https://viacep.com.br/ws/17500000/json/', expect.anything());
+  });
+
+  it('não sobrescreve um logradouro que a pessoa digitou', async () => {
+    const u = userEvent.setup();
+    viacep(() => json({ logradouro: 'Avenida Sampaio Vidal', bairro: 'Centro' }));
+    renderizar();
+    await u.type(screen.getByLabelText('Logradouro'), 'Minha Rua');
+    await u.type(screen.getByLabelText('CEP'), '17500000');
+    await waitFor(() => expect(fetchFalso.mock.calls.some(([url]) => String(url).includes('viacep'))).toBe(true));
+    await new Promise((r) => setTimeout(r, 50));
+    expect(screen.getByLabelText('Logradouro')).toHaveValue('Minha Rua');
+  });
+
+  it('falha de rede: aviso discreto e o formulário segue manual', async () => {
+    const u = userEvent.setup();
+    viacep(() => Promise.reject(new TypeError('offline')));
+    renderizar();
+    await u.type(screen.getByLabelText('CEP'), '17500000');
+    expect(await screen.findByText('Não foi possível buscar o CEP — preencha o endereço')).toBeInTheDocument();
+    expect(screen.getByLabelText('Logradouro')).toBeEnabled();
+  });
+
+  it('sem resposta em 3 s a busca é abortada e o aviso aparece', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      const u = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      viacep(() => new Promise<Response>(() => undefined)); // nunca responde; quem resolve é o abort
+      fetchFalso.mockImplementation((url: string, init?: RequestInit) => {
+        if (String(url).startsWith('https://viacep.com.br/')) {
+          return new Promise<Response>((_, rejeitar) => init?.signal?.addEventListener('abort', () => rejeitar(new DOMException('abortado', 'AbortError'))));
+        }
+        return Promise.resolve(json([BAIRRO]));
+      });
+      renderizar();
+      await u.type(screen.getByLabelText('CEP'), '17500000');
+      expect(screen.getByText('Buscando o endereço…')).toBeInTheDocument();
+      await act(async () => { await vi.advanceTimersByTimeAsync(3100); });
+      expect(screen.getByText('Não foi possível buscar o CEP — preencha o endereço')).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

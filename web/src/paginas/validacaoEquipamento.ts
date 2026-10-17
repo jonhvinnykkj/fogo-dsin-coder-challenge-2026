@@ -56,6 +56,12 @@ export function montarCandidato(e: EstadoEquipamento): Record<string, unknown> {
   };
 }
 
+/**
+ * Na edição o formulário também envia `tipo` e `situacao` (o schema compartilhado exige os dois), mas:
+ * - `tipo` fica travado na tela e o servidor recusa mudança (400 "O tipo do equipamento não pode ser alterado");
+ * - o UPDATE do servidor IGNORA `situacao`: ela só muda por PATCH /situacao (com motivo e histórico).
+ * Por isso o valor enviado é só o do cadastro carregado, nunca uma troca.
+ */
 export function validarEquipamento(e: EstadoEquipamento): { dados?: EquipamentoInput; erros: Erros } {
   const candidato = montarCandidato(e);
   const erros: Erros = {};

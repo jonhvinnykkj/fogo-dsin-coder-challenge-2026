@@ -13,6 +13,8 @@ interface Props {
   lng?: number;
   onEscolher: (lat: number, lng: number) => void;
   erro?: string;
+  /** `id` do parágrafo de erro, para os campos de latitude e longitude apontarem para ele (`aria-describedby`). */
+  idErro?: string;
   /** Texto da dica acima do mapa. */
   dica?: string;
 }
@@ -41,7 +43,7 @@ function SeguirPonto({ lat, lng, ultimoClique }: { lat?: number; lng?: number; u
   return null;
 }
 
-export function SeletorPontoMapa({ lat, lng, onEscolher, erro, dica = 'Clique no mapa para marcar o ponto exato.' }: Props) {
+export function SeletorPontoMapa({ lat, lng, onEscolher, erro, idErro, dica = 'Clique no mapa para marcar o ponto exato.' }: Props) {
   const ultimoClique = useRef<string | null>(null);
   const temPonto = lat !== undefined && lng !== undefined && Number.isFinite(lat) && Number.isFinite(lng);
   const icone = useMemo(() => iconeBloco(COR_PONTO, { tamanho: 26, contorno: '#1E1E1F' }), []);
@@ -61,7 +63,7 @@ export function SeletorPontoMapa({ lat, lng, onEscolher, erro, dica = 'Clique no
         </MapaBase>
       </div>
       {aviso && (
-        <p className={estilos.erro} role="alert">
+        <p id={idErro} className={estilos.erro} role="alert">
           <WarningCircle weight="fill" size={16} aria-hidden="true" />
           {aviso}
         </p>

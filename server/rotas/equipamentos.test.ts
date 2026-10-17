@@ -205,6 +205,25 @@ describe('edição (PUT)', () => {
     expect(outro.statusCode).toBe(409);
   });
 
+  it('PUT com outra situação não a altera (só o PATCH muda a situação)', async () => {
+    const eq = await criarOk({ situacao: 'operacional' });
+    const r = await app.inject({ method: 'PUT', url: `/api/equipamentos/${eq.id}`, payload: corpoEquipamento(ctx, { situacao: 'furtado' }) });
+    expect(r.statusCode).toBe(200);
+    expect((await ler(eq.id)).situacao).toBe('operacional');
+  });
+
+  it('PUT com outro tipo é recusado com 400 em português e nada muda', async () => {
+    const eq = await criarOk();
+    const r = await app.inject({
+      method: 'PUT',
+      url: `/api/equipamentos/${eq.id}`,
+      payload: corpoEquipamento(ctx, { tipo: 'camera', caracteristicas: { resolucao: '1080p', visaoNoturna: true, colorida: true, ptz: false, angulo: 90, armazenamentoDias: 30 } }),
+    });
+    expect(r.statusCode).toBe(400);
+    expect(r.json().erro).toBe('O tipo do equipamento não pode ser alterado');
+    expect((await ler(eq.id)).tipo).toBe('radar');
+  });
+
   it('devolve 404 ao editar equipamento inexistente', async () => {
     const r = await app.inject({ method: 'PUT', url: '/api/equipamentos/999', payload: corpoEquipamento(ctx) });
     expect(r.statusCode).toBe(404);

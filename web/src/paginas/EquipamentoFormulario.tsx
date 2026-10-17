@@ -187,6 +187,7 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
       }
     };
     const aoConcluir = (salvo: { id: number }) => navegar(`/equipamentos/${salvo.id}`);
+    // Edição: `tipo` e `situacao` seguem como estavam (ver validacaoEquipamento.ts); o servidor ignora a situação no PUT.
     if (equipamento) atualizar.mutate({ id: equipamento.id, dados }, { onSuccess: aoConcluir, onError: aoFalhar });
     else criar.mutate(dados, { onSuccess: aoConcluir, onError: aoFalhar });
   };
@@ -291,13 +292,13 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
           </div>
           <div className={estilos.coordenadas}>
             <Campo rotulo="Latitude" erro={undefined}>
-              {(p) => <input {...p} type="text" inputMode="decimal" placeholder="-22,213800" value={estado.lat} onChange={(e) => digitarCoordenada('lat', e.target.value)} aria-invalid={erros.lat ? true : undefined} />}
+              {(p) => <input {...p} type="text" inputMode="decimal" placeholder="-22,213800" value={estado.lat} onChange={(e) => digitarCoordenada('lat', e.target.value)} aria-invalid={erros.lat ? true : undefined} aria-describedby={erros.lat ? 'erro-ponto' : undefined} />}
             </Campo>
             <Campo rotulo="Longitude" erro={erros.lng}>
-              {(p) => <input {...p} type="text" inputMode="decimal" placeholder="-49,950800" value={estado.lng} onChange={(e) => digitarCoordenada('lng', e.target.value)} />}
+              {(p) => <input {...p} type="text" inputMode="decimal" placeholder="-49,950800" value={estado.lng} onChange={(e) => digitarCoordenada('lng', e.target.value)} {...(erros.lat && !erros.lng ? { 'aria-invalid': true as const, 'aria-describedby': 'erro-ponto' } : {})} />}
             </Campo>
           </div>
-          <SeletorPontoMapa lat={latNumero} lng={lngNumero} onEscolher={escolherNoMapa} erro={erros.lat} />
+          <SeletorPontoMapa lat={latNumero} lng={lngNumero} onEscolher={escolherNoMapa} erro={erros.lat} idErro="erro-ponto" />
         </section>
 
         <section className={estilos.secao} aria-labelledby="sec-situacao">
