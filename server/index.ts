@@ -1,6 +1,7 @@
 import { mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { criarApp } from './app';
+import { carregarGeo } from './geo/marilia';
 import { relogioReal, type ContextoApp } from './contexto';
 
 const porta = Number(process.env.PORT ?? 3333);
@@ -13,7 +14,7 @@ const ctx: ContextoApp = {
   db: null, // Tarefa 4
   barramento: null, // Tarefa 6
   relogio: relogioReal,
-  geo: null, // Tarefa 3
+  geo: carregarGeo(),
 };
 
 const app = await criarApp(ctx);

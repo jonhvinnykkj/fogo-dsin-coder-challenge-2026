@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { criarApp } from '../app';
+import { carregarGeo } from '../geo/marilia';
 import { relogioReal, type ContextoApp } from '../contexto';
 
 const ctxDeTeste: ContextoApp = {
   db: null,
   barramento: null,
   relogio: relogioReal,
-  geo: null,
+  geo: carregarGeo(),
 };
 
 describe('GET /api/saude', () => {

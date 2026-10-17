@@ -1,5 +1,7 @@
 // Contexto compartilhado por rotas e serviços. Os tipos `unknown` são provisórios:
-// as Tarefas 3 (geo), 4 (banco) e 6 (barramento/simulador) trocam pelos tipos reais.
+// as Tarefas 4 (banco) e 6 (barramento/simulador) trocam pelos tipos reais.
+import type { GeoMarilia } from './geo/marilia';
+
 export interface Relogio {
   agora(): Date;
 }
@@ -10,6 +12,6 @@ export interface ContextoApp {
   db: unknown;
   barramento: unknown;
   relogio: Relogio;
-  geo: unknown;
+  geo: GeoMarilia;
   simulador?: unknown;
 }
