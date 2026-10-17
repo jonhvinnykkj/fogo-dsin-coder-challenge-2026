@@ -1,0 +1,172 @@
+.painel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-2);
+}
+
+.resumo {
+  font-size: var(--t-13);
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-2);
+}
+
+.regiao {
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  overflow: hidden;
+}
+
+.cabecalho {
+  display: flex;
+  align-items: stretch;
+  gap: var(--e-3);
+  width: 100%;
+  padding: 0 var(--e-3) 0 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+}
+
+.cabecalho:hover {
+  background: var(--cor-zebra);
+}
+
+/* índice da região como placa na cor do nível */
+.indice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  min-height: 52px;
+  flex-shrink: 0;
+  background: var(--cor-nivel);
+  color: var(--cor-sobre-nivel);
+  font-size: var(--t-24);
+  font-weight: 800;
+  font-stretch: var(--largura-condensada);
+}
+
+.nome {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  flex: 1;
+  min-width: 0;
+  padding: var(--e-2) 0;
+}
+
+.nome strong {
+  font-size: var(--t-16);
+  font-weight: 800;
+}
+
+.nivel {
+  padding: 1px 7px;
+  border-radius: var(--raio);
+  font-size: var(--t-12);
+  font-weight: 700;
+}
+
+.seta {
+  align-self: center;
+  transition: transform var(--duracao) var(--curva);
+}
+
+.virada {
+  transform: rotate(180deg);
+}
+
+.motivos {
+  padding: var(--e-2) var(--e-3) var(--e-2) calc(56px + var(--e-3));
+  color: var(--cor-texto-suave);
+  font-size: var(--t-13);
+}
+
+.motivos li + li {
+  margin-top: 2px;
+}
+
+.bairros {
+  padding: var(--e-1) var(--e-2) var(--e-2);
+  background: var(--cor-superficie-baixa);
+}
+
+.contagem {
+  padding: var(--e-1) var(--e-2) var(--e-2);
+  color: var(--cor-texto-suave);
+  font-size: var(--t-12);
+  font-weight: 600;
+}
+
+.bairro {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  width: 100%;
+  padding: 6px var(--e-2);
+  border: 0;
+  border-radius: var(--raio);
+  background: none;
+  color: inherit;
+  text-align: left;
+}
+
+.bairro:hover {
+  background: var(--cor-superficie);
+}
+
+.marcaBairro {
+  width: 8px;
+  align-self: stretch;
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+
+.nomeBairro {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.nomeBairro strong {
+  font-size: var(--t-13);
+  font-weight: 700;
+}
+
+.nomeBairro span {
+  overflow: hidden;
+  color: var(--cor-texto-suave);
+  font-size: var(--t-12);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.indiceBairro {
+  font-size: var(--t-16);
+  font-weight: 800;
+  font-stretch: var(--largura-condensada);
+}
+
+.mira {
+  color: var(--cor-texto-fraco);
+}
+
+.nota {
+  color: var(--cor-texto-fraco);
+  font-size: var(--t-12);
+}
+
+.esqueleto {
+  height: 320px;
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  opacity: 0.6;
+}

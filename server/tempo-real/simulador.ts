@@ -4,7 +4,9 @@
 // gera ocorrências ao vivo, designa agentes, e agenda reparos e encerramentos. O relógio é o relógio real; a velocidade
 // (1×, 10×, 60×) multiplica o deslocamento e a taxa de eventos, não "adianta o tempo".
 // Tudo sai de um gerador com semente: mesma semente e mesmo estado inicial dão as mesmas leituras (é o que os testes conferem).
-import { HORARIO_TURNO, turnoCobreHora, type CategoriaAgente, type SituacaoAgente, type SituacaoEquipamento, type Turno } from '../../shared/dominio';
+import {
+  HORARIO_TURNO, turnoCobreHora, type CategoriaAgente, type SituacaoAgente, type SituacaoEquipamento, type TipoEventoSimulado, type Turno,
+} from '../../shared/dominio';
 import type { Alerta, EstadoSimulacao, Ocorrencia } from '../../shared/modelos';
 import type { TipoEquipamentoId } from '../../shared/tipos-equipamento';
 import type { ContextoApp } from '../contexto';
@@ -28,8 +30,8 @@ import { ingerirTelemetria } from './ingestao';
 import { alvoPorId } from './motor-alertas';
 import { andar, escolherAlvoPerto, pontoForaDeMarilia } from './movimento';
 
-export const TIPOS_INJETAVEIS = ['furto', 'falha', 'acidente', 'alagamento', 'congestionamento'] as const;
-export type TipoInjetavel = (typeof TIPOS_INJETAVEIS)[number];
+// A lista dos eventos injetáveis (furto, falha, acidente, alagamento, congestionamento) fica em shared/dominio.ts
+// (`TIPOS_EVENTO_SIMULADO`): a rota e a interface usam a mesma.
 
 const TICK_MS = 2000;
 /** Os indicadores da Central seguem por SSE neste intervalo (tempo real, não simulado). */
@@ -569,7 +571,7 @@ export class Simulador {
    * Dispara um evento na hora e devolve os alertas que ele gerou. `alvoId` é o equipamento alvo (furto, falha, alagamento)
    * ou o equipamento de referência do local (acidente, congestionamento); sem ele, o simulador escolhe.
    */
-  injetar(tipo: TipoInjetavel, alvoId?: number): Alerta[] {
+  injetar(tipo: TipoEventoSimulado, alvoId?: number): Alerta[] {
     const agora = this.ctx.relogio.agora();
     this.garantirCarregado(agora);
     const alvo = alvoId === undefined ? undefined : this.equipamentos.find((e) => e.id === alvoId);

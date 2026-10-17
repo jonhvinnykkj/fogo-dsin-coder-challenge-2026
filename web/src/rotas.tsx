@@ -1,7 +1,5 @@
 // Rotas da interface. Telas ainda não construídas mostram um EstadoVazio com o nome da tela.
-import {
-  ChartLineUp, MapTrifold, Signpost, WarningDiamond, Wrench, type Icon,
-} from '@phosphor-icons/react';
+import { ChartLineUp, Signpost, type Icon } from '@phosphor-icons/react';
 import { lazy, Suspense, type ReactNode } from 'react';
 import { createBrowserRouter, Link, useRouteError, type RouteObject } from 'react-router-dom';
 import { AvisoErro } from './componentes/AvisoErro';
@@ -40,13 +38,20 @@ function ErroDeRota() {
   );
 }
 
-// Telas do inventário: carregadas sob demanda (mapa e gráficos pesam; a Central não precisa deles de início).
+// Demais telas: carregadas sob demanda (gráficos e formulários pesam; a Central não precisa deles de início).
 const Equipamentos = lazy(() => import('./paginas/Equipamentos'));
 const EquipamentoFicha = lazy(() => import('./paginas/EquipamentoFicha'));
 const EquipamentoFormulario = lazy(() => import('./paginas/EquipamentoFormulario'));
 const Agentes = lazy(() => import('./paginas/Agentes'));
 const AgenteFicha = lazy(() => import('./paginas/AgenteFicha'));
 const AgenteFormulario = lazy(() => import('./paginas/AgenteFormulario'));
+const Manutencao = lazy(() => import('./paginas/Manutencao'));
+// A Central (com o Leaflet) é a primeira tela: o arquivo dela começa a baixar já, junto com o resto do app, em vez de
+// esperar a primeira renderização pedir. Separada, o pacote principal fica leve para quem abre direto outra tela.
+const carregarCentral = () => import('./paginas/Central');
+void carregarCentral();
+const Central = lazy(carregarCentral);
+const Alertas = lazy(() => import('./paginas/Alertas'));
 
 function Carregando({ children }: { children: ReactNode }) {
   return <Suspense fallback={<div className="pagina"><EstadoVazio tamanho="pagina" titulo="Carregando…" /></div>}>{children}</Suspense>;
@@ -56,7 +61,7 @@ function Carregando({ children }: { children: ReactNode }) {
 const Vitrine = import.meta.env.DEV ? lazy(() => import('./paginas/Vitrine')) : null;
 
 const filhas: RouteObject[] = [
-  { index: true, element: pendente('Central de Operações', 'Em construção: mapa ao vivo de Marília com indicadores, alertas chegando e a situação de cada região.', MapTrifold) },
+  { index: true, element: <Carregando><Central /></Carregando> },
   { path: 'equipamentos', element: <Carregando><Equipamentos /></Carregando> },
   { path: 'equipamentos/novo', element: <Carregando><EquipamentoFormulario /></Carregando> },
   { path: 'equipamentos/:id', element: <Carregando><EquipamentoFicha /></Carregando> },
@@ -65,8 +70,8 @@ const filhas: RouteObject[] = [
   { path: 'agentes/novo', element: <Carregando><AgenteFormulario /></Carregando> },
   { path: 'agentes/:id', element: <Carregando><AgenteFicha /></Carregando> },
   { path: 'agentes/:id/editar', element: <Carregando><AgenteFormulario /></Carregando> },
-  { path: 'manutencao', element: pendente('Manutenção', 'Em construção: atrasadas, imediatas e as programadas para os próximos 7 e 30 dias.', Wrench) },
-  { path: 'alertas', element: pendente('Alertas', 'Em construção: alertas ao vivo, críticos primeiro, com reconhecer e resolver.', WarningDiamond) },
+  { path: 'manutencao', element: <Carregando><Manutencao /></Carregando> },
+  { path: 'alertas', element: <Carregando><Alertas /></Carregando> },
   { path: 'previsoes', element: pendente('Previsões', 'Em construção: risco por bairro e hora, reforço de agentes, falhas prováveis e tendências.', ChartLineUp) },
   ...(Vitrine ? [{ path: 'vitrine', element: <Suspense fallback={null}><Vitrine /></Suspense> }] : []),
   { path: '*', element: <NaoEncontrada /> },

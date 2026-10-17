@@ -1,0 +1,11 @@
+.faixa {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--e-2);
+}
+
+@media (max-width: 900px) {
+  .faixa {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

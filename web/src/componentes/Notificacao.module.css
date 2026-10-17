@@ -1,0 +1,102 @@
+.regiao {
+  position: fixed;
+  z-index: 1200;
+  top: calc(var(--altura-faixa) + var(--e-3));
+  right: var(--e-4);
+  width: min(360px, calc(100vw - 2 * var(--e-4)));
+  pointer-events: none;
+}
+
+.noPai {
+  position: absolute;
+  z-index: 1001;
+  top: var(--e-3);
+  right: var(--e-3);
+  width: min(340px, calc(100% - 2 * var(--e-3)));
+}
+
+/* Placa grafite com a faixa vermelha do alerta crítico à esquerda. */
+.aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e-3);
+  padding: var(--e-3) var(--e-3) var(--e-3) var(--e-4);
+  border-radius: var(--raio);
+  background: var(--cor-bloco-neutro);
+  color: var(--cor-sobre-bloco-neutro);
+  box-shadow: inset 6px 0 0 var(--crit-critica), var(--sombra-flutuante);
+  pointer-events: auto;
+  animation: entrar var(--duracao-longa) var(--curva);
+  --cor-foco: var(--cor-sobre-bloco-neutro);
+  --cor-superficie: var(--cor-bloco-neutro);
+}
+
+.icone {
+  display: flex;
+  color: #ff6b5e;
+}
+
+.ok {
+  box-shadow: inset 6px 0 0 var(--sit-operacional), var(--sombra-flutuante);
+}
+
+.ok .icone {
+  color: #4cc983;
+}
+
+.textos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-13);
+}
+
+.textos strong {
+  font-size: var(--t-14);
+  font-weight: 800;
+}
+
+.acao {
+  align-self: flex-start;
+  margin-top: var(--e-2);
+  height: 30px;
+  padding: 0 var(--e-3);
+  border: 0;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-fogo);
+  color: var(--cor-sobre-fogo);
+  font-size: var(--t-13);
+  font-weight: 700;
+}
+
+.fechar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: var(--raio-pilula);
+  background: transparent;
+  color: inherit;
+}
+
+.fechar:hover {
+  background: color-mix(in srgb, currentColor 16%, transparent);
+}
+
+@keyframes entrar {
+  from {
+    transform: translateY(-8px);
+    opacity: 0;
+  }
+}
+
+/* Central estreita: o botão "Alertas e regiões" ocupa o canto do mapa; o aviso desce um pouco. */
+@media (max-width: 1100px) {
+  .noPai {
+    top: 56px;
+  }
+}

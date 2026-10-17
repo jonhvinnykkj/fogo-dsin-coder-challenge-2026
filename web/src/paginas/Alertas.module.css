@@ -1,0 +1,56 @@
+.descricao {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 64ch;
+}
+
+.situacao {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: var(--raio);
+  font-size: var(--t-12);
+  font-weight: 700;
+}
+
+.aberto {
+  background: var(--cor-bloco-neutro);
+  color: var(--cor-sobre-bloco-neutro);
+}
+
+.reconhecido {
+  background: var(--cor-superficie-alta);
+  color: var(--cor-texto);
+}
+
+.resolvido {
+  background: var(--sit-operacional);
+  color: #1e1e1f;
+}
+
+.acoes {
+  display: inline-flex;
+  justify-content: flex-end;
+  gap: var(--e-1);
+}
+
+.tipo {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-12);
+}
+
+@media (max-width: 900px) {
+  .acoes {
+    flex-wrap: wrap;
+  }
+}
+
+.erro {
+  padding: var(--e-2) var(--e-3);
+  border-radius: var(--raio);
+  background: var(--cor-erro-fundo);
+  color: var(--cor-erro);
+  font-weight: 600;
+}

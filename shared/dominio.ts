@@ -38,6 +38,65 @@ export type Criticidade = (typeof CRITICIDADES)[number];
 export const TIPOS_OCORRENCIA = ['acidente', 'congestionamento', 'infracao', 'furto_vandalismo', 'veiculo_quebrado', 'alagamento', 'seguranca'] as const;
 export type TipoOcorrencia = (typeof TIPOS_OCORRENCIA)[number];
 
+/**
+ * Eventos que a demonstração pode provocar na cidade (botão "Injetar evento" da Central e POST /api/simulacao/eventos).
+ * Lista única: o simulador, o schema da rota e a interface leem daqui.
+ */
+export const TIPOS_EVENTO_SIMULADO = ['furto', 'falha', 'acidente', 'alagamento', 'congestionamento'] as const;
+export type TipoEventoSimulado = (typeof TIPOS_EVENTO_SIMULADO)[number];
+
+export const ROTULO_EVENTO_SIMULADO: Record<TipoEventoSimulado, string> = {
+  furto: 'Furto',
+  falha: 'Falha de equipamento',
+  acidente: 'Acidente',
+  alagamento: 'Alagamento',
+  congestionamento: 'Congestionamento',
+};
+
+/** O que cada evento provoca, para o menu da demonstração. */
+export const DESCRICAO_EVENTO_SIMULADO: Record<TipoEventoSimulado, string> = {
+  furto: 'Um patinete sai de Marília',
+  falha: 'Um equipamento para de funcionar',
+  acidente: 'Ocorrência numa rua; agente vai ao local',
+  alagamento: 'A água sobe num sensor',
+  congestionamento: 'Trânsito parado numa via',
+};
+
+/** Tipos de alerta gravados pelo motor de alertas (server/tempo-real/motor-alertas.ts). */
+export const TIPOS_ALERTA = [
+  'acidente', 'alagamento', 'furto_suspeito', 'falha_equipamento', 'sem_sinal', 'anomalia_leitura', 'congestionamento', 'manutencao_atrasada',
+] as const;
+export type TipoAlerta = (typeof TIPOS_ALERTA)[number];
+
+export const ROTULO_TIPO_ALERTA: Record<TipoAlerta, string> = {
+  acidente: 'Acidente',
+  alagamento: 'Alagamento',
+  furto_suspeito: 'Possível furto',
+  falha_equipamento: 'Falha de equipamento',
+  sem_sinal: 'Sem sinal',
+  anomalia_leitura: 'Leitura fora do normal',
+  congestionamento: 'Congestionamento',
+  manutencao_atrasada: 'Manutenção atrasada',
+};
+
+/** Rótulo de um tipo de alerta vindo do banco (texto livre): tipo desconhecido aparece como veio, sem sublinhado. */
+export function rotuloTipoAlerta(tipo: string): string {
+  return (ROTULO_TIPO_ALERTA as Record<string, string>)[tipo] ?? tipo.replaceAll('_', ' ');
+}
+
+/** Nível de atenção de bairros e regiões (Central). */
+export const ROTULO_NIVEL_ATENCAO: Record<'normal' | 'atencao' | 'critico', string> = {
+  normal: 'Normal',
+  atencao: 'Atenção',
+  critico: 'Crítico',
+};
+
+export const COR_NIVEL_ATENCAO: Record<'normal' | 'atencao' | 'critico', string> = {
+  normal: '#1F9D55',
+  atencao: '#E8A400',
+  critico: '#D92D20',
+};
+
 export const ORGAOS = [
   'Secretaria de Mobilidade Urbana',
   'Guarda Civil Municipal',

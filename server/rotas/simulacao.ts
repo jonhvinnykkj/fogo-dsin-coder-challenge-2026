@@ -2,7 +2,7 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { ErroApi } from '../erros';
-import { TIPOS_INJETAVEIS } from '../tempo-real/simulador';
+import { TIPOS_EVENTO_SIMULADO } from '../../shared/dominio';
 
 const tags = ['Tempo real'];
 
@@ -12,7 +12,7 @@ const mudancaSchema = z.object({
 });
 
 const eventoSchema = z.object({
-  tipo: z.enum(TIPOS_INJETAVEIS, { errorMap: () => ({ message: `Tipo de evento: use ${TIPOS_INJETAVEIS.join(', ')}` }) }),
+  tipo: z.enum(TIPOS_EVENTO_SIMULADO, { errorMap: () => ({ message: `Tipo de evento: use ${TIPOS_EVENTO_SIMULADO.join(', ')}` }) }),
   alvoId: z.number({ invalid_type_error: 'alvoId: informe o id do equipamento' }).int().positive().optional(),
 });
 

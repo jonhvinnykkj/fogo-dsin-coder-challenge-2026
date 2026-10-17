@@ -1,7 +1,7 @@
 // Consultas e mutações (TanStack Query) de todas as telas. As chaves ficam em `chaves.ts`; o tempo real (SSE)
 // mantém mapa, indicadores, alertas e relógio vivos no cache, por isso essas consultas não precisam ficar repetindo.
 import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
-import type { SituacaoAgente } from '../../../shared/dominio';
+import type { SituacaoAgente, TipoEventoSimulado } from '../../../shared/dominio';
 import type {
   Agente, AgenteDetalhe, Alerta, Bairro, Equipamento, EquipamentoDetalhe, EstadoSimulacao, Indicadores, Ocorrencia,
   Pagina, PainelManutencao, PontoTelemetria, PrevisaoRisco, RespostaFalhas, RespostaReforco, ResultadoBacktest,
@@ -98,11 +98,16 @@ export function useMapa(filtros: FiltrosCentral = {}) {
   });
 }
 
-export function useIndicadores(filtros: FiltrosCentral = {}) {
+/**
+ * Sem filtros, o SSE mantém os números vivos (evento `indicadores` a cada 5 s). Com filtros o servidor não manda nada
+ * pronto: a Central pede `atualizarACada` (ms) para os números filtrados também andarem.
+ */
+export function useIndicadores(filtros: FiltrosCentral = {}, opcoes: { atualizarACada?: number } = {}) {
   return useQuery({
     queryKey: chaves.indicadores(filtros),
     queryFn: () => api.get<Indicadores>('/api/central/indicadores', p(filtros)),
     placeholderData: keepPreviousData,
+    ...(opcoes.atualizarACada ? { refetchInterval: opcoes.atualizarACada } : {}),
   });
 }
 
@@ -115,8 +120,9 @@ export function useOcorrencias(horas = 24) {
   return useQuery({ queryKey: chaves.ocorrencias(horas), queryFn: () => api.get<Ocorrencia[]>('/api/central/ocorrencias', { horas }) });
 }
 
+/** Falhas e reparos da simulação mexem nas colunas sem evento próprio no SSE: relê a cada 30 s (e após registrar). */
 export function usePainelManutencao() {
-  return useQuery({ queryKey: chaves.painelManutencao(), queryFn: () => api.get<PainelManutencao>('/api/manutencao/painel') });
+  return useQuery({ queryKey: chaves.painelManutencao(), queryFn: () => api.get<PainelManutencao>('/api/manutencao/painel'), refetchInterval: 30_000 });
 }
 
 export function useSimulacao() {
@@ -268,15 +274,21 @@ export function useDefinirSimulacao() {
   });
 }
 
-/** Mesmos tipos de `TIPOS_INJETAVEIS` do simulador (server/tempo-real/simulador.ts). */
-export type TipoEventoSimulado = 'furto' | 'falha' | 'acidente' | 'alagamento' | 'congestionamento';
+export type { TipoEventoSimulado } from '../../../shared/dominio';
 
+/** Evento da demonstração (lista em `TIPOS_EVENTO_SIMULADO`). Os alertas voltam na resposta e entram no feed na hora. */
 export function useInjetarEvento() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (evento: { tipo: TipoEventoSimulado; alvoId?: number }) => api.post<{ alertas: Alerta[] }>('/api/simulacao/eventos', evento),
-    onSuccess: ({ alertas }) => {
+    onSuccess: ({ alertas }, evento) => {
       for (const a of alertas) aplicarAlerta(qc, a);
+      // O evento muda o índice do bairro (alerta + ocorrência), os números da faixa (o SSE só os manda a cada 5 s) e,
+      // numa falha ou furto, a situação do alvo.
+      void qc.invalidateQueries({ queryKey: chaves.regioes() });
+      void qc.invalidateQueries({ queryKey: chaves.indicadores() });
+      void qc.invalidateQueries({ queryKey: chaves.ocorrencias() });
+      if (evento.alvoId !== undefined) void qc.invalidateQueries({ queryKey: chaves.equipamento(evento.alvoId) });
     },
   });
 }

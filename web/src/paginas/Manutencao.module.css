@@ -1,0 +1,163 @@
+/* Quadro em 4 colunas que cabe na altura da tela do notebook; cada coluna rola por dentro. */
+.pagina {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-4);
+  height: 100%;
+  min-height: 0;
+  max-width: none;
+  padding-bottom: var(--e-4);
+}
+
+.quadro {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--e-3);
+}
+
+.coluna {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: var(--raio);
+  background: var(--cor-superficie-baixa);
+  overflow: hidden;
+}
+
+/* cabeçalho da coluna = placa na cor da urgência, com a contagem grande */
+.topo {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e-3);
+  padding: var(--e-3);
+}
+
+.contagem {
+  font-size: var(--t-36);
+  font-weight: 800;
+  font-stretch: var(--largura-condensada);
+  line-height: 0.95;
+}
+
+.titulos {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--t-16);
+}
+
+.descricao {
+  font-size: var(--t-12);
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.cartoes {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--e-2);
+  overscroll-behavior: contain;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-2);
+}
+
+.cartao {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--e-3);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+}
+
+.cartaoTopo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-1) var(--e-2);
+}
+
+.cartaoTopo a {
+  white-space: nowrap;
+}
+
+.cartaoDados {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-1) var(--e-3);
+  font-size: var(--t-13);
+}
+
+.bairro {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  color: var(--cor-texto-suave);
+  font-weight: 600;
+}
+
+.data {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-13);
+  font-variant-numeric: tabular-nums;
+}
+
+.registrar {
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+.vazia {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  padding: var(--e-3);
+  color: var(--cor-texto-suave);
+  font-weight: 600;
+}
+
+.esqueleto {
+  height: 120px;
+  margin-bottom: var(--e-2);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  opacity: 0.6;
+}
+
+@media (max-width: 1100px) {
+  .quadro {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pagina {
+    height: auto;
+  }
+
+  .coluna {
+    max-height: 70vh;
+  }
+}
+
+@media (max-width: 640px) {
+  .quadro {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

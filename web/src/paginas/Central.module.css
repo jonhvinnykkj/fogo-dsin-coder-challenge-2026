@@ -1,0 +1,359 @@
+/*
+ * Central a 1366×768: faixa de indicadores no topo, mapa à esquerda com a altura que sobrar e coluna de 360 px à
+ * direita. A página inteira não rola; cada painel rola por dentro.
+ */
+.central {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-2);
+  height: 100%;
+  min-height: 0;
+  padding: var(--e-3) var(--e-4) var(--e-4);
+}
+
+.corpo {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: var(--e-3);
+}
+
+.areaMapa {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-2);
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ---- linha de ferramentas: filtros (recolhíveis), o que está sendo mostrado e as camadas ---- */
+.ferramentas {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  min-width: 0;
+}
+
+.botaoFiltros,
+.camada {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 var(--e-3);
+  border: 0;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  font-size: var(--t-13);
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background-color var(--duracao) var(--curva);
+}
+
+.botaoFiltros:hover,
+.camada:hover {
+  background: var(--cor-superficie-alta);
+}
+
+.botaoFiltros[aria-expanded='true'],
+.comFiltros {
+  background: var(--cor-bloco-neutro);
+  color: var(--cor-sobre-bloco-neutro);
+}
+
+.botaoFiltros[aria-expanded='true']:hover,
+.comFiltros:hover {
+  background: color-mix(in srgb, var(--cor-bloco-neutro) 86%, var(--cor-superficie));
+}
+
+.contador {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--raio);
+  background: var(--cor-fogo);
+  color: var(--cor-sobre-fogo);
+  font-size: var(--t-12);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.contadorCritico {
+  background: var(--crit-critica);
+  color: #fff;
+}
+
+.contadorAtencao {
+  background: var(--crit-media);
+  color: #1e1e1f;
+}
+
+.resumo {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--cor-texto-suave);
+  font-size: var(--t-13);
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.camadas {
+  display: inline-flex;
+  gap: var(--e-1);
+  flex-shrink: 0;
+}
+
+.camada {
+  padding: 0 var(--e-3) 0 10px;
+  color: var(--cor-texto-suave);
+}
+
+.camada[aria-pressed='true'] {
+  color: var(--cor-texto);
+}
+
+/* amostra de cada camada: some (vira contorno) quando a camada está desligada */
+.amostraCamada {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+
+.camada[aria-pressed='true'] .amostra_equipamentos {
+  background: var(--sit-operacional);
+  box-shadow: none;
+}
+
+.camada[aria-pressed='true'] .amostra_agentes {
+  background: #1e1e1f;
+  box-shadow: 0 0 0 1.5px #fff, 0 0 0 2.5px rgb(0 0 0 / 0.25);
+  transform: rotate(45deg) scale(0.85);
+}
+
+.amostra_agentes {
+  transform: rotate(45deg) scale(0.85);
+}
+
+.camada[aria-pressed='true'] .amostra_bairros {
+  background: var(--crit-media);
+  box-shadow: none;
+}
+
+.camada[aria-pressed='true'] .amostra_calor {
+  background: radial-gradient(circle, var(--crit-critica) 0 30%, var(--cor-fogo) 55%, var(--crit-media));
+  box-shadow: none;
+  border-radius: 50%;
+}
+
+.amostra_calor {
+  border-radius: 50%;
+}
+
+.filtros {
+  padding: var(--e-2);
+  border-radius: var(--raio);
+  background: var(--cor-superficie-baixa);
+}
+
+/* ---- mapa ---- */
+.moldura {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.abrirColuna {
+  position: absolute;
+  z-index: 1000;
+  top: var(--e-3);
+  right: var(--e-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 var(--e-2) 0 var(--e-3);
+  border: 0;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-bloco-neutro);
+  color: var(--cor-sobre-bloco-neutro);
+  box-shadow: var(--sombra-flutuante);
+  font-size: var(--t-13);
+  font-weight: 700;
+}
+
+/* ---- coluna da direita ---- */
+.coluna {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+.abas {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  border-radius: var(--raio);
+  background: var(--cor-superficie-baixa);
+  overflow: hidden;
+}
+
+.abas[hidden] {
+  display: none;
+}
+
+.listaAbas {
+  display: flex;
+  gap: var(--e-1);
+  padding: var(--e-1);
+}
+
+.aba {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+  height: 38px;
+  border: 0;
+  border-radius: var(--raio);
+  background: transparent;
+  color: var(--cor-texto-suave);
+  font-size: var(--t-14);
+  font-weight: 700;
+}
+
+.aba:hover {
+  background: var(--cor-superficie-alta);
+}
+
+.aba[aria-selected='true'] {
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  box-shadow: inset 0 -3px 0 var(--cor-fogo);
+}
+
+.painel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--e-1) var(--e-2) var(--e-3);
+  overscroll-behavior: contain;
+}
+
+.painel[hidden] {
+  display: none;
+}
+
+.cabecalhoPainel {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--e-2);
+  padding: var(--e-1) var(--e-1) var(--e-2);
+  font-size: var(--t-13);
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+}
+
+.cabecalhoPainel a {
+  font-weight: 700;
+}
+
+/* ---- gaveta (< 1100 px) ---- */
+.veu {
+  position: fixed;
+  inset: 0;
+  z-index: 1090;
+  background: var(--cor-veu);
+}
+
+.gaveta {
+  position: fixed;
+  z-index: 1100;
+  top: var(--altura-faixa);
+  right: 0;
+  bottom: 0;
+  width: min(380px, 100vw);
+  padding: var(--e-2);
+  background: var(--cor-fundo);
+  box-shadow: var(--sombra-flutuante);
+  transform: translateX(105%);
+  visibility: hidden;
+  transition:
+    transform var(--duracao-longa) var(--curva),
+    visibility 0s linear var(--duracao-longa);
+}
+
+.gavetaAberta {
+  transform: none;
+  visibility: visible;
+  transition: transform var(--duracao-longa) var(--curva);
+}
+
+.topoGaveta {
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: var(--e-2);
+}
+
+.fecharGaveta {
+  height: 32px;
+  padding: 0 var(--e-3);
+  border: 0;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-superficie-baixa);
+  color: var(--cor-texto);
+  font-size: var(--t-13);
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .corpo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 1240px) {
+  /* camadas só com a amostra e a primeira palavra cabem melhor ao lado do resumo */
+  .resumo {
+    display: none;
+  }
+
+  .ferramentas {
+    justify-content: space-between;
+  }
+}
+
+/* Celular: a página rola; o mapa fica com boa parte da tela. */
+@media (max-width: 720px) {
+  .central {
+    height: auto;
+    padding: var(--e-2) var(--e-2) var(--e-4);
+  }
+
+  .ferramentas {
+    flex-wrap: wrap;
+  }
+
+  .camadas {
+    flex-wrap: wrap;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  .moldura {
+    flex: none;
+    height: 64vh;
+    min-height: 360px;
+  }
+}

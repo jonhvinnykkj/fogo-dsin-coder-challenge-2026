@@ -1,0 +1,244 @@
+/*
+ * Marcadores e camadas do mapa da Central. CSS global (não module) porque o HTML dos marcadores nasce no Leaflet,
+ * fora do React; todas as classes começam com `fogo-` para não colidir com nada.
+ * Borda branca nos dois temas: sobre o mapa claro dessaturado e sobre o escuro invertido o bloco continua saltando.
+ */
+
+.fogo-mk-raiz,
+.fogo-ag-raiz,
+.fogo-grupo-raiz,
+.fogo-pulso-raiz {
+  background: none;
+  border: 0;
+}
+
+/* ---- equipamento: placa quadrada na cor da situação ---- */
+.fogo-mk {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border: 2px solid #fff;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.38);
+}
+
+.fogo-mk svg {
+  width: 16px;
+  height: 16px;
+}
+
+.fogo-mk--tracejado {
+  background: #fff;
+  border: 2px dashed currentColor;
+}
+
+.fogo-mk--selecionado {
+  box-shadow: 0 0 0 3px #f04a00, 0 2px 10px rgb(0 0 0 / 0.45);
+}
+
+.fogo-mk--selecionado svg {
+  width: 19px;
+  height: 19px;
+}
+
+.fogo-mk-raiz:focus-visible,
+.fogo-ag-raiz:focus-visible,
+.fogo-grupo-raiz:focus-visible {
+  outline: 3px solid #f04a00;
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+/* ---- agente: losango (placa de advertência) na cor de quem está ocupado ---- */
+.fogo-ag {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.fogo-ag__losango {
+  position: absolute;
+  inset: 14%;
+  transform: rotate(45deg);
+  border: 2px solid #fff;
+  border-radius: 3px;
+  background: var(--cor-ag);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.42);
+}
+
+.fogo-ag svg {
+  position: relative;
+  width: 13px;
+  height: 13px;
+}
+
+.fogo-ag-raiz--selecionado .fogo-ag__losango {
+  box-shadow: 0 0 0 3px #f04a00, 0 2px 10px rgb(0 0 0 / 0.45);
+}
+
+.fogo-ag-raiz--selecionado svg {
+  width: 16px;
+  height: 16px;
+}
+
+/*
+ * Agentes deslizam entre uma posição e a próxima (o servidor manda a cada 2 s). Durante o zoom animado o Leaflet usa a
+ * própria transição; durante outros movimentos de câmera (flyTo) o deslize é desligado para o agente não "boiar".
+ */
+.fogo-ag-raiz {
+  transition: transform 1.9s linear;
+}
+
+.fogo-sem-deslize .fogo-ag-raiz {
+  transition: none;
+}
+
+.leaflet-zoom-anim .fogo-ag-raiz {
+  transition: transform 0.25s cubic-bezier(0, 0, 0.25, 1);
+}
+
+/* ---- grupo de equipamentos ---- */
+.fogo-grupo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border: 2px solid #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.38);
+  font-family: var(--fonte);
+  font-size: 15px;
+  font-weight: 800;
+  font-stretch: 80%;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* quantos do grupo estão com problema (furto, falha, manutenção) */
+.fogo-grupo {
+  position: relative;
+}
+
+.fogo-grupo__selo {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: #fff;
+  color: #1e1e1f;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+  font-size: 11px;
+  font-weight: 800;
+  font-stretch: 100%;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* ---- anel no ponto de um alerta recém-criado ---- */
+.fogo-pulso-alvo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.fogo-pulso {
+  position: absolute;
+  inset: 0;
+  border: 4px solid var(--cor-pulso);
+  border-radius: 50%;
+  animation: fogo-pulso 1.6s linear 4 both;
+}
+
+.fogo-pulso--atrasado {
+  animation-delay: 0.8s;
+  animation-iteration-count: 3;
+}
+
+.fogo-pulso__ponto {
+  position: absolute;
+  inset: 22px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: var(--cor-pulso);
+  box-shadow: 0 1px 6px rgb(0 0 0 / 0.45);
+}
+
+@keyframes fogo-pulso {
+  0% {
+    transform: scale(0.3);
+    opacity: 1;
+  }
+  65% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* ---- calor: um véu, não uma parede (os marcadores continuam legíveis por cima) ---- */
+.leaflet-heatmap-layer {
+  opacity: 0.8;
+}
+
+/* ---- bairros ---- */
+.fogo-bairro-pulsa {
+  animation: fogo-bairro-pulsa 0.9s ease-in-out 3;
+}
+
+@keyframes fogo-bairro-pulsa {
+  50% {
+    fill-opacity: 0.1;
+    stroke-opacity: 0.5;
+  }
+}
+
+/* dica dos bairros e dos grupos */
+.leaflet-tooltip.fogo-dica {
+  max-width: 280px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--cor-bloco-neutro);
+  color: var(--cor-sobre-bloco-neutro);
+  box-shadow: var(--sombra-flutuante);
+  font-family: var(--fonte);
+  font-size: 13px;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.leaflet-tooltip.fogo-dica::before {
+  display: none;
+}
+
+.fogo-dica strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.fogo-dica__nivel {
+  display: inline-block;
+  margin: 4px 0 2px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.fogo-dica ul {
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}

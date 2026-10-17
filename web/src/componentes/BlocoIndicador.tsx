@@ -13,9 +13,11 @@ interface Props {
   cor: string;
   detalhe?: ReactNode;
   icone?: ReactNode;
+  /** `compacto` = faixa da Central (cabe com o mapa numa tela de notebook). */
+  tamanho?: 'normal' | 'compacto';
 }
 
-export function BlocoIndicador({ rotulo, valor, cor, detalhe, icone }: Props) {
+export function BlocoIndicador({ rotulo, valor, cor, detalhe, icone, tamanho = 'normal' }: Props) {
   const estilo =
     cor === 'neutro'
       ? { backgroundColor: 'var(--cor-bloco-neutro)', color: 'var(--cor-sobre-bloco-neutro)' }
@@ -24,8 +26,9 @@ export function BlocoIndicador({ rotulo, valor, cor, detalhe, icone }: Props) {
         : { backgroundColor: cor, color: corDoTexto(cor) };
 
   return (
-    <div className={estilos.bloco} style={estilo}>
-      <span className={estilos.valor}>{typeof valor === 'number' ? formatarNumero(valor) : valor}</span>
+    <div className={`${estilos.bloco} ${tamanho === 'compacto' ? estilos.compacto : ''}`} style={estilo}>
+      {/* `key`: quando o número muda ao vivo, ele assenta de novo (movimento curto que mostra o que mudou). */}
+      <span key={String(valor)} className={estilos.valor}>{typeof valor === 'number' ? formatarNumero(valor) : valor}</span>
       <span className={estilos.rotulo}>
         {icone}
         {rotulo}

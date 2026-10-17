@@ -1,0 +1,199 @@
+.feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-2);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-2);
+}
+
+/* Cada alerta é uma placa: barra da criticidade à esquerda; o crítico é a placa vermelha inteira. */
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--e-3) var(--e-3) var(--e-3) calc(var(--e-3) + 5px);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  box-shadow: inset 5px 0 0 var(--barra, var(--cor-superficie-alta));
+}
+
+.alta {
+  --barra: var(--crit-alta);
+}
+
+.media {
+  --barra: var(--crit-media);
+}
+
+.baixa {
+  --barra: var(--crit-baixa);
+}
+
+.critica {
+  --barra: color-mix(in srgb, var(--crit-critica) 70%, #000);
+  background: var(--crit-critica);
+  color: #fff;
+}
+
+.reconhecido:not(.critica) {
+  background: var(--cor-superficie-baixa);
+}
+
+.item[data-novo='true'] {
+  animation: chegou 1s var(--curva) 3;
+}
+
+.critica[data-novo='true'] {
+  animation-name: chegou-critico;
+}
+
+@keyframes chegou {
+  0%,
+  100% {
+    background-color: var(--cor-superficie);
+  }
+  45% {
+    background-color: var(--cor-fogo-suave);
+  }
+}
+
+@keyframes chegou-critico {
+  0%,
+  100% {
+    background-color: var(--crit-critica);
+  }
+  45% {
+    background-color: #9e1a10;
+  }
+}
+
+.topo {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  min-width: 0;
+  font-size: var(--t-13);
+}
+
+.tipo {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--cor-texto-suave);
+}
+
+.critica .tipo {
+  color: inherit;
+}
+
+.quando {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--cor-texto-suave);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.critica .quando {
+  color: inherit;
+}
+
+.titulo {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: var(--t-14);
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: left;
+  text-wrap: pretty;
+}
+
+.titulo:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.critica .titulo:focus-visible {
+  outline-color: #fff;
+  box-shadow: none;
+}
+
+.rodape {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  min-height: 32px;
+}
+
+.local {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  color: var(--cor-texto-suave);
+  font-size: var(--t-13);
+  font-weight: 600;
+}
+
+.nomeLocal {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.local svg,
+.marca {
+  flex-shrink: 0;
+}
+
+.critica .local {
+  color: inherit;
+}
+
+.marca {
+  margin-left: var(--e-1);
+  padding: 1px 6px;
+  border-radius: var(--raio);
+  background: var(--cor-superficie-alta);
+  color: var(--cor-texto);
+  font-size: var(--t-12);
+  font-weight: 700;
+}
+
+.acoes {
+  display: inline-flex;
+  gap: var(--e-1);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.critica .acoes button {
+  background: #fff;
+  color: #1e1e1f;
+}
+
+.critica .acoes button:hover:not(:disabled) {
+  background: #f3d3cf;
+}
+
+.erro {
+  padding: var(--e-2) var(--e-3);
+  border-radius: var(--raio);
+  background: var(--cor-erro-fundo);
+  color: var(--cor-erro);
+  font-size: var(--t-13);
+  font-weight: 600;
+}
+
+.esqueleto {
+  height: 96px;
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  opacity: 0.6;
+}
