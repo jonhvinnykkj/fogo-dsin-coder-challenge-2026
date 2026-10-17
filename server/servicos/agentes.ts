@@ -1,0 +1,60 @@
+// Regras de negócio do cadastro de agentes.
+import type { SituacaoAgente } from '../../shared/dominio';
+import type { Agente, AgenteDetalhe } from '../../shared/modelos';
+import type { AgenteInput, FiltrosAgente } from '../../shared/schemas';
+import type { ContextoApp } from '../contexto';
+import { conflito, dadosInvalidos, naoEncontrado } from '../erros';
+import * as repo from '../repositorios/agentes';
+import { bairroExiste } from '../repositorios/bairros';
+import { equipamentoPorId } from '../repositorios/equipamentos';
+import { ocorrenciasDoAgente } from '../repositorios/ocorrencias';
+
+type Base = Pick<ContextoApp, 'db' | 'relogio'>;
+
+const agoraIso = (ctx: Base) => ctx.relogio.agora().toISOString();
+
+function exigirAgente(ctx: Base, id: number): Agente {
+  const a = repo.agentePorId(ctx.db, id);
+  if (!a) throw naoEncontrado('Agente');
+  return a;
+}
+
+function validarReferencias(ctx: Base, dados: AgenteInput, ignorarId?: number): void {
+  const campos: Record<string, string> = {};
+  if (!bairroExiste(ctx.db, dados.baseBairroId)) campos.baseBairroId = 'Bairro não encontrado';
+  if (dados.equipamentoId !== undefined && !equipamentoPorId(ctx.db, dados.equipamentoId)) campos.equipamentoId = 'Equipamento não encontrado';
+  if (Object.keys(campos).length) throw dadosInvalidos(campos);
+  if (repo.matriculaEmUso(ctx.db, dados.matricula, ignorarId)) throw conflito('Já existe agente com esta matrícula');
+}
+
+export const listar = (ctx: Base, filtros: FiltrosAgente) => repo.listarAgentes(ctx.db, filtros);
+
+export function detalheDoAgente(ctx: Base, id: number): AgenteDetalhe {
+  return { ...exigirAgente(ctx, id), ocorrencias: ocorrenciasDoAgente(ctx.db, id, 20) };
+}
+
+export function criarAgente(ctx: Base, dados: AgenteInput): AgenteDetalhe {
+  validarReferencias(ctx, dados);
+  return detalheDoAgente(ctx, repo.inserirAgente(ctx.db, dados, agoraIso(ctx)));
+}
+
+export function atualizarAgente(ctx: Base, id: number, dados: AgenteInput): AgenteDetalhe {
+  exigirAgente(ctx, id);
+  validarReferencias(ctx, dados, id);
+  repo.atualizarAgente(ctx.db, id, dados, agoraIso(ctx));
+  return detalheDoAgente(ctx, id);
+}
+
+export function mudarSituacaoAgente(ctx: Base, id: number, situacao: SituacaoAgente): AgenteDetalhe {
+  exigirAgente(ctx, id);
+  repo.gravarSituacaoAgente(ctx.db, id, situacao, agoraIso(ctx));
+  return detalheDoAgente(ctx, id);
+}
+
+export function excluirAgente(ctx: Base, id: number): void {
+  exigirAgente(ctx, id);
+  if (repo.contarVinculosAgente(ctx.db, id) > 0) {
+    throw conflito("Este agente tem histórico. Use a situação 'Fora de serviço' em vez de excluir.");
+  }
+  repo.removerAgente(ctx.db, id);
+}

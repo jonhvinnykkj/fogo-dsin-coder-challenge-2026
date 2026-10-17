@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import './erros-zod';
 import {
   CATEGORIAS_AGENTE, NECESSIDADES_MANUTENCAO, ORGAOS, REGIOES, SITUACOES_AGENTE, SITUACOES_EQUIPAMENTO, TURNOS,
 } from './dominio';
@@ -123,3 +124,19 @@ export const filtrosAgenteSchema = z.object({
   ...paginacao,
 });
 export type FiltrosAgente = z.infer<typeof filtrosAgenteSchema>;
+
+export const manutencaoInputSchema = z
+  .object({
+    tipo: opcaoDe(['corretiva', 'preventiva'] as const, 'Tipo de manutenção'),
+    descricao: z.string({ required_error: 'Informe a descrição' }).trim().min(3, 'Informe a descrição (mínimo de 3 letras)').max(500),
+    previstaPara: dataIso('Data prevista').optional(),
+    concluidaEm: z
+      .string({ invalid_type_error: 'Conclusão: informe uma data' })
+      .refine((v) => !Number.isNaN(Date.parse(v)), 'Conclusão: data inválida')
+      .optional(),
+  })
+  .refine((v) => v.previstaPara || v.concluidaEm, {
+    path: ['previstaPara'],
+    message: 'Informe a data prevista ou a data de conclusão',
+  });
+export type ManutencaoInput = z.infer<typeof manutencaoInputSchema>;

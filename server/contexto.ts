@@ -1,5 +1,6 @@
-// Contexto compartilhado por rotas e serviços. Os tipos `unknown` são provisórios:
-// as Tarefas 4 (banco) e 6 (barramento/simulador) trocam pelos tipos reais.
+// Contexto compartilhado por rotas e serviços. `barramento` e `simulador` ainda são provisórios:
+// a Tarefa 6 troca pelos tipos reais.
+import type { Database } from 'better-sqlite3';
 import type { GeoMarilia } from './geo/marilia';
 
 export interface Relogio {
@@ -9,7 +10,7 @@ export interface Relogio {
 export const relogioReal: Relogio = { agora: () => new Date() };
 
 export interface ContextoApp {
-  db: unknown;
+  db: Database;
   barramento: unknown;
   relogio: Relogio;
   geo: GeoMarilia;

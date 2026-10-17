@@ -1,0 +1,406 @@
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import type { FastifyInstance } from 'fastify';
+import { criarApp } from '../app';
+import { criarCtxDeTeste, type CtxDeTeste, type RelogioDeTeste } from '../test/ctx';
+import { corpoEquipamento } from '../test/fabricas';
+
+let ctx: CtxDeTeste;
+let app: FastifyInstance;
+const relogio = () => ctx.relogio as RelogioDeTeste;
+
+beforeEach(async () => {
+  ctx = criarCtxDeTeste();
+  app = await criarApp(ctx);
+});
+afterEach(async () => {
+  await app.close();
+});
+
+async function criar(sobrescreve: Record<string, unknown> = {}) {
+  return app.inject({ method: 'POST', url: '/api/equipamentos', payload: corpoEquipamento(ctx, sobrescreve) });
+}
+async function criarOk(sobrescreve: Record<string, unknown> = {}) {
+  const r = await criar(sobrescreve);
+  expect(r.statusCode).toBe(201);
+  return r.json();
+}
+const ler = async (id: number) => (await app.inject({ method: 'GET', url: `/api/equipamentos/${id}` })).json();
+
+describe('cadastro de equipamento', () => {
+  it('POST válido devolve 201 com código FOGO-RAD-0001 e não expõe o token', async () => {
+    const r = await criar();
+    expect(r.statusCode).toBe(201);
+    const eq = r.json();
+    expect(eq.codigo).toMatch(/^FOGO-RAD-\d{4}$/);
+    expect(eq.codigo).toBe('FOGO-RAD-0001');
+    expect(eq).not.toHaveProperty('tokenDispositivo');
+    expect(eq).not.toHaveProperty('token_dispositivo');
+    expect(eq.criadoEm).toBe('2026-10-17T15:00:00.000Z');
+    expect(eq.latAtual).toBe(eq.lat);
+    expect(eq.ultimoSinalEm).toBeNull();
+    const linha = ctx.db.prepare('SELECT token_dispositivo AS t FROM equipamentos WHERE id = ?').get(eq.id) as { t: string };
+    expect(linha.t).toMatch(/^[0-9a-f]{32}$/);
+  });
+
+  it('GET por id devolve os mesmos dados mais histórico, manutenções e alertas', async () => {
+    const criado = await criarOk();
+    const r = await app.inject({ method: 'GET', url: `/api/equipamentos/${criado.id}` });
+    expect(r.statusCode).toBe(200);
+    expect(r.json()).toMatchObject(criado);
+    expect(r.json()).toMatchObject({ historico: [], manutencoes: [], alertas: [] });
+  });
+
+  it('numera os códigos por tipo, em sequência', async () => {
+    await criarOk();
+    const segundo = await criarOk({ numeroSerie: 'SN-0002' });
+    expect(segundo.codigo).toBe('FOGO-RAD-0002');
+    const camera = await criarOk({
+      tipo: 'camera',
+      numeroSerie: 'SN-C1',
+      caracteristicas: { resolucao: '1080p', visaoNoturna: true, colorida: true, ptz: false, angulo: 90, armazenamentoDias: 30 },
+    });
+    expect(camera.codigo).toBe('FOGO-CAM-0001');
+  });
+
+  it('lista com tipo=radar traz o equipamento; com tipo=camera não', async () => {
+    const criado = await criarOk();
+    const radar = (await app.inject({ method: 'GET', url: '/api/equipamentos?tipo=radar' })).json();
+    expect(radar.total).toBe(1);
+    expect(radar.itens[0].id).toBe(criado.id);
+    expect(radar).toMatchObject({ pagina: 1, porPagina: 25 });
+    const camera = (await app.inject({ method: 'GET', url: '/api/equipamentos?tipo=camera' })).json();
+    expect(camera.total).toBe(0);
+    expect(camera.itens).toEqual([]);
+  });
+
+  it('rejeita número de série repetido com 409', async () => {
+    await criarOk();
+    const r = await criar();
+    expect(r.statusCode).toBe(409);
+    expect(r.json().erro).toBe('Já existe equipamento com este número de série');
+  });
+
+  it('rejeita coordenada de São Paulo com 400 em campos.lat ou campos.lng', async () => {
+    const r = await criar({ lat: -23.55, lng: -46.63 });
+    expect(r.statusCode).toBe(400);
+    const corpo = r.json();
+    expect(corpo.erro).toBe('Dados inválidos');
+    expect(corpo.campos.lat ?? corpo.campos.lng).toMatch(/Marília/);
+  });
+
+  it('aponta o campo de característica inválido em campos["caracteristicas.<chave>"]', async () => {
+    const r = await criar({ caracteristicas: { modalidade: 'velocidade', velocidadeMaxima: 500, faixas: 2, sentido: 'Centro' } });
+    expect(r.statusCode).toBe(400);
+    expect(r.json().campos['caracteristicas.velocidadeMaxima']).toMatch(/120/);
+  });
+
+  it('devolve mensagem em português para chave extra em caracteristicas', async () => {
+    const r = await criar({ caracteristicas: { modalidade: 'velocidade', faixas: 2, sentido: 'Centro', corDoCarro: 'azul' } });
+    expect(r.statusCode).toBe(400);
+    const mensagens = Object.values(r.json().campos).join(' | ');
+    expect(mensagens).not.toMatch(/unrecognized|expected|required|invalid/i);
+    expect(mensagens).toMatch(/corDoCarro/);
+  });
+
+  it('rejeita bairro inexistente com 400 em campos.bairroId', async () => {
+    const r = await criar({ bairroId: 99999 });
+    expect(r.statusCode).toBe(400);
+    expect(r.json().campos.bairroId).toBe('Bairro não encontrado');
+  });
+
+  it('devolve 400 para JSON malformado e 404 pt-BR para id inexistente', async () => {
+    const ruim = await app.inject({ method: 'POST', url: '/api/equipamentos', payload: '{nao-json', headers: { 'content-type': 'application/json' } });
+    expect(ruim.statusCode).toBe(400);
+    expect(ruim.json().erro).toBeTypeOf('string');
+    const nada = await app.inject({ method: 'GET', url: '/api/equipamentos/999' });
+    expect(nada.statusCode).toBe(404);
+    expect(nada.json()).toEqual({ erro: 'Equipamento não encontrado' });
+    const texto = await app.inject({ method: 'GET', url: '/api/equipamentos/abc' });
+    expect(texto.statusCode).toBe(404);
+  });
+});
+
+describe('busca', () => {
+  it('"50%" casa só o modelo com "50%" (coringa escapado)', async () => {
+    const com = await criarOk({ numeroSerie: 'S-A', modelo: 'Pro 50% Plus' });
+    await criarOk({ numeroSerie: 'S-B', modelo: 'Pro 500 Plus' });
+    const r = (await app.inject({ method: 'GET', url: `/api/equipamentos?busca=${encodeURIComponent('50%')}` })).json();
+    expect(r.itens.map((e: { id: number }) => e.id)).toEqual([com.id]);
+  });
+
+  it('"_" e "\\" não viram coringa', async () => {
+    const com = await criarOk({ numeroSerie: 'S-A', modelo: 'X_1' });
+    await criarOk({ numeroSerie: 'S-B', modelo: 'XA1' });
+    const r = (await app.inject({ method: 'GET', url: `/api/equipamentos?busca=${encodeURIComponent('x_1')}` })).json();
+    expect(r.itens.map((e: { id: number }) => e.id)).toEqual([com.id]);
+    const barra = await app.inject({ method: 'GET', url: `/api/equipamentos?busca=${encodeURIComponent('a\\')}` });
+    expect(barra.statusCode).toBe(200);
+    expect(barra.json().total).toBe(0);
+  });
+
+  it('aspas e acentos: "D\'Ávila" funciona e "marilia" acha "Rua Marília"', async () => {
+    const dAvila = await criarOk({ numeroSerie: 'S-A', logradouro: "Rua D'Ávila" });
+    const marilia = await criarOk({ numeroSerie: 'S-B', logradouro: 'Rua Marília Central' });
+    const a = await app.inject({ method: 'GET', url: `/api/equipamentos?busca=${encodeURIComponent("D'Ávila")}` });
+    expect(a.statusCode).toBe(200);
+    expect(a.json().itens.map((e: { id: number }) => e.id)).toEqual([dAvila.id]);
+    const sem = (await app.inject({ method: 'GET', url: `/api/equipamentos?busca=${encodeURIComponent("d'avila")}` })).json();
+    expect(sem.total).toBe(1);
+    const m = (await app.inject({ method: 'GET', url: '/api/equipamentos?busca=marilia' })).json();
+    expect(m.itens.map((e: { id: number }) => e.id)).toContain(marilia.id);
+    expect(m.itens.map((e: { id: number }) => e.id)).not.toContain(dAvila.id);
+  });
+
+  it('busca também pelo código e pelo nome do bairro', async () => {
+    const eq = await criarOk();
+    const porCodigo = (await app.inject({ method: 'GET', url: '/api/equipamentos?busca=fogo-rad-0001' })).json();
+    expect(porCodigo.total).toBe(1);
+    const nomeBairro = ctx.db.prepare('SELECT nome FROM bairros WHERE id = ?').get(eq.bairroId) as { nome: string };
+    const porBairro = (await app.inject({ method: 'GET', url: `/api/equipamentos?busca=${encodeURIComponent(nomeBairro.nome)}` })).json();
+    expect(porBairro.itens.map((e: { id: number }) => e.id)).toContain(eq.id);
+  });
+
+  it('pagina o resultado', async () => {
+    for (let i = 0; i < 3; i++) await criarOk({ numeroSerie: `P-${i}` });
+    const r = (await app.inject({ method: 'GET', url: '/api/equipamentos?porPagina=2&pagina=2' })).json();
+    expect(r).toMatchObject({ total: 3, pagina: 2, porPagina: 2 });
+    expect(r.itens).toHaveLength(1);
+  });
+});
+
+describe('edição (PUT)', () => {
+  it('não apaga posição atual, último sinal, código, token nem a situação vinda da telemetria', async () => {
+    const eq = await criarOk();
+    const tokenAntes = (ctx.db.prepare('SELECT token_dispositivo AS t FROM equipamentos WHERE id = ?').get(eq.id) as { t: string }).t;
+    ctx.db
+      .prepare("UPDATE equipamentos SET lat_atual = -22.2, lng_atual = -49.95, ultimo_sinal_em = '2026-10-17T14:59:00.000Z', situacao = 'mau_funcionamento' WHERE id = ?")
+      .run(eq.id);
+    relogio().definir('2026-10-17T16:00:00.000Z');
+
+    const r = await app.inject({
+      method: 'PUT',
+      url: `/api/equipamentos/${eq.id}`,
+      payload: corpoEquipamento(ctx, { marca: 'Nova Marca', situacao: 'operacional' }),
+    });
+    expect(r.statusCode).toBe(200);
+    const depois = await ler(eq.id);
+    expect(depois.marca).toBe('Nova Marca');
+    expect(depois.latAtual).toBe(-22.2);
+    expect(depois.lngAtual).toBe(-49.95);
+    expect(depois.ultimoSinalEm).toBe('2026-10-17T14:59:00.000Z');
+    expect(depois.situacao).toBe('mau_funcionamento');
+    expect(depois.codigo).toBe(eq.codigo);
+    expect(depois.criadoEm).toBe('2026-10-17T15:00:00.000Z');
+    expect(depois.atualizadoEm).toBe('2026-10-17T16:00:00.000Z');
+    const tokenDepois = (ctx.db.prepare('SELECT token_dispositivo AS t FROM equipamentos WHERE id = ?').get(eq.id) as { t: string }).t;
+    expect(tokenDepois).toBe(tokenAntes);
+  });
+
+  it('aceita manter o próprio número de série, mas recusa o de outro equipamento (409)', async () => {
+    const a = await criarOk({ numeroSerie: 'A-1' });
+    await criarOk({ numeroSerie: 'B-1' });
+    const mesmo = await app.inject({ method: 'PUT', url: `/api/equipamentos/${a.id}`, payload: corpoEquipamento(ctx, { numeroSerie: 'A-1' }) });
+    expect(mesmo.statusCode).toBe(200);
+    const outro = await app.inject({ method: 'PUT', url: `/api/equipamentos/${a.id}`, payload: corpoEquipamento(ctx, { numeroSerie: 'B-1' }) });
+    expect(outro.statusCode).toBe(409);
+  });
+
+  it('devolve 404 ao editar equipamento inexistente', async () => {
+    const r = await app.inject({ method: 'PUT', url: '/api/equipamentos/999', payload: corpoEquipamento(ctx) });
+    expect(r.statusCode).toBe(404);
+  });
+});
+
+describe('mudança de situação (PATCH)', () => {
+  const patch = (id: number, payload: Record<string, unknown>) =>
+    app.inject({ method: 'PATCH', url: `/api/equipamentos/${id}/situacao`, payload });
+
+  it('furtado → operacional exige recuperado: true', async () => {
+    const eq = await criarOk();
+    expect((await patch(eq.id, { situacao: 'furtado', motivo: 'Boletim de ocorrência 123' })).statusCode).toBe(200);
+
+    const sem = await patch(eq.id, { situacao: 'operacional', motivo: 'Voltou a funcionar' });
+    expect(sem.statusCode).toBe(400);
+    expect(sem.json().erro).toBe('Registre a recuperação do equipamento antes de voltar a operar');
+
+    const com = await patch(eq.id, { situacao: 'operacional', motivo: 'Equipamento recuperado', recuperado: true });
+    expect(com.statusCode).toBe(200);
+    expect(com.json().situacao).toBe('operacional');
+    const ficha = await ler(eq.id);
+    expect(ficha.historico).toHaveLength(2);
+    expect(ficha.historico[0]).toMatchObject({ de: 'furtado', para: 'operacional', motivo: 'Equipamento recuperado', em: '2026-10-17T15:00:00.000Z' });
+    expect(ficha.historico[1]).toMatchObject({ de: 'operacional', para: 'furtado' });
+  });
+
+  it('exige motivo e recusa a mesma situação', async () => {
+    const eq = await criarOk();
+    const semMotivo = await patch(eq.id, { situacao: 'desativado' });
+    expect(semMotivo.statusCode).toBe(400);
+    expect(semMotivo.json().campos.motivo).toBeTypeOf('string');
+    const igual = await patch(eq.id, { situacao: 'operacional', motivo: 'Nada mudou' });
+    expect(igual.statusCode).toBe(400);
+  });
+
+  it('404 para equipamento inexistente', async () => {
+    expect((await patch(999, { situacao: 'desativado', motivo: 'Teste' })).statusCode).toBe(404);
+  });
+});
+
+describe('exclusão (DELETE)', () => {
+  it('recusa com 409 citando "Desativado" quando há telemetria', async () => {
+    const eq = await criarOk();
+    ctx.db
+      .prepare("INSERT INTO telemetria_hora (equipamento_id, hora, leituras, online_min, metricas) VALUES (?, '2026-10-17T14:00:00.000Z', 10, 60, '{}')")
+      .run(eq.id);
+    const r = await app.inject({ method: 'DELETE', url: `/api/equipamentos/${eq.id}` });
+    expect(r.statusCode).toBe(409);
+    expect(r.json().erro).toBe("Este equipamento tem histórico. Use a situação 'Desativado' em vez de excluir.");
+    expect((await app.inject({ method: 'GET', url: `/api/equipamentos/${eq.id}` })).statusCode).toBe(200);
+  });
+
+  it('recusa quando há alerta ou agente vinculado', async () => {
+    const comAlerta = await criarOk({ numeroSerie: 'AL-1' });
+    ctx.db
+      .prepare("INSERT INTO alertas (tipo, criticidade, titulo, descricao, equipamento_id, criado_em) VALUES ('falha', 'alta', 't', 'd', ?, '2026-10-17T14:00:00.000Z')")
+      .run(comAlerta.id);
+    expect((await app.inject({ method: 'DELETE', url: `/api/equipamentos/${comAlerta.id}` })).statusCode).toBe(409);
+
+    const comAgente = await criarOk({ numeroSerie: 'AG-1' });
+    const bairro = ctx.db.prepare('SELECT id FROM bairros LIMIT 1').get() as { id: number };
+    ctx.db
+      .prepare(
+        `INSERT INTO agentes (nome, matricula, categoria, orgao, situacao, turno, base_logradouro, base_bairro_id, lat, lng, lat_atual, lng_atual, equipamento_id, criado_em, atualizado_em)
+         VALUES ('N', 'M-1', 'agente_transito', 'Secretaria de Mobilidade Urbana', 'em_servico', 'manha', 'Rua', ?, -22.2, -49.9, -22.2, -49.9, ?, '2026-10-17T14:00:00.000Z', '2026-10-17T14:00:00.000Z')`,
+      )
+      .run(bairro.id, comAgente.id);
+    expect((await app.inject({ method: 'DELETE', url: `/api/equipamentos/${comAgente.id}` })).statusCode).toBe(409);
+  });
+
+  it('exclui equipamento novo, sem histórico, com 204', async () => {
+    const eq = await criarOk();
+    const r = await app.inject({ method: 'DELETE', url: `/api/equipamentos/${eq.id}` });
+    expect(r.statusCode).toBe(204);
+    expect((await app.inject({ method: 'GET', url: `/api/equipamentos/${eq.id}` })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'DELETE', url: `/api/equipamentos/${eq.id}` })).statusCode).toBe(404);
+  });
+});
+
+describe('manutenção', () => {
+  const registrar = (id: number, payload: Record<string, unknown>) =>
+    app.inject({ method: 'POST', url: `/api/equipamentos/${id}/manutencoes`, payload });
+
+  it('concluir manutenção de equipamento periódico em mau funcionamento: volta a operar e reagenda', async () => {
+    const eq = await criarOk({
+      manutencaoNecessidade: 'periodica',
+      manutencaoPeriodicidadeDias: 30,
+      proximaManutencao: '2026-10-01',
+    });
+    ctx.db.prepare("UPDATE equipamentos SET situacao = 'mau_funcionamento' WHERE id = ?").run(eq.id);
+
+    const r = await registrar(eq.id, { tipo: 'corretiva', descricao: 'Troca do sensor', concluidaEm: '2026-10-10T12:00:00.000Z' });
+    expect(r.statusCode).toBe(201);
+    const corpo = r.json();
+    expect(corpo.situacao).toBe('operacional');
+    expect(corpo.ultimaManutencao).toBe('2026-10-10');
+    expect(corpo.proximaManutencao).toBe('2026-11-09');
+    expect(corpo.manutencaoNecessidade).toBe('periodica');
+    expect(corpo.historico).toHaveLength(1);
+    expect(corpo.historico[0]).toMatchObject({ de: 'mau_funcionamento', para: 'operacional', motivo: 'Manutenção concluída' });
+    expect(corpo.manutencoes).toHaveLength(1);
+    expect(corpo.manutencoes[0]).toMatchObject({ tipo: 'corretiva', concluidaEm: '2026-10-10T12:00:00.000Z' });
+  });
+
+  it('concluir manutenção não periódica zera a próxima data e a necessidade', async () => {
+    const eq = await criarOk({ manutencaoNecessidade: 'agendada', proximaManutencao: '2026-10-20' });
+    const r = await registrar(eq.id, { tipo: 'preventiva', descricao: 'Revisão geral', concluidaEm: '2026-10-17T10:00:00.000Z' });
+    expect(r.statusCode).toBe(201);
+    const corpo = r.json();
+    expect(corpo.manutencaoNecessidade).toBe('nenhuma');
+    expect(corpo.proximaManutencao).toBeUndefined();
+    expect(corpo.situacao).toBe('operacional');
+    expect(corpo.historico).toHaveLength(0);
+  });
+
+  it('só com previstaPara: agenda e ajusta a próxima data (periódico só muda a data)', async () => {
+    const eq = await criarOk();
+    const r = await registrar(eq.id, { tipo: 'preventiva', descricao: 'Limpeza da lente', previstaPara: '2026-10-25' });
+    expect(r.statusCode).toBe(201);
+    expect(r.json()).toMatchObject({ manutencaoNecessidade: 'agendada', proximaManutencao: '2026-10-25' });
+
+    const periodico = await criarOk({ numeroSerie: 'PER-1', manutencaoNecessidade: 'periodica', manutencaoPeriodicidadeDias: 15, proximaManutencao: '2026-11-30' });
+    const r2 = await registrar(periodico.id, { tipo: 'preventiva', descricao: 'Antecipar revisão', previstaPara: '2026-10-22' });
+    expect(r2.json()).toMatchObject({ manutencaoNecessidade: 'periodica', proximaManutencao: '2026-10-22' });
+  });
+
+  it('exige previstaPara ou concluidaEm e descrição', async () => {
+    const eq = await criarOk();
+    const r = await registrar(eq.id, { tipo: 'corretiva', descricao: 'Sem datas' });
+    expect(r.statusCode).toBe(400);
+    const r2 = await registrar(eq.id, { tipo: 'corretiva', descricao: '', concluidaEm: '2026-10-10T12:00:00.000Z' });
+    expect(r2.statusCode).toBe(400);
+    expect(r2.json().campos.descricao).toBeTypeOf('string');
+    expect((await registrar(999, { tipo: 'corretiva', descricao: 'Teste', previstaPara: '2026-10-25' })).statusCode).toBe(404);
+  });
+
+  it('painel agrupa atrasadas, imediatas, próximos 7 e próximos 30 dias', async () => {
+    const atrasada = await criarOk({ numeroSerie: 'M-1', manutencaoNecessidade: 'agendada', proximaManutencao: '2026-10-10' });
+    const imediata = await criarOk({ numeroSerie: 'M-2', manutencaoNecessidade: 'imediata' });
+    const sete = await criarOk({ numeroSerie: 'M-3', manutencaoNecessidade: 'agendada', proximaManutencao: '2026-10-20' });
+    const trinta = await criarOk({ numeroSerie: 'M-4', manutencaoNecessidade: 'agendada', proximaManutencao: '2026-11-05' });
+    await criarOk({ numeroSerie: 'M-5', manutencaoNecessidade: 'agendada', proximaManutencao: '2027-03-01' });
+    await criarOk({ numeroSerie: 'M-6' });
+
+    const r = await app.inject({ method: 'GET', url: '/api/manutencao/painel' });
+    expect(r.statusCode).toBe(200);
+    const ids = (lista: { id: number }[]) => lista.map((e) => e.id);
+    const painel = r.json();
+    expect(ids(painel.atrasadas)).toEqual([atrasada.id]);
+    expect(ids(painel.imediatas)).toEqual([imediata.id]);
+    expect(ids(painel.proximos7)).toEqual([sete.id]);
+    expect(ids(painel.proximos30)).toEqual([trinta.id]);
+    expect(painel.atrasadas[0].codigo).toMatch(/^FOGO-RAD-/);
+  });
+
+  it('filtro manutencao=atrasada da lista usa o mesmo critério', async () => {
+    const atrasada = await criarOk({ numeroSerie: 'M-1', manutencaoNecessidade: 'agendada', proximaManutencao: '2026-10-10' });
+    await criarOk({ numeroSerie: 'M-2' });
+    const r = (await app.inject({ method: 'GET', url: '/api/equipamentos?manutencao=atrasada' })).json();
+    expect(r.itens.map((e: { id: number }) => e.id)).toEqual([atrasada.id]);
+  });
+});
+
+describe('telemetria e catálogos', () => {
+  it('devolve a telemetria das últimas N horas em ordem cronológica', async () => {
+    const eq = await criarOk();
+    const ins = ctx.db.prepare('INSERT INTO telemetria_hora (equipamento_id, hora, leituras, online_min, metricas) VALUES (?, ?, ?, ?, ?)');
+    ins.run(eq.id, '2026-10-14T10:00:00.000Z', 5, 60, '{}'); // fora de 48 h
+    ins.run(eq.id, '2026-10-16T16:00:00.000Z', 7, 55, '{"velocidadeMedia":42}');
+    ins.run(eq.id, '2026-10-17T14:00:00.000Z', 9, 60, '{"velocidadeMedia":38}');
+    const r = await app.inject({ method: 'GET', url: `/api/equipamentos/${eq.id}/telemetria?horas=48` });
+    expect(r.statusCode).toBe(200);
+    expect(r.json()).toEqual([
+      { hora: '2026-10-16T16:00:00.000Z', leituras: 7, onlineMin: 55, metricas: { velocidadeMedia: 42 } },
+      { hora: '2026-10-17T14:00:00.000Z', leituras: 9, onlineMin: 60, metricas: { velocidadeMedia: 38 } },
+    ]);
+    expect((await app.inject({ method: 'GET', url: '/api/equipamentos/999/telemetria' })).statusCode).toBe(404);
+  });
+
+  it('GET /api/tipos-equipamento lista os 13 tipos e /api/bairros traz os bairros com polígono', async () => {
+    const tipos = (await app.inject({ method: 'GET', url: '/api/tipos-equipamento' })).json();
+    expect(tipos).toHaveLength(13);
+    expect(tipos[0]).toHaveProperty('campos');
+    const bairros = (await app.inject({ method: 'GET', url: '/api/bairros' })).json();
+    expect(bairros.length).toBe(ctx.geo.bairros.length);
+    expect(bairros[0].poligono.type).toBe('Polygon');
+    expect(bairros[0]).toHaveProperty('regiao');
+  });
+});
+
+describe('documentação', () => {
+  it('/api/docs abre e lista as rotas', async () => {
+    const ui = await app.inject({ method: 'GET', url: '/api/docs/' });
+    expect(ui.statusCode).toBe(200);
+    const json = (await app.inject({ method: 'GET', url: '/api/docs/json' })).json();
+    expect(Object.keys(json.paths)).toEqual(expect.arrayContaining(['/api/equipamentos', '/api/agentes', '/api/alertas', '/api/manutencao/painel']));
+  });
+});

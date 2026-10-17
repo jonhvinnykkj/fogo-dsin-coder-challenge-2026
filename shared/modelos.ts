@@ -97,6 +97,50 @@ export interface Ocorrencia {
   origem: 'historico' | 'tempo_real' | 'injetado';
 }
 
+export interface HistoricoSituacao {
+  id: number;
+  equipamentoId: number;
+  de: SituacaoEquipamento;
+  para: SituacaoEquipamento;
+  motivo: string;
+  em: string;
+}
+
+export interface Manutencao {
+  id: number;
+  equipamentoId: number;
+  tipo: 'corretiva' | 'preventiva';
+  abertaEm: string;
+  previstaPara?: string;
+  concluidaEm?: string;
+  descricao: string;
+}
+
+export interface EquipamentoDetalhe extends Equipamento {
+  historico: HistoricoSituacao[];
+  manutencoes: Manutencao[];
+  alertas: Alerta[];
+}
+
+export interface AgenteDetalhe extends Agente {
+  ocorrencias: Ocorrencia[];
+}
+
+export interface PainelManutencao {
+  atrasadas: Equipamento[];
+  imediatas: Equipamento[];
+  proximos7: Equipamento[];
+  proximos30: Equipamento[];
+}
+
+export interface PontoTelemetria {
+  /** Início da hora, ISO 8601 UTC. */
+  hora: string;
+  leituras: number;
+  onlineMin: number;
+  metricas: Record<string, number>;
+}
+
 export interface Indicadores {
   totalEquipamentos: number;
   operacionais: number;

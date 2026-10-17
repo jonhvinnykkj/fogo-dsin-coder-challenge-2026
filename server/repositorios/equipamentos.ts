@@ -1,0 +1,253 @@
+import type { Database } from 'better-sqlite3';
+import type { NecessidadeManutencao, Orgao, Regiao, SituacaoEquipamento } from '../../shared/dominio';
+import type { Equipamento, HistoricoSituacao, Pagina, PontoTelemetria } from '../../shared/modelos';
+import type { EquipamentoInput, FiltrosEquipamento } from '../../shared/schemas';
+import type { TipoEquipamentoId } from '../../shared/tipos-equipamento';
+import { somarDias } from '../tempo';
+import { condicaoBusca } from './busca';
+
+interface LinhaEquipamento {
+  id: number;
+  codigo: string;
+  tipo: TipoEquipamentoId;
+  numero_serie: string;
+  marca: string;
+  modelo: string;
+  orgao: Orgao;
+  situacao: SituacaoEquipamento;
+  cep: string;
+  logradouro: string;
+  referencia: string;
+  bairro_id: number;
+  bairro_nome: string;
+  regiao: Regiao;
+  lat: number;
+  lng: number;
+  lat_atual: number;
+  lng_atual: number;
+  manutencao_necessidade: NecessidadeManutencao;
+  manutencao_periodicidade_dias: number | null;
+  ultima_manutencao: string | null;
+  proxima_manutencao: string | null;
+  caracteristicas: string;
+  instalado_em: string | null;
+  ultimo_sinal_em: string | null;
+  criado_em: string;
+  atualizado_em: string;
+}
+
+// Lista explícita de colunas: `token_dispositivo` nunca entra no SELECT da API.
+const SELECT = `
+  SELECT e.id, e.codigo, e.tipo, e.numero_serie, e.marca, e.modelo, e.orgao, e.situacao, e.cep, e.logradouro, e.referencia,
+         e.bairro_id, b.nome AS bairro_nome, b.regiao AS regiao, e.lat, e.lng, e.lat_atual, e.lng_atual,
+         e.manutencao_necessidade, e.manutencao_periodicidade_dias, e.ultima_manutencao, e.proxima_manutencao,
+         e.caracteristicas, e.instalado_em, e.ultimo_sinal_em, e.criado_em, e.atualizado_em
+  FROM equipamentos e JOIN bairros b ON b.id = e.bairro_id`;
+
+function paraEquipamento(l: LinhaEquipamento): Equipamento {
+  return {
+    id: l.id,
+    codigo: l.codigo,
+    tipo: l.tipo,
+    numeroSerie: l.numero_serie,
+    marca: l.marca,
+    modelo: l.modelo,
+    orgao: l.orgao,
+    situacao: l.situacao,
+    cep: l.cep,
+    logradouro: l.logradouro,
+    referencia: l.referencia,
+    bairroId: l.bairro_id,
+    bairroNome: l.bairro_nome,
+    regiao: l.regiao,
+    lat: l.lat,
+    lng: l.lng,
+    latAtual: l.lat_atual,
+    lngAtual: l.lng_atual,
+    manutencaoNecessidade: l.manutencao_necessidade,
+    ...(l.manutencao_periodicidade_dias !== null && { manutencaoPeriodicidadeDias: l.manutencao_periodicidade_dias }),
+    ...(l.ultima_manutencao !== null && { ultimaManutencao: l.ultima_manutencao }),
+    ...(l.proxima_manutencao !== null && { proximaManutencao: l.proxima_manutencao }),
+    caracteristicas: JSON.parse(l.caracteristicas) as Record<string, unknown>,
+    ...(l.instalado_em !== null && { instaladoEm: l.instalado_em }),
+    ultimoSinalEm: l.ultimo_sinal_em,
+    criadoEm: l.criado_em,
+    atualizadoEm: l.atualizado_em,
+  };
+}
+
+export function equipamentoPorId(db: Database, id: number): Equipamento | undefined {
+  const l = db.prepare(`${SELECT} WHERE e.id = ?`).get(id) as LinhaEquipamento | undefined;
+  return l && paraEquipamento(l);
+}
+
+export function numeroSerieEmUso(db: Database, numeroSerie: string, ignorarId?: number): boolean {
+  return db.prepare('SELECT 1 FROM equipamentos WHERE numero_serie = ? AND id IS NOT ?').get(numeroSerie, ignorarId ?? null) !== undefined;
+}
+
+/** Próximo número da sequência do código do tipo (FOGO-<sigla>-0001, 0002...). */
+export function proximoSequencial(db: Database, sigla: string): number {
+  const prefixo = `FOGO-${sigla}-`;
+  const ultimo = db
+    .prepare('SELECT codigo FROM equipamentos WHERE codigo LIKE ? ORDER BY length(codigo) DESC, codigo DESC LIMIT 1')
+    .get(`${prefixo}%`) as { codigo: string } | undefined;
+  return ultimo ? Number(ultimo.codigo.slice(prefixo.length)) + 1 : 1;
+}
+
+export interface DadosNovoEquipamento {
+  codigo: string;
+  token: string;
+  agora: string;
+}
+
+export function inserirEquipamento(db: Database, e: EquipamentoInput, d: DadosNovoEquipamento): number {
+  const r = db
+    .prepare(
+      `INSERT INTO equipamentos (codigo, tipo, numero_serie, marca, modelo, orgao, situacao, cep, logradouro, referencia, bairro_id,
+         lat, lng, lat_atual, lng_atual, manutencao_necessidade, manutencao_periodicidade_dias, ultima_manutencao, proxima_manutencao,
+         caracteristicas, instalado_em, token_dispositivo, criado_em, atualizado_em)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .run(
+      d.codigo, e.tipo, e.numeroSerie, e.marca, e.modelo, e.orgao, e.situacao, e.cep, e.logradouro, e.referencia, e.bairroId,
+      e.lat, e.lng, e.lat, e.lng, e.manutencaoNecessidade, e.manutencaoPeriodicidadeDias ?? null, e.ultimaManutencao ?? null,
+      e.proximaManutencao ?? null, JSON.stringify(e.caracteristicas), e.instaladoEm ?? null, d.token, d.agora, d.agora,
+    );
+  return Number(r.lastInsertRowid);
+}
+
+/**
+ * Atualiza os dados cadastrais. NÃO toca em código, token, situação, posição atual nem último sinal:
+ * esses campos pertencem à telemetria/ao fluxo de situação e o formulário nunca os sobrescreve.
+ */
+export function atualizarEquipamento(db: Database, id: number, e: EquipamentoInput, agora: string): void {
+  db.prepare(
+    `UPDATE equipamentos SET tipo = ?, numero_serie = ?, marca = ?, modelo = ?, orgao = ?, cep = ?, logradouro = ?, referencia = ?,
+       bairro_id = ?, lat = ?, lng = ?, manutencao_necessidade = ?, manutencao_periodicidade_dias = ?, ultima_manutencao = ?,
+       proxima_manutencao = ?, caracteristicas = ?, instalado_em = ?, atualizado_em = ?
+     WHERE id = ?`,
+  ).run(
+    e.tipo, e.numeroSerie, e.marca, e.modelo, e.orgao, e.cep, e.logradouro, e.referencia, e.bairroId, e.lat, e.lng,
+    e.manutencaoNecessidade, e.manutencaoPeriodicidadeDias ?? null, e.ultimaManutencao ?? null, e.proximaManutencao ?? null,
+    JSON.stringify(e.caracteristicas), e.instaladoEm ?? null, agora, id,
+  );
+}
+
+export function gravarSituacao(
+  db: Database,
+  id: number,
+  de: SituacaoEquipamento,
+  para: SituacaoEquipamento,
+  motivo: string,
+  agora: string,
+): void {
+  db.prepare('UPDATE equipamentos SET situacao = ?, atualizado_em = ? WHERE id = ?').run(para, agora, id);
+  db.prepare('INSERT INTO historico_situacao (equipamento_id, de, para, motivo, em) VALUES (?, ?, ?, ?, ?)').run(id, de, para, motivo, agora);
+}
+
+export interface AjusteManutencao {
+  necessidade: NecessidadeManutencao;
+  /** `undefined` = não mexe na última manutenção. */
+  ultima?: string | null;
+  proxima: string | null;
+}
+
+export function gravarManutencaoDoEquipamento(db: Database, id: number, a: AjusteManutencao, agora: string): void {
+  if (a.ultima !== undefined) {
+    db.prepare('UPDATE equipamentos SET manutencao_necessidade = ?, ultima_manutencao = ?, proxima_manutencao = ?, atualizado_em = ? WHERE id = ?')
+      .run(a.necessidade, a.ultima, a.proxima, agora, id);
+  } else {
+    db.prepare('UPDATE equipamentos SET manutencao_necessidade = ?, proxima_manutencao = ?, atualizado_em = ? WHERE id = ?')
+      .run(a.necessidade, a.proxima, agora, id);
+  }
+}
+
+export function historicoDoEquipamento(db: Database, id: number): HistoricoSituacao[] {
+  const linhas = db
+    .prepare('SELECT id, equipamento_id, de, para, motivo, em FROM historico_situacao WHERE equipamento_id = ? ORDER BY em DESC, id DESC')
+    .all(id) as { id: number; equipamento_id: number; de: SituacaoEquipamento; para: SituacaoEquipamento; motivo: string; em: string }[];
+  return linhas.map((l) => ({ id: l.id, equipamentoId: l.equipamento_id, de: l.de, para: l.para, motivo: l.motivo, em: l.em }));
+}
+
+/** Linhas de histórico (telemetria, alertas, agentes, ocorrências, manutenções, situação) ligadas ao equipamento. */
+export function contarVinculos(db: Database, id: number): number {
+  const linha = db
+    .prepare(
+      `SELECT (SELECT COUNT(*) FROM telemetria_hora WHERE equipamento_id = @id)
+            + (SELECT COUNT(*) FROM alertas WHERE equipamento_id = @id)
+            + (SELECT COUNT(*) FROM agentes WHERE equipamento_id = @id)
+            + (SELECT COUNT(*) FROM ocorrencias WHERE equipamento_id = @id)
+            + (SELECT COUNT(*) FROM manutencoes WHERE equipamento_id = @id)
+            + (SELECT COUNT(*) FROM historico_situacao WHERE equipamento_id = @id) AS n`,
+    )
+    .get({ id }) as { n: number };
+  return linha.n;
+}
+
+export function removerEquipamento(db: Database, id: number): void {
+  db.prepare('DELETE FROM equipamentos WHERE id = ?').run(id);
+}
+
+export function telemetriaDoEquipamento(db: Database, id: number, desdeIso: string): PontoTelemetria[] {
+  const linhas = db
+    .prepare('SELECT hora, leituras, online_min, metricas FROM telemetria_hora WHERE equipamento_id = ? AND hora >= ? ORDER BY hora')
+    .all(id, desdeIso) as { hora: string; leituras: number; online_min: number; metricas: string }[];
+  return linhas.map((l) => ({ hora: l.hora, leituras: l.leituras, onlineMin: l.online_min, metricas: JSON.parse(l.metricas) as Record<string, number> }));
+}
+
+// ---- Listagem e filtros ----
+
+const ATIVO = "e.situacao NOT IN ('desativado', 'nao_instalado')";
+
+type CriterioManutencao = 'imediata' | 'atrasada' | 'proxima' | 'proxima30';
+
+/**
+ * Critérios de manutenção (disjuntos), sempre só para equipamento ativo. `hoje` = data local YYYY-MM-DD.
+ * imediata: necessidade 'imediata' · atrasada: a próxima data já passou · proxima: vence em até 7 dias · proxima30: de 8 a 30 dias.
+ */
+function condicaoManutencao(tipo: CriterioManutencao, hoje: string, params: unknown[]): string {
+  switch (tipo) {
+    case 'imediata':
+      return `(${ATIVO} AND e.manutencao_necessidade = 'imediata')`;
+    case 'atrasada':
+      params.push(hoje);
+      return `(${ATIVO} AND e.manutencao_necessidade <> 'imediata' AND e.proxima_manutencao IS NOT NULL AND e.proxima_manutencao < ?)`;
+    case 'proxima':
+      params.push(hoje, somarDias(hoje, 7));
+      return `(${ATIVO} AND e.manutencao_necessidade <> 'imediata' AND e.proxima_manutencao >= ? AND e.proxima_manutencao <= ?)`;
+    case 'proxima30':
+      params.push(somarDias(hoje, 7), somarDias(hoje, 30));
+      return `(${ATIVO} AND e.manutencao_necessidade <> 'imediata' AND e.proxima_manutencao > ? AND e.proxima_manutencao <= ?)`;
+  }
+}
+
+export function listarEquipamentos(db: Database, f: FiltrosEquipamento, hoje: string): Pagina<Equipamento> {
+  const cond: string[] = [];
+  const params: unknown[] = [];
+  if (f.busca) {
+    cond.push(condicaoBusca(f.busca, ['e.codigo', 'e.numero_serie', 'e.marca', 'e.modelo', 'e.logradouro', 'b.nome'], params));
+  }
+  if (f.tipo) { cond.push('e.tipo = ?'); params.push(f.tipo); }
+  if (f.situacao) { cond.push('e.situacao = ?'); params.push(f.situacao); }
+  if (f.bairroId) { cond.push('e.bairro_id = ?'); params.push(f.bairroId); }
+  if (f.regiao) { cond.push('b.regiao = ?'); params.push(f.regiao); }
+  if (f.orgao) { cond.push('e.orgao = ?'); params.push(f.orgao); }
+  if (f.manutencao) cond.push(condicaoManutencao(f.manutencao, hoje, params));
+  const onde = cond.length ? ` WHERE ${cond.join(' AND ')}` : '';
+
+  const total = (db.prepare(`SELECT COUNT(*) AS n FROM equipamentos e JOIN bairros b ON b.id = e.bairro_id${onde}`).get(...params) as { n: number }).n;
+  const linhas = db
+    .prepare(`${SELECT}${onde} ORDER BY e.codigo LIMIT ? OFFSET ?`)
+    .all(...params, f.porPagina, (f.pagina - 1) * f.porPagina) as LinhaEquipamento[];
+  return { itens: linhas.map(paraEquipamento), total, pagina: f.pagina, porPagina: f.porPagina };
+}
+
+export function painelManutencao(db: Database, hoje: string) {
+  const buscar = (tipo: CriterioManutencao): Equipamento[] => {
+    const params: unknown[] = [];
+    const cond = condicaoManutencao(tipo, hoje, params);
+    const ordem = tipo === 'imediata' ? 'e.codigo' : 'e.proxima_manutencao, e.codigo';
+    return (db.prepare(`${SELECT} WHERE ${cond} ORDER BY ${ordem}`).all(...params) as LinhaEquipamento[]).map(paraEquipamento);
+  };
+  return { atrasadas: buscar('atrasada'), imediatas: buscar('imediata'), proximos7: buscar('proxima'), proximos30: buscar('proxima30') };
+}
