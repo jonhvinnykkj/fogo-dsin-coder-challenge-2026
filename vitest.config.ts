@@ -36,6 +36,8 @@ export default defineConfig({
           name: 'web',
           environment: 'jsdom',
           include: ['web/**/*.test.{ts,tsx}'],
+          // Matchers do jest-dom (toHaveStyle, toBeInTheDocument) e limpeza do DOM entre testes.
+          setupFiles: ['web/src/test/setup.ts'],
         },
       },
     ],

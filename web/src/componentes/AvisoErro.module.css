@@ -1,0 +1,29 @@
+.aviso {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--e-3);
+  padding: var(--e-3) var(--e-4);
+  border-radius: var(--raio);
+  background: var(--cor-erro-fundo);
+  color: var(--cor-texto);
+}
+
+.icone {
+  color: var(--crit-critica);
+}
+
+.texto {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.titulo {
+  display: block;
+  font-weight: 800;
+}
+
+.mensagem {
+  color: var(--cor-erro);
+  font-weight: 600;
+}

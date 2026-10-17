@@ -1,0 +1,94 @@
+// Mapa base de Marília (Leaflet + OpenStreetMap). As telas põem camadas dentro dele (`children`) e podem pegar a
+// instância do mapa por `ref` ou, de dentro, por `useMap()` do react-leaflet.
+// Os blocos do mapa são a única coisa que depende de internet: se falharem, um aviso diz que os dados seguem ao vivo.
+import { WifiSlash } from '@phosphor-icons/react';
+import type { LatLngBoundsExpression, LatLngExpression, Map as MapaLeaflet, TileLayer as CamadaLeaflet } from 'leaflet';
+import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react';
+import { GeoJSON, MapContainer, TileLayer } from 'react-leaflet';
+import { LIMITE_MARILIA } from '../../../shared/geo';
+import '../mapa/configurarLeaflet';
+import estilos from './MapaBase.module.css';
+
+/** Centro da mancha urbana de Marília (meio do limite municipal do OpenStreetMap). */
+export const CENTRO_MARILIA: [number, number] = [-22.2138, -49.9508];
+export const ZOOM_PADRAO = 13;
+/** Limite com folga: dá para olhar em volta, mas não perder a cidade de vista. */
+const LIMITES_NAVEGACAO: LatLngBoundsExpression = [[-22.36, -50.1], [-22.06, -49.8]];
+
+const ATRIBUICAO = '&copy; <a href="https://www.openstreetmap.org/copyright">colaboradores do OpenStreetMap</a>';
+const FALHAS_PARA_AVISAR = 2;
+
+export const MENSAGEM_MAPA_SEM_CONEXAO = 'Mapa sem conexão — os dados continuam atualizados';
+
+interface Props {
+  children?: ReactNode;
+  centro?: LatLngExpression;
+  zoom?: number;
+  /** Contorno tracejado do município. */
+  mostrarLimite?: boolean;
+  /** Nome do mapa para leitores de tela. */
+  rotulo?: string;
+  className?: string;
+  ref?: Ref<MapaLeaflet>;
+}
+
+export function MapaBase({ children, centro = CENTRO_MARILIA, zoom = ZOOM_PADRAO, mostrarLimite = true, rotulo = 'Mapa de Marília', className, ref }: Props) {
+  const [semConexao, setSemConexao] = useState(() => typeof navigator !== 'undefined' && navigator.onLine === false);
+  const falhas = useRef(0);
+  const camada = useRef<CamadaLeaflet>(null);
+
+  useEffect(() => {
+    const caiu = () => setSemConexao(true);
+    const voltou = () => {
+      falhas.current = 0;
+      setSemConexao(false);
+      camada.current?.redraw(); // o Leaflet não tenta de novo os blocos que falharam
+    };
+    window.addEventListener('offline', caiu);
+    window.addEventListener('online', voltou);
+    return () => {
+      window.removeEventListener('offline', caiu);
+      window.removeEventListener('online', voltou);
+    };
+  }, []);
+
+  return (
+    <div className={`${estilos.moldura} ${className ?? ''}`} role="region" aria-label={rotulo}>
+      <MapContainer
+        ref={ref}
+        center={centro}
+        zoom={zoom}
+        minZoom={11}
+        maxBounds={LIMITES_NAVEGACAO}
+        maxBoundsViscosity={0.8}
+        className={estilos.mapa}
+      >
+        <TileLayer
+          ref={camada}
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution={ATRIBUICAO}
+          maxZoom={19}
+          eventHandlers={{
+            tileerror: () => {
+              falhas.current += 1;
+              if (falhas.current >= FALHAS_PARA_AVISAR) setSemConexao(true);
+            },
+            tileload: () => {
+              falhas.current = 0;
+              setSemConexao(false);
+            },
+          }}
+        />
+        {mostrarLimite && <GeoJSON data={LIMITE_MARILIA} interactive={false} style={{ className: estilos.limite, fill: false, weight: 2, dashArray: '6 6' }} />}
+        {children}
+      </MapContainer>
+
+      {semConexao && (
+        <div className={estilos.aviso} role="status">
+          <WifiSlash weight="fill" size={18} aria-hidden="true" />
+          {MENSAGEM_MAPA_SEM_CONEXAO}
+        </div>
+      )}
+    </div>
+  );
+}

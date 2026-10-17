@@ -3,7 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>F.O.G.O.</title>
+    <meta name="description" content="F.O.G.O. — Ferramenta Onisciente de Gestão e Operações de Marília: equipamentos, agentes, operação ao vivo e previsões." />
+    <meta name="theme-color" content="#1e1e1f" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>F.O.G.O. · Marília</title>
+    <script>
+      // Tema escolhido antes de pintar a tela (sem piscar claro → escuro). Claro é o padrão; nunca segue o sistema.
+      try {
+        if (localStorage.getItem('fogo:tema') === 'escuro') document.documentElement.dataset.tema = 'escuro';
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="raiz"></div>

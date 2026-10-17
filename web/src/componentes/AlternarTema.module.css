@@ -1,0 +1,70 @@
+.botao {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-2);
+  height: 36px;
+  padding: 0 var(--e-2) 0 var(--e-3);
+  border: 0;
+  border-radius: var(--raio-pilula);
+  font-size: var(--t-13);
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background-color var(--duracao) var(--curva);
+}
+
+.faixa {
+  background: transparent;
+  color: var(--cor-sobre-faixa);
+}
+
+.faixa:hover {
+  background: var(--cor-faixa-destaque);
+}
+
+.menu {
+  width: 100%;
+  height: 44px;
+  justify-content: flex-start;
+  background: var(--cor-superficie-baixa);
+  color: var(--cor-texto);
+}
+
+.menu > span:first-of-type {
+  flex: 1;
+  text-align: left;
+}
+
+/* chave liga/desliga: trilho quadrado com o laranja quando ligado */
+.chave {
+  position: relative;
+  width: 30px;
+  height: 18px;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-faixa-destaque);
+  transition: background-color var(--duracao) var(--curva);
+}
+
+.menu .chave {
+  background: var(--cor-superficie-alta);
+}
+
+.chave::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--cor-sobre-faixa-suave);
+  transition: transform var(--duracao) var(--curva);
+}
+
+.botao[aria-pressed='true'] .chave {
+  background: var(--cor-fogo);
+}
+
+.botao[aria-pressed='true'] .chave::after {
+  transform: translateX(12px);
+  background: var(--cor-sobre-fogo);
+}

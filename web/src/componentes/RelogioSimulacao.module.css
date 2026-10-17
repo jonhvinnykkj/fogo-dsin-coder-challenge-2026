@@ -1,0 +1,66 @@
+.relogio {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-2);
+  color: var(--cor-sobre-faixa);
+  white-space: nowrap;
+}
+
+.icone {
+  color: var(--cor-sobre-faixa-suave);
+}
+
+.data {
+  color: var(--cor-sobre-faixa-suave);
+  font-size: var(--t-13);
+  font-weight: 600;
+}
+
+.hora {
+  font-size: var(--t-21);
+  font-weight: 800;
+  font-stretch: var(--largura-condensada);
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.segundos {
+  color: var(--cor-sobre-faixa-suave);
+  font-weight: 600;
+  font-size: var(--t-16);
+}
+
+.velocidade {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: var(--raio);
+  background: var(--cor-faixa-destaque);
+  font-size: var(--t-12);
+  font-weight: 800;
+}
+
+.pausada {
+  background: var(--sit-mau-funcionamento);
+  color: #1e1e1f;
+}
+
+@media (max-width: 1180px) {
+  .data {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .icone,
+  .segundos,
+  .velocidade {
+    display: none;
+  }
+
+  .hora {
+    font-size: var(--t-18);
+  }
+}

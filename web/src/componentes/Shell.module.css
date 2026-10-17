@@ -1,0 +1,185 @@
+.casca {
+  display: grid;
+  grid-template-columns: var(--largura-lateral) minmax(0, 1fr);
+  grid-template-rows: var(--altura-faixa) minmax(0, 1fr);
+  grid-template-areas:
+    'faixa faixa'
+    'lateral conteudo';
+  height: 100dvh;
+  transition: grid-template-columns var(--duracao-longa) var(--curva);
+}
+
+.recolhida {
+  grid-template-columns: var(--largura-lateral-recolhida) minmax(0, 1fr);
+}
+
+/* ---- faixa do topo ---- */
+.faixa {
+  grid-area: faixa;
+  display: flex;
+  align-items: center;
+  gap: var(--e-4);
+  padding-right: var(--e-3);
+  background: var(--cor-faixa);
+  color: var(--cor-sobre-faixa);
+  /* foco claro sobre a faixa grafite */
+  --cor-foco: var(--cor-sobre-faixa);
+  --cor-superficie: var(--cor-faixa);
+  z-index: 1;
+}
+
+.marca {
+  align-self: stretch;
+  display: flex;
+  text-decoration: none;
+}
+
+/* A marca é uma placa: laranja-fogo, grafite por cima, letras largas. */
+.placa {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--e-5);
+  background: var(--cor-fogo);
+  color: var(--cor-sobre-fogo);
+  font-size: var(--t-24);
+  font-weight: 900;
+  font-stretch: var(--largura-expandida);
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.subtitulo {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--cor-sobre-faixa-suave);
+  font-size: var(--t-13);
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: var(--e-4);
+  margin-left: auto;
+}
+
+.botaoMenu {
+  display: none;
+  align-items: center;
+  gap: var(--e-2);
+  height: 40px;
+  padding: 0 var(--e-3);
+  border: 0;
+  border-radius: var(--raio-pilula);
+  background: var(--cor-faixa-destaque);
+  color: var(--cor-sobre-faixa);
+  font-size: var(--t-14);
+  font-weight: 700;
+}
+
+/* ---- lateral ---- */
+.lateral {
+  grid-area: lateral;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--cor-superficie-baixa);
+}
+
+.recolhida .lateral {
+  overflow: visible; /* deixa a dica do item aparecer por cima do conteúdo */
+}
+
+/* ---- conteúdo ---- */
+.conteudo {
+  grid-area: conteudo;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.conteudo:focus {
+  outline: none;
+}
+
+.pular {
+  position: absolute;
+  left: var(--e-2);
+  top: -100px;
+  z-index: 2000;
+  padding: var(--e-2) var(--e-3);
+  border-radius: var(--raio);
+  background: var(--cor-fogo);
+  color: var(--cor-sobre-fogo);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.pular:focus {
+  top: var(--e-2);
+}
+
+/* Menu aberto no computador: a placa tem a largura da navegação e o texto alinha com os ícones dela. */
+@media (min-width: 901px) {
+  .casca:not(.recolhida) .placa {
+    width: var(--largura-lateral);
+    padding-left: 20px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .subtitulo {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .casca,
+  .recolhida {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'faixa'
+      'conteudo';
+  }
+
+  .lateral,
+  .temaNaFaixa {
+    display: none;
+  }
+
+  .botaoMenu {
+    display: inline-flex;
+    order: 2;
+  }
+
+  .marca {
+    order: 1;
+  }
+
+  .status {
+    order: 3;
+    gap: var(--e-3);
+  }
+
+  .faixa {
+    gap: var(--e-3);
+  }
+}
+
+@media (max-width: 480px) {
+  .placa {
+    padding: 0 var(--e-3);
+    font-size: var(--t-18);
+  }
+
+  .faixa {
+    gap: var(--e-2);
+    padding-right: var(--e-2);
+  }
+
+  .status {
+    gap: var(--e-2);
+  }
+}

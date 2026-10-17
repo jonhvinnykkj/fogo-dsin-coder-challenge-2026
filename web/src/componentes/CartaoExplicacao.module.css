@@ -1,0 +1,147 @@
+.cartao {
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  padding: var(--e-4) var(--e-5) var(--e-5);
+}
+
+.tituloCartao {
+  font-size: var(--t-18);
+  font-weight: 800;
+}
+
+section.cartao > .tituloCartao {
+  margin-bottom: var(--e-4);
+}
+
+.resumo {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  cursor: pointer;
+  list-style: none;
+}
+
+.resumo::-webkit-details-marker {
+  display: none;
+}
+
+.seta {
+  transition: transform var(--duracao) var(--curva);
+}
+
+details[open] > .resumo {
+  margin-bottom: var(--e-4);
+}
+
+details[open] > .resumo .seta {
+  transform: rotate(180deg);
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: var(--e-5);
+}
+
+.coluna {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-4);
+}
+
+.bloco {
+  max-width: 68ch;
+}
+
+.tituloBloco {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  margin-bottom: 6px;
+  font-size: var(--t-14);
+  font-weight: 800;
+}
+
+.iconeBloco {
+  display: inline-flex;
+  color: var(--cor-fogo);
+}
+
+.bloco p,
+.lista {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-14);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lista li {
+  position: relative;
+  padding-left: 14px;
+}
+
+.lista li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 6px;
+  height: 6px;
+  background: var(--cor-texto-suave);
+}
+
+.confiabilidade {
+  padding: var(--e-4);
+  border-radius: var(--raio);
+  background: var(--cor-superficie-baixa);
+}
+
+.metricas {
+  display: grid;
+  gap: var(--e-3);
+}
+
+.metrica {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  column-gap: var(--e-3);
+  align-items: baseline;
+}
+
+.valor {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  align-self: start;
+  margin: 0;
+  font-size: var(--t-36);
+  font-weight: 800;
+  font-stretch: var(--largura-condensada);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-align: right;
+}
+
+.nome {
+  grid-column: 2;
+  grid-row: 1;
+  font-weight: 700;
+  font-size: var(--t-14);
+}
+
+.descricao {
+  grid-column: 2;
+  grid-row: 2;
+  margin: 0;
+  color: var(--cor-texto-suave);
+  font-size: var(--t-13);
+}
+
+@media (max-width: 900px) {
+  .grade {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,0 +1,73 @@
+.vitrine {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-6);
+}
+
+.cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-1);
+}
+
+.titulo {
+  font-size: var(--t-36);
+  font-stretch: 112%;
+  letter-spacing: -0.01em;
+}
+
+.descricao {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-16);
+}
+
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-3);
+  min-width: 0;
+}
+
+.secao > h2 {
+  font-size: var(--t-18);
+}
+
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--e-2);
+}
+
+.duas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
+  gap: var(--e-6);
+}
+
+.linha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-2);
+}
+
+.tipos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+  gap: var(--e-3) var(--e-4);
+  padding: var(--e-4);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+}
+
+.campos {
+  display: grid;
+  gap: var(--e-4);
+  padding: var(--e-5);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+}
+
+.mapa {
+  flex: 1;
+  min-height: 360px;
+}

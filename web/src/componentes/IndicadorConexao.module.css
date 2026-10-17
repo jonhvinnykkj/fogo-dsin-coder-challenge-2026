@@ -1,0 +1,51 @@
+.indicador {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--raio);
+  font-size: var(--t-13);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.vivo {
+  background: var(--sit-operacional);
+  color: #1e1e1f;
+}
+
+.caiu {
+  background: var(--sit-mau-funcionamento);
+  color: #1e1e1f;
+}
+
+.conectando {
+  background: var(--cor-faixa-destaque);
+  color: var(--cor-sobre-faixa);
+}
+
+/* O único movimento que não vem de um clique: a antena "transmitindo" enquanto há conexão. */
+.pulso {
+  animation: transmitir 2.4s ease-in-out infinite;
+}
+
+.girar {
+  animation: girar 0.9s linear infinite;
+}
+
+@keyframes transmitir {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}

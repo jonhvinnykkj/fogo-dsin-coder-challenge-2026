@@ -1,0 +1,135 @@
+/*
+ * Tokens visuais do F.O.G.O.
+ *
+ * Direção: sinalização viária e sala de operações. Laranja-fogo é a cor da marca e da ação (como a placa de obra:
+ * laranja com grafite por cima). Situações aparecem em blocos de cor cheia, como placas. Superfícies se separam por
+ * degrau de tom, nunca por borda fina. Claro é o padrão; o escuro ("Sala de controle") só liga por escolha do
+ * usuário, com `data-tema="escuro"` no <html>. Não existe `prefers-color-scheme` aqui, de propósito.
+ */
+
+:root {
+  /* ---- marca ---- */
+  --cor-fogo: #f04a00;
+  --cor-sobre-fogo: #1e1e1f; /* grafite sobre laranja: 4,5:1 (AA); branco daria 3,7:1 */
+  --cor-fogo-texto: #b83900; /* laranja que passa AA como texto sobre fundo claro */
+  --cor-fogo-suave: #fde4d6;
+
+  /* ---- neutros (claro) ---- */
+  --cor-fundo: #f2f2ef;
+  --cor-superficie: #ffffff;
+  --cor-superficie-baixa: #e7e7e3; /* lateral, cabeçalho de tabela, campos */
+  --cor-superficie-alta: #dadad5; /* passar o mouse, pressionado */
+  --cor-zebra: #f7f7f5;
+  --cor-texto: #1e1e1f;
+  --cor-texto-suave: #55555a;
+  --cor-texto-fraco: #68686d;
+  --cor-foco: #1e1e1f;
+
+  /* faixa do topo: grafite nos dois temas, como o cabeçalho de um painel de controle */
+  --cor-faixa: #1e1e1f;
+  --cor-sobre-faixa: #f2f2ef;
+  --cor-sobre-faixa-suave: #a8a8ad;
+  --cor-faixa-destaque: #34343a;
+
+  /* bloco neutro (total de equipamentos etc.) */
+  --cor-bloco-neutro: #1e1e1f;
+  --cor-sobre-bloco-neutro: #ffffff;
+
+  /* ---- situação dos equipamentos (iguais nos dois temas; fonte: shared/dominio.ts) ---- */
+  --sit-operacional: #1f9d55;
+  --sit-mau-funcionamento: #e8a400;
+  --sit-em-manutencao: #2f6feb;
+  --sit-desativado: #6b7280;
+  --sit-furtado: #c2185b;
+  --sit-nao-instalado: #9ca3af;
+
+  /* ---- criticidade ---- */
+  --crit-critica: #d92d20;
+  --crit-alta: #f04a00;
+  --crit-media: #e8a400;
+  --crit-baixa: #2f6feb;
+
+  /* ---- mensagens ---- */
+  --cor-erro: #b42318;
+  --cor-erro-fundo: #fbe7e5;
+  --cor-aviso-fundo: #fdf1d0;
+
+  /* ---- tipografia: uma família só (Archivo, local via @fontsource), larguras como hierarquia ---- */
+  --fonte: 'Archivo Variable', 'Archivo', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --largura-condensada: 80%; /* números das placas */
+  --largura-expandida: 125%; /* marca */
+
+  /* escala clássica (Bringhurst): 12 · 13 · 14 · 16 · 18 · 21 · 24 · 36 · 48 */
+  --t-12: 0.75rem;
+  --t-13: 0.8125rem;
+  --t-14: 0.875rem;
+  --t-16: 1rem;
+  --t-18: 1.125rem;
+  --t-21: 1.3125rem;
+  --t-24: 1.5rem;
+  --t-36: 2.25rem;
+  --t-48: 3rem;
+
+  /* ---- espaço (base 4) ---- */
+  --e-1: 4px;
+  --e-2: 8px;
+  --e-3: 12px;
+  --e-4: 16px;
+  --e-5: 24px;
+  --e-6: 32px;
+  --e-7: 48px;
+
+  /* ---- forma ---- */
+  --raio: 4px;
+  --raio-pilula: 999px;
+  --sombra-flutuante: 0 16px 40px rgb(20 20 22 / 0.18), 0 2px 6px rgb(20 20 22 / 0.1);
+  --cor-veu: rgb(30 30 31 / 0.42);
+
+  /* ---- casca ---- */
+  --altura-faixa: 56px;
+  --largura-lateral: 232px;
+  --largura-lateral-recolhida: 64px;
+
+  /* ---- movimento ---- */
+  --duracao: 160ms;
+  --duracao-longa: 240ms;
+  --curva: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* mapa: base dessaturada para as cores de situação saltarem */
+  --filtro-mapa: saturate(0.3) contrast(1.02);
+
+  color-scheme: light;
+}
+
+/* ---- Sala de controle (escuro grafite, só por escolha) ---- */
+:root[data-tema='escuro'] {
+  --cor-fogo-texto: #ff7a3d;
+  --cor-fogo-suave: #4a2615;
+
+  --cor-fundo: #1e1e1f;
+  --cor-superficie: #2a2a2c;
+  --cor-superficie-baixa: #242426;
+  --cor-superficie-alta: #38383b;
+  --cor-zebra: #2f2f32;
+  --cor-texto: #ededea;
+  --cor-texto-suave: #b3b3b8;
+  --cor-texto-fraco: #96969c;
+  --cor-foco: #ededea;
+
+  --cor-faixa: #2a2a2c;
+  --cor-faixa-destaque: #3a3a3e;
+
+  --cor-bloco-neutro: #3a3a3e;
+
+  --cor-erro: #ff8a7f;
+  --cor-erro-fundo: #3d2422;
+  --cor-aviso-fundo: #3d3418;
+
+  --sombra-flutuante: 0 16px 40px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.3);
+  --cor-veu: rgb(10 10 11 / 0.6);
+
+  /* mapa escuro: inverte os blocos do OpenStreetMap e tira a saturação */
+  --filtro-mapa: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.88) saturate(0.25);
+
+  color-scheme: dark;
+}

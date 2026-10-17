@@ -1,0 +1,106 @@
+.gaveta {
+  position: fixed;
+  inset: 0 0 0 auto;
+  height: 100dvh;
+  max-height: 100dvh;
+  max-width: 100vw;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  box-shadow: var(--sombra-flutuante);
+  z-index: 1100; /* acima dos painéis do Leaflet quando não é modal */
+}
+
+.gaveta.esquerda {
+  inset: 0 auto 0 0;
+}
+
+.gaveta::backdrop {
+  background: var(--cor-veu);
+}
+
+.gaveta[open] {
+  animation: entrar-direita var(--duracao-longa) var(--curva);
+}
+
+.gaveta.esquerda[open] {
+  animation-name: entrar-esquerda;
+}
+
+.gaveta[open]::backdrop {
+  animation: velar var(--duracao-longa) var(--curva);
+}
+
+.painel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--e-3);
+  padding: var(--e-4) var(--e-4) var(--e-3) var(--e-5);
+  background: var(--cor-superficie-baixa);
+}
+
+.titulos {
+  min-width: 0;
+  padding-top: 4px;
+}
+
+.titulo {
+  font-size: var(--t-21);
+  line-height: 1.2;
+}
+
+.subtitulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-2);
+  margin-top: var(--e-2);
+  color: var(--cor-texto-suave);
+}
+
+.corpo {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--e-4) var(--e-5) var(--e-5);
+}
+
+.semRecuo {
+  padding: var(--e-2) var(--e-2) var(--e-3);
+}
+
+.rodape {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-2);
+  padding: var(--e-3) var(--e-5);
+  background: var(--cor-superficie-baixa);
+}
+
+@keyframes entrar-direita {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+}
+
+@keyframes entrar-esquerda {
+  from {
+    transform: translateX(-24px);
+    opacity: 0;
+  }
+}
+
+@keyframes velar {
+  from {
+    opacity: 0;
+  }
+}
