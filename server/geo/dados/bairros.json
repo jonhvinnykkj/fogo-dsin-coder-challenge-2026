@@ -4,175 +4,35 @@
     "regiao": "Centro",
     "lat": -22.20925,
     "lng": -49.95622,
-    "cep": "17525-513"
+    "cep": "17505-513"
   },
   {
     "nome": "Banzato",
     "regiao": "Centro",
     "lat": -22.20732,
     "lng": -49.94098,
-    "cep": "17526-566"
-  },
-  {
-    "nome": "Boulevard Park Resort",
-    "regiao": "Leste",
-    "lat": -22.2144,
-    "lng": -49.91623,
-    "cep": "17500-171"
+    "cep": "17506-566"
   },
   {
     "nome": "Cavalieri",
     "regiao": "Oeste",
     "lat": -22.21038,
     "lng": -49.96588,
-    "cep": "17511-343"
+    "cep": "17531-343"
   },
   {
-    "nome": "Chácara dos Laranjais",
-    "regiao": "Leste",
-    "lat": -22.22925,
-    "lng": -49.90766,
-    "cep": "17507-931"
+    "nome": "Centro",
+    "regiao": "Centro",
+    "lat": -22.2172,
+    "lng": -49.95001,
+    "cep": "17504-706"
   },
   {
     "nome": "Chico Mendes",
     "regiao": "Oeste",
     "lat": -22.22296,
     "lng": -49.97093,
-    "cep": "17501-563"
-  },
-  {
-    "nome": "Condominio Allegra",
-    "regiao": "Leste",
-    "lat": -22.22404,
-    "lng": -49.90222,
-    "cep": "17536-632"
-  },
-  {
-    "nome": "Condomínio Garden Park",
-    "regiao": "Norte",
-    "lat": -22.19812,
-    "lng": -49.94013,
-    "cep": "17525-414"
-  },
-  {
-    "nome": "Condomínio Jardim Ismael",
-    "regiao": "Oeste",
-    "lat": -22.21526,
-    "lng": -49.97436,
-    "cep": "17506-255"
-  },
-  {
-    "nome": "Condomínio Maia Star Club",
-    "regiao": "Norte",
-    "lat": -22.17451,
-    "lng": -49.96633,
-    "cep": "17506-952"
-  },
-  {
-    "nome": "Condomínio Parque das Américas",
-    "regiao": "Leste",
-    "lat": -22.2328,
-    "lng": -49.91666,
-    "cep": "17535-116"
-  },
-  {
-    "nome": "Condomínio Parque Marrakesh",
-    "regiao": "Oeste",
-    "lat": -22.21457,
-    "lng": -49.972,
-    "cep": "17500-135"
-  },
-  {
-    "nome": "Condomínio Parque Salé",
-    "regiao": "Oeste",
-    "lat": -22.21673,
-    "lng": -49.97196,
-    "cep": "17525-574"
-  },
-  {
-    "nome": "Condomínio ParqueCasablanca",
-    "regiao": "Oeste",
-    "lat": -22.21799,
-    "lng": -49.97244,
-    "cep": "17511-355"
-  },
-  {
-    "nome": "Condomínio Praças Esmeraldas",
-    "regiao": "Leste",
-    "lat": -22.22545,
-    "lng": -49.90317,
-    "cep": "17507-427"
-  },
-  {
-    "nome": "Condomínio Residencial Recanto das Esmeraldas I",
-    "regiao": "Leste",
-    "lat": -22.21985,
-    "lng": -49.91311,
-    "cep": "17505-039"
-  },
-  {
-    "nome": "Condomínio Residencial Recanto das Esmeraldas II",
-    "regiao": "Leste",
-    "lat": -22.21979,
-    "lng": -49.90942,
-    "cep": "17528-713"
-  },
-  {
-    "nome": "Condomínio Residencial Solar",
-    "regiao": "Leste",
-    "lat": -22.22617,
-    "lng": -49.91736,
-    "cep": "17506-668"
-  },
-  {
-    "nome": "Condomínio Santa Gertrudes",
-    "regiao": "Norte",
-    "lat": -22.18061,
-    "lng": -49.91462,
-    "cep": "17538-090"
-  },
-  {
-    "nome": "Condomínio Tanger",
-    "regiao": "Oeste",
-    "lat": -22.21573,
-    "lng": -49.97362,
-    "cep": "17509-880"
-  },
-  {
-    "nome": "Condomínio Vila Flora III",
-    "regiao": "Oeste",
-    "lat": -22.18891,
-    "lng": -49.97627,
-    "cep": "17539-609"
-  },
-  {
-    "nome": "Condomínio Village Damha Marília",
-    "regiao": "Norte",
-    "lat": -22.1734,
-    "lng": -49.92071,
-    "cep": "17516-896"
-  },
-  {
-    "nome": "Condomínio Village do Bosque",
-    "regiao": "Norte",
-    "lat": -22.19227,
-    "lng": -49.93427,
-    "cep": "17508-618"
-  },
-  {
-    "nome": "Conjunto Habitacional Vila dos Comerciários I",
-    "regiao": "Oeste",
-    "lat": -22.2195,
-    "lng": -49.98119,
-    "cep": "17531-158"
-  },
-  {
-    "nome": "Conjunto Residencial Sargento José Carlos Alves Ferreira",
-    "regiao": "Oeste",
-    "lat": -22.21272,
-    "lng": -49.97747,
-    "cep": "17537-745"
+    "cep": "17531-563"
   },
   {
     "nome": "Expedicionário Alberto Herreira",
@@ -186,21 +46,21 @@
     "regiao": "Sul",
     "lat": -22.22815,
     "lng": -49.93339,
-    "cep": "17511-751"
+    "cep": "17516-751"
   },
   {
     "nome": "Higienópolis",
     "regiao": "Oeste",
     "lat": -22.22724,
     "lng": -49.97151,
-    "cep": "17517-130"
+    "cep": "17537-130"
   },
   {
     "nome": "Jardim Bandeirantes",
     "regiao": "Oeste",
     "lat": -22.20238,
     "lng": -49.96621,
-    "cep": "17502-385"
+    "cep": "17532-385"
   },
   {
     "nome": "Jardim California",
@@ -214,7 +74,7 @@
     "regiao": "Sul",
     "lat": -22.23544,
     "lng": -49.93734,
-    "cep": "17526-331"
+    "cep": "17516-331"
   },
   {
     "nome": "Jardim Cavallari",
@@ -228,56 +88,49 @@
     "regiao": "Sul",
     "lat": -22.24224,
     "lng": -49.92861,
-    "cep": "17513-255"
+    "cep": "17518-255"
   },
   {
     "nome": "Jardim Continental",
     "regiao": "Sul",
     "lat": -22.23887,
     "lng": -49.93466,
-    "cep": "17537-011"
+    "cep": "17517-011"
   },
   {
     "nome": "Jardim D'Itália",
     "regiao": "Oeste",
     "lat": -22.21517,
     "lng": -49.96684,
-    "cep": "17523-997"
+    "cep": "17533-997"
   },
   {
     "nome": "Jardim Damasco I",
     "regiao": "Leste",
     "lat": -22.23452,
     "lng": -49.91263,
-    "cep": "17519-636"
+    "cep": "17529-636"
   },
   {
     "nome": "Jardim Damasco II",
     "regiao": "Leste",
     "lat": -22.23591,
     "lng": -49.90911,
-    "cep": "17538-244"
-  },
-  {
-    "nome": "Jardim Damasco III",
-    "regiao": "Leste",
-    "lat": -22.2328,
-    "lng": -49.90434,
-    "cep": "17505-072"
+    "cep": "17528-244"
   },
   {
     "nome": "Jardim das Pérolas",
     "regiao": "Oeste",
     "lat": -22.20387,
     "lng": -49.96862,
-    "cep": "17508-297"
+    "cep": "17538-297"
   },
   {
     "nome": "Jardim Domingos de Leo",
     "regiao": "Sul",
     "lat": -22.2612,
     "lng": -49.93053,
-    "cep": "17529-340"
+    "cep": "17519-340"
   },
   {
     "nome": "Jardim Eldorado",
@@ -291,77 +144,35 @@
     "regiao": "Sul",
     "lat": -22.24221,
     "lng": -49.91814,
-    "cep": "17529-325"
-  },
-  {
-    "nome": "Jardim Europa",
-    "regiao": "Norte",
-    "lat": -22.19338,
-    "lng": -49.93579,
-    "cep": "17502-458"
-  },
-  {
-    "nome": "Jardim Flamingo",
-    "regiao": "Oeste",
-    "lat": -22.25254,
-    "lng": -49.99209,
-    "cep": "17521-965"
+    "cep": "17519-325"
   },
   {
     "nome": "Jardim Guaruja",
     "regiao": "Sul",
     "lat": -22.23643,
     "lng": -49.9303,
-    "cep": "17523-306"
+    "cep": "17518-306"
   },
   {
     "nome": "Jardim Itaipu",
     "regiao": "Sul",
     "lat": -22.23435,
     "lng": -49.9344,
-    "cep": "17512-252"
-  },
-  {
-    "nome": "Jardim Itamarati",
-    "regiao": "Leste",
-    "lat": -22.19929,
-    "lng": -49.92832,
-    "cep": "17520-128"
-  },
-  {
-    "nome": "Jardim Jequitiba",
-    "regiao": "Norte",
-    "lat": -22.19582,
-    "lng": -49.93093,
-    "cep": "17536-155"
-  },
-  {
-    "nome": "Jardim Julieta",
-    "regiao": "Norte",
-    "lat": -22.16598,
-    "lng": -49.97564,
-    "cep": "17518-132"
-  },
-  {
-    "nome": "Jardim Luciana",
-    "regiao": "Norte",
-    "lat": -22.18532,
-    "lng": -49.93435,
-    "cep": "17507-650"
+    "cep": "17517-252"
   },
   {
     "nome": "Jardim Marajó",
     "regiao": "Sul",
     "lat": -22.24643,
     "lng": -49.91871,
-    "cep": "17512-961"
+    "cep": "17517-961"
   },
   {
     "nome": "Jardim Maria Izabel",
     "regiao": "Leste",
-    "lat": -22.21294,
-    "lng": -49.93013,
-    "cep": "17535-873"
+    "lat": -22.22418,
+    "lng": -49.93132,
+    "cep": "17525-873"
   },
   {
     "nome": "Jardim Morumbi",
@@ -375,21 +186,21 @@
     "regiao": "Norte",
     "lat": -22.19717,
     "lng": -49.96342,
-    "cep": "17523-791"
+    "cep": "17513-791"
   },
   {
     "nome": "Jardim Parati",
     "regiao": "Sul",
     "lat": -22.23018,
     "lng": -49.93687,
-    "cep": "17509-048"
+    "cep": "17519-048"
   },
   {
     "nome": "Jardim Pérola",
     "regiao": "Oeste",
     "lat": -22.19883,
     "lng": -49.9685,
-    "cep": "17515-259"
+    "cep": "17535-259"
   },
   {
     "nome": "Jardim Planalto",
@@ -403,35 +214,35 @@
     "regiao": "Oeste",
     "lat": -22.22571,
     "lng": -49.96891,
-    "cep": "17528-881"
+    "cep": "17538-881"
   },
   {
     "nome": "Jardim Portal do Sol",
     "regiao": "Sul",
     "lat": -22.23375,
     "lng": -49.94038,
-    "cep": "17529-204"
+    "cep": "17519-204"
   },
   {
     "nome": "Jardim Santa Paula",
     "regiao": "Sul",
     "lat": -22.25,
     "lng": -49.91638,
-    "cep": "17520-996"
+    "cep": "17515-996"
   },
   {
     "nome": "Jardim Sao Vicente de Paulo",
     "regiao": "Sul",
     "lat": -22.24973,
     "lng": -49.94606,
-    "cep": "17505-212"
+    "cep": "17515-212"
   },
   {
     "nome": "Jardim Teotonio Vilela",
     "regiao": "Sul",
     "lat": -22.251,
     "lng": -49.94244,
-    "cep": "17530-943"
+    "cep": "17515-943"
   },
   {
     "nome": "Jardim Tropical",
@@ -445,98 +256,77 @@
     "regiao": "Oeste",
     "lat": -22.23352,
     "lng": -49.97939,
-    "cep": "17526-461"
+    "cep": "17536-461"
   },
   {
     "nome": "Jardim Veneza",
     "regiao": "Oeste",
     "lat": -22.218,
     "lng": -49.98626,
-    "cep": "17513-104"
+    "cep": "17533-104"
   },
   {
     "nome": "Jardim Virgínia",
     "regiao": "Oeste",
     "lat": -22.20165,
     "lng": -49.97073,
-    "cep": "17523-132"
+    "cep": "17533-132"
   },
   {
     "nome": "Joquei Club",
     "regiao": "Leste",
     "lat": -22.23555,
     "lng": -49.91738,
-    "cep": "17534-861"
-  },
-  {
-    "nome": "Lácio",
-    "regiao": "Leste",
-    "lat": -22.22105,
-    "lng": -49.88771,
-    "cep": "17523-445"
+    "cep": "17524-861"
   },
   {
     "nome": "Lorenzetti",
     "regiao": "Norte",
     "lat": -22.1986,
     "lng": -49.96145,
-    "cep": "17531-208"
+    "cep": "17511-208"
   },
   {
     "nome": "Luiz Homero Zaninotto",
     "regiao": "Sul",
     "lat": -22.25367,
     "lng": -49.91943,
-    "cep": "17503-850"
+    "cep": "17518-850"
   },
   {
     "nome": "Maria Izabel",
     "regiao": "Centro",
     "lat": -22.20739,
     "lng": -49.93734,
-    "cep": "17518-258"
-  },
-  {
-    "nome": "Moradas do Bosque",
-    "regiao": "Norte",
-    "lat": -22.20216,
-    "lng": -49.93657,
-    "cep": "17534-290"
+    "cep": "17508-258"
   },
   {
     "nome": "Nova Marília",
     "regiao": "Sul",
     "lat": -22.2485,
     "lng": -49.92998,
-    "cep": "17500-067"
+    "cep": "17515-067"
   },
   {
     "nome": "Núcleo Habitacional Bela Vista",
     "regiao": "Oeste",
     "lat": -22.21242,
     "lng": -49.96546,
-    "cep": "17510-114"
+    "cep": "17530-114"
   },
   {
     "nome": "Núcleo Habitacional Chico Mendes",
     "regiao": "Oeste",
     "lat": -22.22195,
     "lng": -49.97337,
-    "cep": "17501-861"
+    "cep": "17531-861"
   },
   {
     "nome": "Núcleo Habitacional José Teruel Martinez",
     "regiao": "Oeste",
     "lat": -22.21766,
     "lng": -49.9794,
-    "cep": "17507-771"
-  },
-  {
-    "nome": "Oswaldo Fanceli",
-    "regiao": "Norte",
-    "lat": -22.16022,
-    "lng": -49.97498,
-    "cep": "17526-082"
+    "cep": "17537-771"
   },
   {
     "nome": "Palmital",
@@ -557,35 +347,35 @@
     "regiao": "Leste",
     "lat": -22.22245,
     "lng": -49.91228,
-    "cep": "17510-926"
+    "cep": "17520-926"
   },
   {
     "nome": "Parque das Vivendas",
     "regiao": "Oeste",
     "lat": -22.22977,
     "lng": -49.97881,
-    "cep": "17509-248"
+    "cep": "17539-248"
   },
   {
     "nome": "Parque das Vivendas II",
     "regiao": "Oeste",
     "lat": -22.2284,
     "lng": -49.98,
-    "cep": "17513-732"
+    "cep": "17533-732"
   },
   {
     "nome": "Parque dos Ipes",
     "regiao": "Sul",
     "lat": -22.25475,
     "lng": -49.94244,
-    "cep": "17504-841"
+    "cep": "17519-841"
   },
   {
     "nome": "Parque Mirabilis",
     "regiao": "Oeste",
     "lat": -22.22911,
     "lng": -49.97266,
-    "cep": "17519-148"
+    "cep": "17539-148"
   },
   {
     "nome": "Parque São Jorge",
@@ -599,188 +389,69 @@
     "regiao": "Oeste",
     "lat": -22.20341,
     "lng": -49.96069,
-    "cep": "17500-986"
-  },
-  {
-    "nome": "Pedra Verde Residencial",
-    "regiao": "Leste",
-    "lat": -22.22526,
-    "lng": -49.92047,
-    "cep": "17500-348"
-  },
-  {
-    "nome": "Quadrado",
-    "regiao": "Sul",
-    "lat": -22.24472,
-    "lng": -49.93849,
-    "cep": "17502-257"
-  },
-  {
-    "nome": "Reserva do Palmital I",
-    "regiao": "Norte",
-    "lat": -22.1993,
-    "lng": -49.95146,
-    "cep": "17531-930"
-  },
-  {
-    "nome": "Reserva do Palmital II",
-    "regiao": "Norte",
-    "lat": -22.19891,
-    "lng": -49.9508,
-    "cep": "17502-269"
-  },
-  {
-    "nome": "Residencial Arezzo I",
-    "regiao": "Oeste",
-    "lat": -22.24039,
-    "lng": -49.98427,
-    "cep": "17506-584"
-  },
-  {
-    "nome": "Residencial Belle Ville",
-    "regiao": "Leste",
-    "lat": -22.21199,
-    "lng": -49.92721,
-    "cep": "17510-160"
-  },
-  {
-    "nome": "Residencial de Recreio Maria Izabel",
-    "regiao": "Leste",
-    "lat": -22.21238,
-    "lng": -49.91714,
-    "cep": "17525-516"
-  },
-  {
-    "nome": "Residencial Firenze",
-    "regiao": "Oeste",
-    "lat": -22.21535,
-    "lng": -49.98503,
-    "cep": "17521-337"
-  },
-  {
-    "nome": "Residencial Girassóis",
-    "regiao": "Norte",
-    "lat": -22.18679,
-    "lng": -49.93542,
-    "cep": "17506-039"
-  },
-  {
-    "nome": "Residencial Portal dos Nobres",
-    "regiao": "Leste",
-    "lat": -22.22588,
-    "lng": -49.91031,
-    "cep": "17509-918"
-  },
-  {
-    "nome": "Residencial Viver Bosque",
-    "regiao": "Norte",
-    "lat": -22.19558,
-    "lng": -49.93479,
-    "cep": "17517-398"
-  },
-  {
-    "nome": "Serra Dourada",
-    "regiao": "Sul",
-    "lat": -22.25813,
-    "lng": -49.98311,
-    "cep": "17506-700"
-  },
-  {
-    "nome": "Silenzio Esmeralda",
-    "regiao": "Leste",
-    "lat": -22.21206,
-    "lng": -49.90519,
-    "cep": "17512-720"
+    "cep": "17530-986"
   },
   {
     "nome": "Sítios de Recreio Céu Azul",
     "regiao": "Oeste",
     "lat": -22.23791,
     "lng": -49.97734,
-    "cep": "17523-564"
+    "cep": "17533-564"
   },
   {
     "nome": "Somenzari",
     "regiao": "Centro",
     "lat": -22.20704,
     "lng": -49.95417,
-    "cep": "17517-639"
-  },
-  {
-    "nome": "Terras de Santana",
-    "regiao": "Oeste",
-    "lat": -22.24688,
-    "lng": -50.0014,
-    "cep": "17533-155"
-  },
-  {
-    "nome": "Vale do Canaã",
-    "regiao": "Sul",
-    "lat": -22.2689,
-    "lng": -49.97699,
-    "cep": "17506-166"
-  },
-  {
-    "nome": "Verana Parque Alvorada",
-    "regiao": "Oeste",
-    "lat": -22.25715,
-    "lng": -49.99644,
-    "cep": "17512-510"
+    "cep": "17507-639"
   },
   {
     "nome": "Vereador Eduardo Andrade Rei",
     "regiao": "Oeste",
     "lat": -22.23665,
     "lng": -49.98276,
-    "cep": "17524-986"
+    "cep": "17534-986"
   },
   {
     "nome": "Vila Argolo Ferrão",
     "regiao": "Oeste",
     "lat": -22.21729,
     "lng": -49.96826,
-    "cep": "17512-468"
+    "cep": "17532-468"
   },
   {
     "nome": "Vila Maria",
     "regiao": "Oeste",
     "lat": -22.22439,
     "lng": -49.97217,
-    "cep": "17505-034"
+    "cep": "17535-034"
   },
   {
     "nome": "Vila Mariana",
     "regiao": "Norte",
     "lat": -22.20261,
     "lng": -49.95446,
-    "cep": "17500-114"
+    "cep": "17510-114"
   },
   {
-    "nome": "Vila Operária da  Alimentação II",
+    "nome": "Vila Operária da Alimentação II",
     "regiao": "Sul",
     "lat": -22.24616,
     "lng": -49.91466,
-    "cep": "17507-269"
+    "cep": "17515-123"
   },
   {
     "nome": "Vila Real",
     "regiao": "Sul",
     "lat": -22.24751,
     "lng": -49.94253,
-    "cep": "17513-508"
-  },
-  {
-    "nome": "Vila Romana",
-    "regiao": "Norte",
-    "lat": -22.18594,
-    "lng": -49.92847,
-    "cep": "17509-751"
+    "cep": "17518-508"
   },
   {
     "nome": "Vila Tofolli",
     "regiao": "Sul",
     "lat": -22.24444,
     "lng": -49.94005,
-    "cep": "17522-488"
+    "cep": "17517-488"
   }
 ]
