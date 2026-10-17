@@ -9,6 +9,16 @@ export function formatarPct(n: number): string {
   return `${formatarNumero(n, 1)}%`;
 }
 
+/**
+ * Chance de 0 a 1 como texto ("13%"). O modelo nunca dá certeza: nas pontas fica "mais de 99%" e "menos de 1%", em vez de
+ * "100%" ou "0%" (com λ alto a probabilidade guardada chega a 0,9999). Lê bem na frase: "mais de 99% de chance de falhar".
+ */
+export function formatarChance(p: number): string {
+  if (p >= 0.995) return 'mais de 99%';
+  if (p < 0.005) return 'menos de 1%';
+  return `${formatarNumero(p * 100, 0)}%`;
+}
+
 const fmtData = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, day: '2-digit', month: '2-digit', year: 'numeric' });
 const fmtHora = new Intl.DateTimeFormat('pt-BR', { timeZone: FUSO, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 

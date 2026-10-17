@@ -80,6 +80,14 @@
   text-align: right;
 }
 
+/* "mais de 99%" / "menos de 1%": mesma placa de texto, menor, para caber ao lado da barra */
+.pct[data-ponta] {
+  min-width: 0;
+  font-size: var(--t-16);
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
 .trilho {
   flex: 1;
   height: 10px;

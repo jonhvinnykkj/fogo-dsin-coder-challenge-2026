@@ -34,6 +34,8 @@ const IDS = SECOES.map((s) => s.id);
 const icone = (id: string) => SECOES.find((s) => s.id === id)!.icone;
 
 const DIA_MS = 24 * 3_600_000;
+/** Máximo de anomalias pedidas (a API não devolve o total; a lista avisa "200+" quando vem cheia). */
+const LIMITE_ANOMALIAS = 200;
 
 export default function Previsoes() {
   const resumo = usePrevisao('resumo');
@@ -46,7 +48,7 @@ export default function Previsoes() {
   const tendencias = usePrevisao('tendencias');
   // "Desde" fixo ao abrir a página: uma chave estável para o cache (o tempo real acrescenta as novas por cima).
   const [desde] = useState(() => new Date(Date.now() - DIA_MS).toISOString());
-  const anomalias = useAlertas({ tipo: 'anomalia_leitura', status: 'todos', desde, limite: 200 });
+  const anomalias = useAlertas({ tipo: 'anomalia_leitura', status: 'todos', desde, limite: LIMITE_ANOMALIAS });
   const bairros = useBairros();
   const [ativa, marcarAtiva] = useSecaoAtiva(IDS);
 
@@ -183,7 +185,7 @@ export default function Previsoes() {
           explicacao={() => EXPLICACAO_ANOMALIAS}
           tituloExplicacao="Como a detecção funciona"
         >
-          {(a) => <ListaAnomalias alertas={a} bairros={bairros.data} />}
+          {(a) => <ListaAnomalias alertas={a} bairros={bairros.data} limite={LIMITE_ANOMALIAS} />}
         </SecaoPrevisao>
 
         <SecaoPrevisao

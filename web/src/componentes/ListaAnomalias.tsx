@@ -33,11 +33,16 @@ export const EXPLICACAO_ANOMALIAS: ExplicacaoPrevisao = {
 interface Props {
   alertas: Alerta[];
   bairros: Bairro[] | undefined;
+  /**
+   * Limite da consulta (`/api/alertas` devolve no máximo `limite`, mais recentes primeiro, sem o total). Se vier exatamente
+   * o limite, pode haver mais: a contagem vira "200+" e as abertas são contadas entre as mais recentes.
+   */
+  limite?: number;
 }
 
 const situacao = (a: Alerta) => (!a.resolvidoEm ? 'Aberta' : a.resolucao === 'automatica' ? 'Fechou sozinha' : 'Resolvida');
 
-export function ListaAnomalias({ alertas, bairros }: Props) {
+export function ListaAnomalias({ alertas, bairros, limite }: Props) {
   const agora = useAgora(30_000);
   const [mostrar, setMostrar] = useState(POR_VEZ);
   const nomes = useMemo(() => new Map((bairros ?? []).map((b) => [b.id, b.nome])), [bairros]);
@@ -59,10 +64,17 @@ export function ListaAnomalias({ alertas, bairros }: Props) {
 
   return (
     <div className={estilos.anomalias}>
-      <p className={estilos.resumo}>
-        <strong className="numeros">{formatarNumero(alertas.length)}</strong> {alertas.length === 1 ? 'leitura fora do normal' : 'leituras fora do normal'} nas últimas 24 horas;{' '}
-        <strong className="numeros">{formatarNumero(abertas)}</strong> {abertas === 1 ? 'continua aberta' : 'continuam abertas'}.
-      </p>
+      {limite !== undefined && alertas.length >= limite ? (
+        <p className={estilos.resumo}>
+          <strong className="numeros">{formatarNumero(limite)}+</strong> leituras fora do normal nas últimas 24 horas. Entre as {formatarNumero(limite)} mais recentes,{' '}
+          <strong className="numeros">{formatarNumero(abertas)}</strong> {abertas === 1 ? 'continua aberta' : 'continuam abertas'}.
+        </p>
+      ) : (
+        <p className={estilos.resumo}>
+          <strong className="numeros">{formatarNumero(alertas.length)}</strong> {alertas.length === 1 ? 'leitura fora do normal' : 'leituras fora do normal'} nas últimas 24 horas;{' '}
+          <strong className="numeros">{formatarNumero(abertas)}</strong> {abertas === 1 ? 'continua aberta' : 'continuam abertas'}.
+        </p>
+      )}
 
       <ul className={estilos.lista}>
         {ordenadas.slice(0, mostrar).map((a) => {

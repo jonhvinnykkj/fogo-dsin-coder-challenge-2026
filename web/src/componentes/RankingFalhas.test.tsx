@@ -50,6 +50,20 @@ describe('RankingFalhas', () => {
     expect(screen.queryByText('FOGO-CAM-0021')).not.toBeInTheDocument();
   });
 
+  it('chance muito alta aparece como "mais de 99%" (nunca "100%"), na linha, no medidor e na descrição sugerida', async () => {
+    const quaseCerta = [{ ...ITENS[0]!, probabilidade: 0.9967 }, ...ITENS.slice(1)];
+    montar(<RankingFalhas itens={quaseCerta} />);
+    const primeira = screen.getAllByRole('listitem', { name: /FOGO-CAM-/ })[0]!;
+    expect(primeira).toHaveAccessibleName('FOGO-CAM-0001, mais de 99% de chance de falhar em 7 dias');
+    expect(within(primeira).getByText('mais de 99%')).toBeInTheDocument();
+    expect(within(primeira).getByRole('meter', { name: /chance de falhar/i })).toHaveAttribute('aria-valuetext', 'mais de 99%');
+    expect(screen.queryByText('100%')).not.toBeInTheDocument();
+    fireEvent.click(within(primeira).getByRole('button', { name: /agendar manutenção/i }));
+    const dialogo = await screen.findByRole('dialog');
+    const descricao = within(dialogo).getByLabelText('Descrição') as HTMLTextAreaElement;
+    expect(descricao.value.startsWith('Revisão preventiva: mais de 99% de chance de falhar nos próximos 7 dias.')).toBe(true);
+  });
+
   it('"Agendar manutenção" abre o diálogo em "Prevista para uma data" e envia previstaPara para o equipamento da linha', async () => {
     montar(<RankingFalhas itens={ITENS} />);
     const segunda = screen.getAllByRole('listitem', { name: /FOGO-CAM-/ })[1]!;

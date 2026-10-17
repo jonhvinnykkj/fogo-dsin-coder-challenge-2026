@@ -30,6 +30,37 @@ describe('corDaCelula', () => {
   });
 });
 
+/** Matiz (graus), saturação e luminosidade (0 a 1) de "#RRGGBB" — para checar a família da cor. */
+function hsl(hex: string): { h: number; s: number; l: number } {
+  const [r, g, b] = [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16) / 255) as [number, number, number];
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  const d = max - min;
+  if (d === 0) return { h: 0, s: 0, l };
+  const s = d / (1 - Math.abs(2 * l - 1));
+  const h = max === r ? 60 * (((g - b) / d) % 6) : max === g ? 60 * ((b - r) / d + 2) : 60 * ((r - g) / d + 4);
+  return { h: (h + 360) % 360, s, l };
+}
+
+describe('escala no tema escuro', () => {
+  // Cinza → amarelo em linha reta passa por amarelo escuro, que é oliva/barro (#968650 no meio). Os tons escuros do risco
+  // baixo têm de ser neutros (pouca saturação) ou âmbar (matiz até 40°), da família do laranja-fogo.
+  it('o risco baixo não passa por oliva: abaixo de 50% de luminosidade, neutro ou âmbar', () => {
+    for (let i = 0; i <= 25; i += 0.5) {
+      const cor = corDaCelula(i, 'escuro');
+      const { h, s, l } = hsl(cor);
+      if (l < 0.5) expect(s < 0.15 || h <= 40, `índice ${i}: ${cor} (matiz ${h.toFixed(0)}°, saturação ${s.toFixed(2)})`).toBe(true);
+    }
+  });
+
+  it('o tema claro não muda: do fundo ao amarelo em linha reta', () => {
+    expect(corDaCelula(0, 'claro')).toBe('#E9E9E4');
+    expect(corDaCelula(12.5, 'claro')).toBe('#EFDFA5'); // meio exato entre #E9E9E4 e #F5D565
+    expect(corDaCelula(25, 'claro')).toBe(COR_NIVEL_RISCO.baixo);
+  });
+});
+
 describe('horários em São Paulo', () => {
   it('hora local, dia da semana e faixa de horas', () => {
     expect(horaLocal('2026-10-17T21:00:00.000Z')).toBe(18);

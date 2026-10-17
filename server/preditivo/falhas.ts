@@ -20,7 +20,7 @@
 // O teste retroativo refaz a conta como se fosse 7 dias atrás e compara com as falhas que de fato aconteceram.
 import type { Database } from 'better-sqlite3';
 import type { SituacaoEquipamento } from '../../shared/dominio';
-import { formatarNumero } from '../../shared/formato';
+import { formatarChance, formatarNumero } from '../../shared/formato';
 import type { ExplicacaoPrevisao, RespostaFalhas, RiscoFalha } from '../../shared/modelos';
 import { NOME_DO_TIPO, type TipoEquipamentoId } from '../../shared/tipos-equipamento';
 import { dataLocal } from '../tempo';
@@ -198,7 +198,7 @@ function explicarFalhas(itens: RiscoFalha[], falhasJanela: number, retro: Retroa
       'Telemetria das últimas 72 horas: horas em que o equipamento ficou menos de 55 minutos conectado',
     ],
     comoAjuda: primeiro
-      ? `Diz qual equipamento revisar antes que pare: ${acimaDe30} com 30% ou mais de chance; o primeiro da fila é ${primeiro.codigo} (${NOME_DO_TIPO[primeiro.tipo][0]}, ${formatarNumero(primeiro.probabilidade * 100, 0)}%). No total, cerca de ${formatarNumero(esperadas, 0)} falhas esperadas na semana.`
+      ? `Diz qual equipamento revisar antes que pare: ${acimaDe30} com 30% ou mais de chance; o primeiro da fila é ${primeiro.codigo} (${NOME_DO_TIPO[primeiro.tipo][0]}, ${formatarChance(primeiro.probabilidade)}). No total, cerca de ${formatarNumero(esperadas, 0)} falhas esperadas na semana.`
       : 'Diz qual equipamento revisar antes que pare.',
     confiabilidade: [
       {

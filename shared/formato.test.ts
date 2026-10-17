@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatarData, formatarDataHora, formatarNumero, formatarPct, formatarRelativo } from './formato';
+import { formatarChance, formatarData, formatarDataHora, formatarNumero, formatarPct, formatarRelativo } from './formato';
 
 describe('formato pt-BR', () => {
   it('números', () => {
@@ -13,6 +13,19 @@ describe('formato pt-BR', () => {
     expect(formatarData('2026-10-17T15:00:00Z')).toBe('17/10/2026');
     expect(formatarDataHora('2026-10-17T15:00:00Z')).toBe('17/10/2026 12:00');
     expect(formatarData('2026-10-18T01:00:00Z')).toBe('17/10/2026');
+  });
+  // Chance de falha: o modelo nunca dá certeza, então as pontas não viram "100%" nem "0%".
+  it('chance (0 a 1) sem prometer certeza nas pontas', () => {
+    expect(formatarChance(0.9999)).toBe('mais de 99%');
+    expect(formatarChance(0.995)).toBe('mais de 99%');
+    expect(formatarChance(1)).toBe('mais de 99%');
+    expect(formatarChance(0.994)).toBe('99%');
+    expect(formatarChance(0.5)).toBe('50%');
+    expect(formatarChance(0.126)).toBe('13%');
+    expect(formatarChance(0.005)).toBe('1%');
+    expect(formatarChance(0.004)).toBe('menos de 1%');
+    expect(formatarChance(0)).toBe('menos de 1%');
+    expect(`${formatarChance(0.9999)} de chance de falhar nos próximos 7 dias`).toBe('mais de 99% de chance de falhar nos próximos 7 dias');
   });
   it('relativo', () => {
     const agora = new Date('2026-10-17T15:00:00Z');

@@ -4,6 +4,7 @@
 import { CalendarCheck, CheckCircle } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { formatarChance } from '../../../shared/formato';
 import type { RiscoFalha } from '../../../shared/modelos';
 import type { ManutencaoInput } from '../../../shared/schemas';
 import { formatarDia, hojeIso } from '../util/datas';
@@ -15,7 +16,7 @@ import estilos from './RankingFalhas.module.css';
 
 export const TAMANHO_RANKING = 20;
 
-/** Chance em décimos de ponto (97,5) e em pontos inteiros para ler (98%). */
+/** Chance em décimos de ponto (97,5) para o medidor e a barra; o texto vem de `formatarChance` ("98%", "mais de 99%"). */
 const chance = (p: number) => Math.round(p * 1000) / 10;
 
 /** Amanhã em São Paulo, "aaaa-mm-dd": a data sugerida para a revisão (a previsão vale para os próximos 7 dias). */
@@ -27,7 +28,7 @@ function amanha(): string {
 /** Descrição sugerida (editável no diálogo), com os números e motivos do servidor; até 500 caracteres, como pede o cadastro. */
 function textoDaRevisao(f: RiscoFalha): string {
   const motivos = f.fatores.map((fa) => fa.nome.charAt(0).toLowerCase() + fa.nome.slice(1)).join('; ');
-  return `Revisão preventiva: ${Math.round(chance(f.probabilidade))}% de chance de falhar nos próximos 7 dias. Motivos: ${motivos}.`.slice(0, 500);
+  return `Revisão preventiva: ${formatarChance(f.probabilidade)} de chance de falhar nos próximos 7 dias. Motivos: ${motivos}.`.slice(0, 500);
 }
 
 export function RankingFalhas({ itens }: { itens: RiscoFalha[] }) {
@@ -40,7 +41,7 @@ export function RankingFalhas({ itens }: { itens: RiscoFalha[] }) {
       <ol className={estilos.lista}>
         {lista.map((f, i) => {
           const c = chance(f.probabilidade);
-          const pct = `${Math.round(c)}%`;
+          const pct = formatarChance(f.probabilidade);
           const agendada = agendados[f.equipamentoId];
           return (
             <li key={f.equipamentoId} className={estilos.item} aria-label={`${f.codigo}, ${pct} de chance de falhar em 7 dias`}>
@@ -61,10 +62,10 @@ export function RankingFalhas({ itens }: { itens: RiscoFalha[] }) {
                 aria-label="Chance de falhar em 7 dias"
                 aria-valuemin={0}
                 aria-valuemax={100}
-                aria-valuenow={c}
+                aria-valuenow={Math.min(c, 99.9)}
                 aria-valuetext={pct}
               >
-                <span className={`${estilos.pct} numeros`}>{pct}</span>
+                <span className={`${estilos.pct} numeros`} data-ponta={pct.includes(' de ') || undefined}>{pct}</span>
                 <span className={estilos.trilho}>
                   <span className={estilos.barra} style={{ width: `${Math.max(2, c)}%`, background: rampaRisco(c) }} />
                 </span>

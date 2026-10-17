@@ -5,7 +5,7 @@
 // Recomendações: cada previsão propõe as suas (risco, reforço, falhas, tendências) com uma prioridade; entra a melhor de
 //   cada fonte e as vagas que sobram vão para as de maior prioridade. No máximo 5, das mais urgentes para as menos.
 import type { Database } from 'better-sqlite3';
-import { formatarNumero } from '../../shared/formato';
+import { formatarChance, formatarNumero } from '../../shared/formato';
 import type {
   ExplicacaoPrevisao, PrevisaoRisco, RecomendacaoDoDia, RecomendacaoReforco, RespostaFalhas, ResultadoBacktest, ResumoPreditivo, Tendencias,
 } from '../../shared/modelos';
@@ -139,7 +139,7 @@ function recomendacoesDeFalhas(falhas: RespostaFalhas): RecomendacaoDoDia[] {
     .slice(0, 2)
     .map((r) => ({
       titulo: `Revise ${r.codigo} antes que pare (${NOME_DO_TIPO[r.tipo][0]}, ${r.bairroNome})`,
-      detalhe: `${formatarNumero(r.probabilidade * 100, 0)}% de chance de falhar nos próximos 7 dias. Motivos: ${r.fatores.slice(0, 3).map((f) => f.nome.charAt(0).toLowerCase() + f.nome.slice(1)).join('; ')}.`,
+      detalhe: `${formatarChance(r.probabilidade)} de chance de falhar nos próximos 7 dias. Motivos: ${r.fatores.slice(0, 3).map((f) => f.nome.charAt(0).toLowerCase() + f.nome.slice(1)).join('; ')}.`,
       fonte: 'falhas' as const,
       prioridade: r.probabilidade >= 0.5 ? ('alta' as const) : r.probabilidade >= 0.3 ? ('media' as const) : ('baixa' as const),
     }));

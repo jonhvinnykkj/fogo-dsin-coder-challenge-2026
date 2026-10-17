@@ -45,15 +45,26 @@ export function rampaRisco(indice: number): string {
 /** Fundo de onde a escala parte em cada tema: risco quase zero some na superfície (a maioria das células é baixa). */
 export const COR_RISCO_ZERO: Record<Tema, string> = { claro: '#E9E9E4', escuro: '#38383C' };
 
+/**
+ * Começo da escala em cada tema. No claro, do fundo direto ao amarelo. No escuro, cinza → amarelo em linha reta passaria
+ * por amarelo escuro, que é oliva/barro (#968650 no meio); por isso o escuro sobe por um cinza quente e um âmbar escuro
+ * (família do laranja-fogo) antes de chegar ao amarelo do nível baixo.
+ */
+const INICIO_DA_ESCALA: Record<Tema, readonly (readonly [number, string])[]> = {
+  claro: [[0, COR_RISCO_ZERO.claro]],
+  escuro: [[0, COR_RISCO_ZERO.escuro], [9, '#463E33'], [18, '#BE8C34']],
+};
+
+const paradasDoTema = (tema: Tema) => [...INICIO_DA_ESCALA[tema], ...PARADAS_NIVEIS];
+
 /** Cor da célula da grade de 7 dias e das barras: do fundo do tema (0) até o vermelho-escuro (100). */
 export function corDaCelula(indice: number, tema: Tema): string {
-  return interpolar([[0, COR_RISCO_ZERO[tema]], ...PARADAS_NIVEIS], indice);
+  return interpolar(paradasDoTema(tema), indice);
 }
 
 /** Gradiente CSS da legenda, com as mesmas paradas. */
 export function gradienteLegenda(tema: Tema): string {
-  const paradas = [[0, COR_RISCO_ZERO[tema]] as const, ...PARADAS_NIVEIS].map(([p, c]) => `${c} ${p}%`);
-  return `linear-gradient(90deg, ${paradas.join(', ')})`;
+  return `linear-gradient(90deg, ${paradasDoTema(tema).map(([p, c]) => `${c} ${p}%`).join(', ')})`;
 }
 
 // ---------------------------------------------------------------- horários (São Paulo)
