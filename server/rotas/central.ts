@@ -23,7 +23,7 @@ export async function rotasCentral(app: FastifyInstance): Promise<void> {
     schema: {
       tags,
       summary: 'Índice de atenção por região e bairro, com motivos',
-      description: 'Índice do bairro (0 a 100) = 12 × indisponíveis + 25 × alertas críticos abertos + 10 × alertas altos abertos + 4 × ocorrências nas últimas 3 h. Normal abaixo de 30, atenção até 59, crítico a partir de 60. A região leva o maior índice entre os bairros.',
+      description: 'Índice do bairro (0 a 100) = 12 × indisponíveis + 25 × alertas críticos abertos + 10 × alertas altos abertos + 4 × ocorrências nas últimas 3 h (as ao vivo pesam 1 ÷ (8 × velocidade da simulação), o ritmo real; injetadas e históricas, 1). Normal abaixo de 30, atenção até 59, crítico a partir de 60. A região leva o maior índice entre os bairros.',
     },
   }, async () => calcularStatusRegioes(ctx.db, ctx.relogio.agora()));
 

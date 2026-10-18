@@ -179,7 +179,7 @@ describe('Simulador', () => {
     const ao_vivo = ctx.db.prepare("SELECT COUNT(*) AS n FROM ocorrencias WHERE origem = 'tempo_real'").get() as { n: number };
     expect(ao_vivo.n).toBeGreaterThan(0);
     expect(ctx.db.prepare("SELECT COUNT(*) AS n FROM ocorrencias WHERE origem = 'historico'").get()).toEqual({ n: 0 });
-  });
+  }, 30_000); // 400 passos: ~1,3 s numa máquina livre; folga para máquina carregada
 
   it('iniciar agenda um tick de 2 s e parar limpa o timer', () => {
     vi.useFakeTimers();

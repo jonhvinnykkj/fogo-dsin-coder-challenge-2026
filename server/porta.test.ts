@@ -22,11 +22,11 @@ describe('lerPorta', () => {
 
 describe('mensagemPortaOcupada', () => {
   it('sugere a próxima porta', () => {
-    expect(mensagemPortaOcupada(3333)).toBe('A porta 3333 está em uso. Rode com PORT=3334 npm start');
-    expect(mensagemPortaOcupada(3399)).toBe('A porta 3399 está em uso. Rode com PORT=3400 npm start');
+    expect(mensagemPortaOcupada(3333)).toBe('A porta 3333 está em uso. Rode com PORT=3334 npm start (Windows PowerShell: $env:PORT=3334; npm start · cmd: set PORT=3334&& npm start)');
+    expect(mensagemPortaOcupada(3399)).toBe('A porta 3399 está em uso. Rode com PORT=3400 npm start (Windows PowerShell: $env:PORT=3400; npm start · cmd: set PORT=3400&& npm start)');
   });
 
   it('não sugere porta fora da faixa', () => {
-    expect(mensagemPortaOcupada(65535)).toBe('A porta 65535 está em uso. Rode com PORT=65534 npm start');
+    expect(mensagemPortaOcupada(65535)).toBe('A porta 65535 está em uso. Rode com PORT=65534 npm start (Windows PowerShell: $env:PORT=65534; npm start · cmd: set PORT=65534&& npm start)');
   });
 });

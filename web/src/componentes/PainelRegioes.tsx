@@ -91,7 +91,7 @@ function PainelRegioesBase({ regioes, carregando = false, onFocarBairro }: Props
           );
         })}
       </ul>
-      <p className={estilos.nota}>Índice de 0 a 100: equipamentos indisponíveis, alertas altos e críticos abertos e ocorrências das últimas 3 h. Atualiza a cada alerta novo.</p>
+      <p className={estilos.nota}>Índice de 0 a 100: equipamentos indisponíveis, alertas altos e críticos abertos e ocorrências das últimas 3 h no ritmo real (as da simulação acelerada pesam menos). Atualiza a cada alerta novo.</p>
     </div>
   );
 }

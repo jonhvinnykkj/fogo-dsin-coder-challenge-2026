@@ -14,6 +14,8 @@ export function lerPorta(valor: string | undefined): number {
   return numero;
 }
 
+/** Sugere a próxima porta, com o comando do macOS/Linux e os do Windows (PowerShell e cmd). */
 export function mensagemPortaOcupada(porta: number): string {
-  return `A porta ${porta} está em uso. Rode com PORT=${porta === 65535 ? porta - 1 : porta + 1} npm start`;
+  const outra = porta === 65535 ? porta - 1 : porta + 1;
+  return `A porta ${porta} está em uso. Rode com PORT=${outra} npm start (Windows PowerShell: $env:PORT=${outra}; npm start · cmd: set PORT=${outra}&& npm start)`;
 }
