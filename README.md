@@ -12,13 +12,13 @@ São três partes, num único sistema:
 
 ## Como rodar em 1 minuto
 
-**Com Node.js 22 ou mais novo** (o `better-sqlite3` 13 exige Node ≥ 22; testado em 22):
+**Com Node.js 22.14 ou mais novo** (recomendado: a LTS atual). Confira com `node -v`: numa versão mais velha, o `npm start` para logo no começo com uma mensagem em português que sugere instalar a LTS ou usar o Docker (o `better-sqlite3` 13 traz o binário pronto para a Node-API 10, que chegou no Node 22.14).
 
 ```bash
 npm install && npm start
 ```
 
-Abra **http://localhost:3333**. Na primeira vez o sistema compila a interface e cria sozinho o banco `data/fogo.db` com a cidade inteira (cerca de 2 segundos). Não há banco, chave ou conta para configurar.
+Abra **http://localhost:3333**. Na primeira vez o sistema compila a interface e cria sozinho o banco `data/fogo.db` com a cidade inteira (poucos segundos: 3,6 s numa medição de 17/10/2026). Não há banco, chave ou conta para configurar.
 
 **Com Docker** (se preferir não instalar o Node):
 
@@ -28,14 +28,22 @@ docker compose up --build
 
 O banco fica num volume (`fogo-dados`): sobrevive a `docker compose down`; `docker compose down -v` recomeça do zero.
 
-Porta ocupada? `PORT=3334 npm start` (o sistema avisa e sugere a próxima porta). Outro arquivo de banco: `FOGO_DB=./data/outro.db npm start`.
+Porta ocupada? O sistema avisa e sugere a próxima. Para escolher a porta ou outro arquivo de banco:
+
+| Terminal | Outra porta | Outro arquivo de banco |
+|---|---|---|
+| macOS / Linux | `PORT=3334 npm start` | `FOGO_DB=./data/outro.db npm start` |
+| Windows (PowerShell) | `$env:PORT=3334; npm start` | `$env:FOGO_DB="./data/outro.db"; npm start` |
+| Windows (cmd) | `set PORT=3334&& npm start` | `set FOGO_DB=./data/outro.db&& npm start` |
+
+No PowerShell e no cmd a variável vale até fechar aquele terminal.
 
 > Só os **blocos do mapa** (OpenStreetMap) precisam de internet. Sem ela, o mapa fica sem o fundo de ruas, mas os pontos, polígonos e o resto continuam funcionando.
 
 ## O que olhar primeiro (roteiro de 2 minutos)
 
 1. **Central** (`/`): seis placas de cor cheia, mapa com equipamentos agrupados por situação, agentes deslizando, bairros pintados pelo índice de atenção e o feed de alertas à direita.
-2. Barra no rodapé do mapa: clique em **60×** e depois em **Injetar evento → Acidente**. Em segundos aparece o alerta crítico, um agente é despachado ao local e o bairro muda de cor. Quando a ocorrência termina, o alerta se resolve sozinho (fica registrado como resolução automática).
+2. Barra no rodapé do mapa: clique em **60×** e depois em **Injetar evento → Acidente**. Na hora aparece o alerta **crítico** (o acidente injetado usa sempre a gravidade máxima), o agente mais próximo é despachado ao local e o índice do bairro sobe 29 pontos (alerta crítico + ocorrência). Na medição de 17/10/2026 o bairro passou de normal (24) para atenção (53). A 60× a ocorrência dura segundos: o alerta se resolve sozinho (fica registrado como resolução automática). Mesmo depois de 3 minutos a 60×, as regiões continuam distintas (17/10/2026: Centro 65, crítico; Sul 46, Oeste 38 e Norte 30, atenção; Leste 8, normal), porque o índice mede a cidade no ritmo real (veja "Decisões e limitações").
 3. Clique num marcador: a **ficha lateral** abre com situação, manutenção e ações; "Abrir ficha completa" mostra a linha do tempo, o gráfico de telemetria e os alertas.
 4. **Previsões** (`/previsoes`): comece pelo "Resumo do dia" e role até **"Quanto acertou"**: é o teste retroativo, onde a previsão feita na véspera é comparada com o que de fato aconteceu.
 5. Interruptor **Sala de controle** (topo): modo escuro grafite, só por escolha do usuário.
@@ -71,8 +79,8 @@ Tela de Previsões completa: [docs/telas/previsoes-topo.png](docs/telas/previsoe
                  Interface React (mapa Leaflet, feed, placas)
 
  SQLite (data/fogo.db)  ──►  Previsões: risco, reforço, falhas, tendências
- (60 dias de histórico        calculadas sobre o HISTÓRICO e comparadas com o passado
-  + o que chega ao vivo)
+ (60 dias de histórico        calculadas só sobre o HISTÓRICO e comparadas com o passado
+  + o que chega ao vivo)      (o que a simulação gera ao vivo fica de fora)
 ```
 
 | Camada | Tecnologia |
@@ -89,40 +97,42 @@ Código compartilhado entre servidor e interface fica em `shared/` (tipos, regra
 | Entidade | O que guarda |
 |---|---|
 | **equipamentos** | código legível (`FOGO-RAD-0007`), tipo (13), nº de série único, marca, modelo, órgão, **situação** (`operacional`, `mau_funcionamento`, `em_manutencao`, `desativado`, `furtado`, `nao_instalado`), endereço (CEP, logradouro, referência, bairro), latitude/longitude, posição atual (móveis), último sinal, manutenção (necessidade, periodicidade, última e próxima data), características do tipo (JSON validado) |
-| **historico_situacao** | cada mudança de situação, com motivo e data |
+| **historico_situacao** | cada mudança de situação, com motivo, data e origem (`historico` da semente ou `ao_vivo`, do simulador e da tela) |
 | **agentes** | nome, matrícula, categoria, órgão, situação (`em_servico`, `em_ocorrencia`, `pausa`, `fora_de_servico`), turno, base, posição, equipamento vinculado |
 | **bairros** | 65 bairros reais de Marília (OpenStreetMap): região (Centro/Norte/Sul/Leste/Oeste), centro e polígono |
-| **ocorrencias** | acidente, congestionamento, infração, furto/vandalismo, veículo quebrado, alagamento, segurança; gravidade, local, início/fim, origem (`historico`, `tempo_real`, `injetado`), agente |
+| **ocorrencias** | acidente, congestionamento, infração, furto/vandalismo, veículo quebrado, alagamento, segurança; gravidade, local, início/fim, origem (`historico`, `tempo_real`, `injetado`), agente e o peso no índice das regiões |
 | **telemetria_hora** | uma linha por equipamento e hora, com as métricas do tipo (fluxo, bateria, sinal…) |
 | **manutencoes** | ordens (preventiva/corretiva), previstas e concluídas |
 | **alertas** | criticidade (crítica, alta, média, baixa), tipo, explicação, reconhecido/resolvido (manual ou automático) |
-| **clima_dia** | chuva observada e prevista |
+| **clima_dia** | chuva que caiu e a previsão do tempo da véspera (as previsões usam a previsão, nunca a chuva que caiu no dia previsto) |
 
 Datas no banco: texto ISO 8601 em UTC. Na tela: `dd/mm/aaaa HH:mm` no fuso de São Paulo. Toda coordenada cadastrada precisa cair dentro do limite do município.
 
 ## Como cada previsão funciona
 
-Fórmula em uma linha e o exemplo com os números reais da cidade de exemplo. Os detalhes passo a passo estão no [guia do time](docs/GUIA-DO-TIME.md).
+Fórmula em uma linha e um exemplo. Os exemplos saíram de um banco novo criado em 17/10/2026 às 20h53 (sábado); num outro dia os números mudam um pouco, porque o histórico de 60 dias termina na hora em que o banco é criado. Os detalhes passo a passo estão no [guia do time](docs/GUIA-DO-TIME.md).
 
-- **Risco por bairro e hora** — `taxa = base do bairro × perfil da região naquele dia da semana e hora × chuva do dia × tendência da cidade`; o índice (0 a 100) compara a taxa com o p99 do período. Ex.: o Centro numa sexta às 18 h tem taxa ≈ 2,6 ocorrências/h e índice 100 (crítico); terça às 3 h dá ≈ 0,44 e índice 33.
-- **Reforço de agentes** — `carga por agente = ocorrências esperadas na região no turno ÷ agentes escalados`; move-se 1 agente por vez da região mais folgada para a mais sobrecarregada, até 20% acima da média da cidade. Ex.: Centro 6,1 ocorrências por agente na tarde de quinta contra 2,7 na Zona Leste → "mande 1 agente da Zona Leste para o Centro".
-- **Chance de falha em 7 dias** — `λ = taxa do tipo × fator do modelo × (1 + anos/5) × atraso da manutenção × quedas de sinal recentes; chance = 1 − e^(−7λ)`. Ex.: câmera Vigilux VX-200 de 7,6 anos com muitas quedas de sinal aparece com "mais de 99%"; uma câmera média e sem sinais fica perto de 13%.
+- **Risco por bairro e hora** — `taxa = base do bairro × perfil da região naquele dia da semana e hora × chuva prevista do dia × tendência da cidade`; o índice (0 a 100) compara a taxa com o percentil 99 das próximas 24 h. Ex.: bairro Centro no sábado às 22 h: 1,235 × 1,89 (região Centro, sábado 22 h) × 1 (sem chuva prevista) × 0,98 = 2,30 ocorrências/h → índice 100 (crítico); no domingo às 3 h: 1,235 × 0,38 × 1 × 0,98 = 0,46 → 0,46 ÷ 1,32 (p99) = índice 35 (moderado).
+- **Reforço de agentes** — `carga por agente = ocorrências esperadas na região no turno ÷ agentes escalados`; move-se 1 agente por vez da região mais folgada para a mais sobrecarregada, enquanto a maior carga passar 20% da média da cidade. Ex.: noite de sábado (22h às 6h), região Centro com 31,8 ocorrências esperadas para 5 agentes = 6,4 por agente, contra 2,0 na Zona Leste → "mande 1 agente da Zona Leste para a região Centro" (Centro cai para 5,3).
+- **Chance de falha em 7 dias** — `λ = taxa do tipo × fator do modelo × (1 + anos/5) × atraso da manutenção × quedas de sinal recentes; chance = 1 − e^(−7λ)`. Ex.: a câmera FOGO-CAM-0059 (Vigilux VX-200, 7,6 anos, 37 horas com sinal fraco nas últimas 72 h) aparece em primeiro, com 99%. Pela fórmula, λ = 0,02 por dia dá 1 − e^(−0,14) = 13%.
 - **Anomalias em tempo real** — compara cada leitura com a média e o desvio **do mesmo equipamento, na mesma hora e tipo de dia**; vira alerta quando |z| ≥ 3 (com confirmação em leituras seguidas). Ex.: radar com fluxo ≈ 0 no horário de pico.
-- **Tendências** — disponibilidade por tipo (30 dias + reta de mínimos quadrados por 7 dias), uso de patinetes por bairro e falhas por 100 equipamentos de cada marca/modelo. Ex.: o modelo ruim (VX-200) tem 243 falhas por 100 câmeras contra 66 do modelo mediano.
+- **Tendências** — disponibilidade por tipo (30 dias + reta de mínimos quadrados por 7 dias), uso de patinetes por bairro e falhas por 100 equipamentos de cada marca/modelo. Ex.: o modelo ruim (Vigilux VX-200) tem 243 falhas por 100 câmeras contra 66 do modelo mediano.
 
 ### Quão certas elas são (teste retroativo)
 
-A tela de Previsões **refaz a previsão como se fosse ontem, 14 dias seguidos**, e compara com o que aconteceu. Os números são recalculados todo dia, então variam um pouco; os de outubro de 2026:
+A tela de Previsões **refaz a previsão como se fosse a véspera, 14 dias seguidos**, e compara com o que aconteceu. Cada dia é previsto só com os dados até a meia-noite anterior, e a chuva do dia entra pela **previsão do tempo guardada** (que às vezes erra), nunca pela chuva que caiu. Todos os números abaixo são de uma mesma medição: banco novo, 17/10/2026 às 20h53 (dias avaliados: 03/10 a 16/10). A tela recalcula a cada dia, então eles variam um pouco.
 
 | Medida | Resultado |
 |---|---|
-| Erro por bairro em blocos de 3 h, contra repetir a média de cada bairro | **entre ~7% e ~9% menor** (17/10 às 19h: 0,53 × 0,58 ocorrência, 8% menor) |
-| Dos 5 bairros apontados como mais arriscados à noite (18h–2h), quantos acertou | 4,0 de 5 (medido em 15/10) e 3,9 de 5 (17/10); a média simples acerta 3,9 |
-| Falhas de equipamento | em 4 semanas seguidas, **135 previstas × 139 ocorridas** (15/10); na última semana, 33 previstas × 40 ocorridas (17/10) |
-| Os 10% de equipamentos apontados como mais arriscados | concentraram 19% a 28% das falhas (ao acaso seriam 10%) |
-| Projeção de disponibilidade em 7 dias | erra ~4,9 p.p., **pior** que repetir a média de 30 dias (4,1): a tela avisa "use para ver a direção" |
+| Erro por bairro em blocos de 3 h, contra repetir a média de cada bairro | 0,54 × 0,58 ocorrência: **7,0% menor** |
+| Dos 5 bairros apontados como mais arriscados à noite (18h–2h), quantos acertou | **3,9 de 5**, o mesmo que a média simples (3,9): aqui o modelo empata |
+| Falhas de equipamento na última semana | **32 previstas** (31,6) **× 40 ocorridas** |
+| Os 10% de equipamentos apontados como mais arriscados | concentraram **28%** das falhas da semana (ao acaso seriam 10%) |
+| Projeção de disponibilidade em 7 dias | erra 4,9 p.p., **pior** que repetir a média de 30 dias (4,1) e o último valor (4,4): a tela avisa "use para ver a direção" |
 
-**Por que o ganho de ~8% e não 30%?** Por bairro e hora quase sempre há 0 ou 1 ocorrência, então boa parte do erro é pura sorte. Mesmo conhecendo as taxas verdadeiras usadas para gerar os dados, o máximo de melhora possível seria cerca de 10%; o modelo chega a cerca de 82% desse teto. Preferimos mostrar o número honesto a escolher uma métrica que o inflasse.
+Nessa mesma medição, 3 minutos a 60× geraram 415 ocorrências e 68 falhas ao vivo (o histórico inteiro de 60 dias tem 286 falhas) e **nenhum desses números mudou**: as previsões só aprendem com o histórico.
+
+**Por que o ganho de ~7% e não 30%?** Por bairro e hora quase sempre há 0 ou 1 ocorrência, então boa parte do erro é pura sorte. Mesmo conhecendo as taxas verdadeiras usadas para gerar os dados, o máximo de melhora possível seria cerca de 10% (cálculo com o próprio gerador); o modelo chega a cerca de 70% desse teto. Antes de trocarmos a chuva observada pela previsão guardada, a mesma tela mostrava ~8%: a diferença é o preço de não deixar o dia previsto vazar para a previsão. Preferimos mostrar o número honesto a escolher uma métrica que o inflasse.
 
 ## API
 
@@ -130,13 +140,15 @@ Documentação interativa (Swagger): **http://localhost:3333/api/docs**. Princip
 
 | Grupo | Rotas |
 |---|---|
-| Inventário | `GET/POST /api/equipamentos`, `GET/PUT/DELETE /api/equipamentos/:id`, `PATCH …/situacao`, `POST …/manutencoes`, `GET …/telemetria`; `GET/POST /api/agentes`, `GET/PUT/DELETE /api/agentes/:id`; `GET /api/bairros`, `GET /api/tipos-equipamento` |
+| Inventário | `GET/POST /api/equipamentos`, `GET/PUT/DELETE /api/equipamentos/:id`, `PATCH …/situacao`, `POST …/manutencoes`, `GET …/telemetria`; `GET/POST /api/agentes`, `GET/PUT/DELETE /api/agentes/:id`, `PATCH …/situacao`; `GET /api/bairros`, `GET /api/tipos-equipamento` (com as métricas de telemetria de cada tipo) |
 | Central | `GET /api/central/{indicadores,mapa,regioes,ocorrencias}`, `GET /api/alertas`, `PATCH /api/alertas/:id/{reconhecer,resolver}`, `GET /api/manutencao/painel` |
 | Tempo real | `POST /api/telemetria`, `GET /api/stream` (SSE), `GET/PATCH /api/simulacao`, `POST /api/simulacao/eventos` |
-| Previsões | `GET /api/previsoes/{risco,reforco,falhas,tendencias,resumo}` |
+| Previsões | `GET /api/previsoes/{risco,backtest,reforco,falhas,tendencias,resumo}` (`backtest` = o teste retroativo do risco) |
 | Saúde | `GET /api/saude` |
 
-**Enviando uma leitura como se fosse um equipamento.** Cada equipamento tem um token (gerado na semente, nunca devolvido pela API). Para pegar o de um equipamento do **seu banco local**:
+**Enviando uma leitura como se fosse um equipamento.** Cada equipamento tem um token (gerado na semente, nunca devolvido pela API). Para pegar o de um equipamento do **seu banco local** e mandar uma leitura (com o servidor ligado):
+
+macOS / Linux:
 
 ```bash
 TOKEN=$(npm run -s token -- FOGO-RAD-0001)
@@ -148,12 +160,23 @@ curl -X POST http://localhost:3333/api/telemetria \
 # → 202 {"aceita":true}
 ```
 
-As métricas aceitas dependem do tipo (ex.: radar = `fluxo`, `velocidadeMedia`, `infracoes`; veja `GET /api/tipos-equipamento`). Sem token, ou com o token de outro equipamento, a resposta é `401`.
+Windows (PowerShell):
+
+```powershell
+$token = npx tsx scripts/token.ts FOGO-RAD-0001   # o mesmo que "npm run token", sem o "--" que o PowerShell pode engolir
+
+Invoke-RestMethod -Method Post -Uri http://localhost:3333/api/telemetria `
+  -ContentType "application/json" -Headers @{ "x-dispositivo-token" = $token } `
+  -Body '{"codigo":"FOGO-RAD-0001","metricas":{"fluxo":412,"velocidadeMedia":38.5,"infracoes":3}}'
+# → aceita: True
+```
+
+As métricas aceitas dependem do tipo (ex.: radar = `fluxo`, `velocidadeMedia`, `infracoes`): a lista completa, com rótulo e unidade, está no campo `metricas` de `GET /api/tipos-equipamento`. Métrica que não existe para o tipo responde `400` dizendo quais valem. Sem token, ou com o token de outro equipamento, a resposta é `401`.
 
 ## Testes
 
 ```bash
-npm test            # Vitest: servidor, regras, previsões e interface (347 testes em 46 arquivos)
+npm test            # Vitest: servidor, regras, previsões e interface (376 testes em 52 arquivos)
 npm run typecheck   # TypeScript estrito, servidor e interface
 npm run e2e         # Playwright: sobe o app com banco próprio (porta 3399) e confere Central, Previsões e Equipamentos
 ```
@@ -165,10 +188,12 @@ O E2E usa `data/e2e.db` e o apaga ao terminar; não mexe no seu `data/fogo.db`. 
 ## Decisões e limitações (sem maquiagem)
 
 - **Os dados são sintéticos.** Bairros e ruas são reais (OpenStreetMap), mas equipamentos, agentes, ocorrências e 60 dias de telemetria são gerados com semente fixa e **padrões plantados** de propósito (picos de 7–9 h e 17–19 h, sexta/sábado à noite no Centro, chuva com mais acidentes, um modelo de câmera pouco confiável, furtos de patinete em dois bairros). A previsão "redescobre" esses padrões; isso prova que o método funciona, **não** que ele acertaria numa cidade real sem ajuste.
-- **O simulador é acelerado de propósito** para a demonstração: ocorrências, falhas e furtos ao vivo acontecem muito mais depressa que na vida real. Por isso as previsões aprendem **só com o histórico**, não com o que o simulador gera ao vivo nem com eventos injetados.
+- **O simulador é acelerado de propósito** para a demonstração: ocorrências, falhas e furtos ao vivo acontecem muito mais depressa que na vida real. Por isso as previsões aprendem **só com o histórico**: todas as entradas (ocorrências, falhas, telemetria, mudanças de situação) param no fim do histórico gerado, e as mudanças de situação feitas ao vivo levam a marca `ao_vivo`, então continuam de fora mesmo depois de reiniciar. Eventos injetados também ficam de fora. A lista de "falhas prováveis" mostra os equipamentos em operação **agora**: um equipamento que o simulador consertou volta para a lista.
+- **A situação das regiões mede a cidade no ritmo real.** O índice soma 4 pontos por ocorrência das últimas 3 h, mas cada ocorrência gerada ao vivo pesa 1 ÷ (8 × a velocidade em que começou), porque o simulador produz 8 vezes o ritmo real (vezes 10 ou 60); histórico e eventos injetados pesam 1. O painel mostra as duas contas ("192 ocorrências nas últimas 3 h (contam como 6,5 no ritmo real)").
+- **Furtos ao vivo só fecham com uma pessoa**: o patinete furtado fica fora da cidade e com alerta crítico até alguém registrar a recuperação (ele volta ao ponto-base e o alerta fecha) ou resolver o alerta. Deixando 60× ligado por muito tempo, esses furtos se acumulam no índice dos bairros.
 - A velocidade 10× e 60× multiplica o ritmo de eventos, mas o relógio é o relógio real (nada é gravado no futuro).
 - **Se o avaliador abrir dias depois**, o histórico é completado até "agora" ao iniciar (a lacuna é preenchida), então "próximas 24 h" continua valendo. A lacuna não cria falhas novas de equipamento; o simulador ao vivo cria.
-- O ganho do risco por bairro é modesto (~8%), pelas razões acima; a projeção linear de disponibilidade é pior que repetir a média nesta cidade estável. Dizemos isso na própria tela.
+- O ganho do risco por bairro é modesto (~7%) e, nos 5 bairros mais arriscados à noite, o modelo empata com a média simples, pelas razões acima; a projeção linear de disponibilidade é pior que repetir a média nesta cidade estável. Dizemos isso na própria tela.
 - Sem login nem permissões: é uma ferramenta de demonstração, e o token por equipamento só protege a entrada de telemetria.
 - O mapa precisa de internet para o fundo de ruas; o ViaCEP (preenchimento de CEP) é opcional e o cadastro funciona sem ele.
 - SQLite atende bem a um município simulado; para milhões de leituras por dia o caminho seria um banco de séries temporais (discutido no guia).
