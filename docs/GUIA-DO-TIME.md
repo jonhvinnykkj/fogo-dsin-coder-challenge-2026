@@ -201,7 +201,7 @@ Para mostrar a comissão: rodem `npm test` na tela e apontem os testes de `serve
 ## 9. Sugestão de divisão da apresentação (até 3 pessoas)
 
 - **Pessoa 1 — Inventário e dados** (≈ 3 min): cadastro, filtros, ficha, regras de negócio (seção 5), como a semente planta padrões (seção 3), API e Swagger.
-- **Pessoa 2 — Central em tempo real** (≈ 3 min): demonstração ao vivo (60× + injetar acidente), o caminho do dado (seção 2), alertas que abrem e fecham, SSE × WebSocket, desempenho.
+- **Pessoa 2 — Central em tempo real** (≈ 3 min): demonstração ao vivo (injetar acidente em 1×, depois 60×), o caminho do dado (seção 2), alertas que abrem e fecham, SSE × WebSocket, desempenho.
 - **Pessoa 3 — Previsões e IA** (≈ 3 min): "o que prevê / dados / como ajuda / quão certa foi", um exemplo numérico de cada (seção 4), o teste retroativo e a honestidade sobre o 7% (e o empate nos 5 bairros), declaração de uso de IA.
 
 Todos: respondam as perguntas da seção 8 que tocam a sua parte, e abram o código no arquivo citado quando a comissão pedir "mostra onde".

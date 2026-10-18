@@ -43,10 +43,11 @@ No PowerShell e no cmd a variável vale até fechar aquele terminal.
 ## O que olhar primeiro (roteiro de 2 minutos)
 
 1. **Central** (`/`): seis placas de cor cheia, mapa com equipamentos agrupados por situação, agentes deslizando, bairros pintados pelo índice de atenção e o feed de alertas à direita.
-2. Barra no rodapé do mapa: clique em **60×** e depois em **Injetar evento → Acidente**. Na hora aparece o alerta **crítico** (o acidente injetado usa sempre a gravidade máxima), o agente mais próximo é despachado ao local e o índice do bairro sobe 29 pontos (alerta crítico + ocorrência). Na medição de 17/10/2026 o bairro passou de normal (24) para atenção (53). A 60× a ocorrência dura segundos: o alerta se resolve sozinho (fica registrado como resolução automática). Mesmo depois de 3 minutos a 60×, as regiões continuam distintas (17/10/2026: Centro 65, crítico; Sul 46, Oeste 38 e Norte 30, atenção; Leste 8, normal), porque o índice mede a cidade no ritmo real (veja "Decisões e limitações").
-3. Clique num marcador: a **ficha lateral** abre com situação, manutenção e ações; "Abrir ficha completa" mostra a linha do tempo, o gráfico de telemetria e os alertas.
-4. **Previsões** (`/previsoes`): comece pelo "Resumo do dia" e role até **"Quanto acertou"**: é o teste retroativo, onde a previsão feita na véspera é comparada com o que de fato aconteceu.
-5. Interruptor **Sala de controle** (topo): modo escuro grafite, só por escolha do usuário.
+2. Barra no rodapé do mapa: com a velocidade em **1×**, clique em **Injetar evento → Acidente**. Na hora aparece o alerta **crítico** (o acidente injetado usa sempre a gravidade máxima), o agente mais próximo é despachado ao local e o índice do bairro sobe 29 pontos (alerta crítico + ocorrência; na medição de 17/10/2026 o bairro passou de normal (24) para atenção (53)). Em 1× a ocorrência dura alguns minutos; quando termina, o alerta se resolve sozinho (fica registrado como resolução automática).
+3. Agora clique em **60×**: agentes e patinetes andam mais depressa e chegam ocorrências e alertas sem parar. A 60× tudo dura segundos, inclusive um acidente injetado. Mesmo depois de 3 minutos assim, as regiões continuam distintas (17/10/2026: Centro 65, crítico; Sul 46, Oeste 38 e Norte 30, atenção; Leste 8, normal), porque o índice mede a cidade no ritmo real (veja "Decisões e limitações").
+4. Clique num marcador: a **ficha lateral** abre com situação, manutenção e ações; "Abrir ficha completa" mostra a linha do tempo, o gráfico de telemetria e os alertas.
+5. **Previsões** (`/previsoes`): comece pelo "Resumo do dia" e role até **"Quanto acertou"**: é o teste retroativo, onde a previsão feita na véspera é comparada com o que de fato aconteceu.
+6. Interruptor **Sala de controle** (topo): modo escuro grafite, só por escolha do usuário.
 
 ## Telas
 
