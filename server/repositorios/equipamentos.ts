@@ -3,6 +3,7 @@ import type { NecessidadeManutencao, Orgao, Regiao, SituacaoEquipamento } from '
 import type { Equipamento, EquipamentoMapa, HistoricoSituacao, Pagina, PontoTelemetria, SituacaoManutencao } from '../../shared/modelos';
 import type { EquipamentoEdicao, EquipamentoInput, FiltrosEquipamento } from '../../shared/schemas';
 import { tipoPorId, type TipoEquipamentoId } from '../../shared/tipos-equipamento';
+import { CIDADE, UF } from '../../shared/formato';
 import { somarDias } from '../tempo';
 import { condicaoBusca } from './busca';
 
@@ -18,6 +19,8 @@ interface LinhaEquipamento {
   cep: string;
   logradouro: string;
   referencia: string;
+  cidade: string;
+  uf: string;
   bairro_id: number;
   bairro_nome: string;
   regiao: Regiao;
@@ -39,7 +42,7 @@ interface LinhaEquipamento {
 // Lista explícita de colunas: `token_dispositivo` nunca entra no SELECT da API.
 const SELECT = `
   SELECT e.id, e.codigo, e.tipo, e.numero_serie, e.marca, e.modelo, e.orgao, e.situacao, e.cep, e.logradouro, e.referencia,
-         e.bairro_id, b.nome AS bairro_nome, b.regiao AS regiao, e.lat, e.lng, e.lat_atual, e.lng_atual,
+         e.cidade, e.uf, e.bairro_id, b.nome AS bairro_nome, b.regiao AS regiao, e.lat, e.lng, e.lat_atual, e.lng_atual,
          e.manutencao_necessidade, e.manutencao_periodicidade_dias, e.ultima_manutencao, e.proxima_manutencao,
          e.caracteristicas, e.instalado_em, e.ultimo_sinal_em, e.criado_em, e.atualizado_em
   FROM equipamentos e JOIN bairros b ON b.id = e.bairro_id`;
@@ -57,6 +60,8 @@ function paraEquipamento(l: LinhaEquipamento): Equipamento {
     cep: l.cep,
     logradouro: l.logradouro,
     referencia: l.referencia,
+    cidade: l.cidade,
+    uf: l.uf,
     bairroId: l.bairro_id,
     bairroNome: l.bairro_nome,
     regiao: l.regiao,
@@ -103,13 +108,13 @@ export interface DadosNovoEquipamento {
 export function inserirEquipamento(db: Database, e: EquipamentoInput, d: DadosNovoEquipamento): number {
   const r = db
     .prepare(
-      `INSERT INTO equipamentos (codigo, tipo, numero_serie, marca, modelo, orgao, situacao, cep, logradouro, referencia, bairro_id,
+      `INSERT INTO equipamentos (codigo, tipo, numero_serie, marca, modelo, orgao, situacao, cep, logradouro, referencia, bairro_id, cidade, uf,
          lat, lng, lat_atual, lng_atual, manutencao_necessidade, manutencao_periodicidade_dias, ultima_manutencao, proxima_manutencao,
          caracteristicas, instalado_em, token_dispositivo, criado_em, atualizado_em)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
-      d.codigo, e.tipo, e.numeroSerie, e.marca, e.modelo, e.orgao, e.situacao, e.cep, e.logradouro, e.referencia, e.bairroId,
+      d.codigo, e.tipo, e.numeroSerie, e.marca, e.modelo, e.orgao, e.situacao, e.cep, e.logradouro, e.referencia, e.bairroId, CIDADE, UF,
       e.lat, e.lng, e.lat, e.lng, e.manutencaoNecessidade, e.manutencaoPeriodicidadeDias ?? null, e.ultimaManutencao ?? null,
       e.proximaManutencao ?? null, JSON.stringify(e.caracteristicas), e.instaladoEm ?? null, d.token, d.agora, d.agora,
     );

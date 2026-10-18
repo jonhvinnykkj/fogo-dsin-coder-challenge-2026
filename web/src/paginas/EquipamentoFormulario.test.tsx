@@ -201,6 +201,16 @@ describe('edição', () => {
   });
 });
 
+describe('Cidade/UF', () => {
+  it('mostra a cidade/UF como campo só de leitura com a dica do município', () => {
+    renderizar();
+    const campo = screen.getByLabelText('Cidade/UF');
+    expect(campo).toHaveValue('Marília/SP');
+    expect(campo).toHaveAttribute('readonly');
+    expect(screen.getByText('O F.O.G.O. atende um município; as coordenadas precisam cair dentro de Marília.')).toBeInTheDocument();
+  });
+});
+
 describe('ViaCEP', () => {
   const viacep = (resposta: () => Response | Promise<Response>) => rotear((url) => (url.startsWith('https://viacep.com.br/') ? resposta() : undefined));
 
@@ -211,6 +221,24 @@ describe('ViaCEP', () => {
     await u.type(screen.getByLabelText('CEP'), '17500000');
     await waitFor(() => expect(screen.getByLabelText('Logradouro')).toHaveValue('Avenida Sampaio Vidal'));
     expect(fetchFalso).toHaveBeenCalledWith('https://viacep.com.br/ws/17500000/json/', expect.anything());
+  });
+
+  it('CEP de outra cidade: mensagem clara e não preenche o endereço', async () => {
+    const u = userEvent.setup();
+    viacep(() => json({ logradouro: 'Rua Batista de Carvalho', bairro: 'Centro', localidade: 'Bauru', uf: 'SP' }));
+    renderizar();
+    await u.type(screen.getByLabelText('CEP'), '17500000');
+    expect(await screen.findByText('Este CEP é de Bauru/SP, fora de Marília/SP')).toBeInTheDocument();
+    expect(screen.getByLabelText('Logradouro')).toHaveValue('');
+  });
+
+  it('CEP de Marília/SP preenche normalmente (localidade e uf conferem)', async () => {
+    const u = userEvent.setup();
+    viacep(() => json({ logradouro: 'Avenida Sampaio Vidal', bairro: 'Centro', localidade: 'Marília', uf: 'SP' }));
+    renderizar();
+    await u.type(screen.getByLabelText('CEP'), '17500000');
+    await waitFor(() => expect(screen.getByLabelText('Logradouro')).toHaveValue('Avenida Sampaio Vidal'));
+    expect(screen.queryByText(/fora de Marília/)).not.toBeInTheDocument();
   });
 
   it('não sobrescreve um logradouro que a pessoa digitou', async () => {

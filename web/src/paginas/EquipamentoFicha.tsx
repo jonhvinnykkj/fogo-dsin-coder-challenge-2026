@@ -7,7 +7,7 @@ import { Marker } from 'react-leaflet';
 import {
   COR_CRITICIDADE, ROTULO_CRITICIDADE, ROTULO_NECESSIDADE_MANUTENCAO, ROTULO_SITUACAO, COR_SITUACAO, type SituacaoEquipamento,
 } from '../../../shared/dominio';
-import { formatarDataHora, formatarNumero, formatarRelativo } from '../../../shared/formato';
+import { formatarCidadeUf, formatarDataHora, formatarEndereco, formatarNumero, formatarRelativo } from '../../../shared/formato';
 import type { Alerta, EquipamentoDetalhe, Manutencao } from '../../../shared/modelos';
 import { tipoPorId, type CampoCaracteristica } from '../../../shared/tipos-equipamento';
 import { useEquipamento, useExcluirEquipamento, useTelemetria } from '../api/consultas';
@@ -131,6 +131,8 @@ function Ficha({ eq }: { eq: EquipamentoDetalhe }) {
               { rotulo: 'Referência', valor: eq.referencia },
               { rotulo: 'CEP', valor: eq.cep },
               { rotulo: 'Bairro e região', valor: `${eq.bairroNome} · região ${eq.regiao}` },
+              { rotulo: 'Cidade/UF', valor: formatarCidadeUf(eq.cidade, eq.uf) },
+              { rotulo: 'Endereço completo', valor: formatarEndereco(eq), larga: true },
               { rotulo: 'Ponto cadastrado', valor: <span className="numeros">{formatarNumero(eq.lat, 5)}, {formatarNumero(eq.lng, 5)}</span> },
               ...(def.movel ? [{ rotulo: 'Posição atual', valor: <span className="numeros">{formatarNumero(eq.latAtual, 5)}, {formatarNumero(eq.lngAtual, 5)}</span> }] : []),
               { rotulo: 'Necessidade de manutenção', valor: ROTULO_NECESSIDADE_MANUTENCAO[eq.manutencaoNecessidade] + (eq.manutencaoPeriodicidadeDias ? ` · a cada ${formatarNumero(eq.manutencaoPeriodicidadeDias)} dias` : '') },

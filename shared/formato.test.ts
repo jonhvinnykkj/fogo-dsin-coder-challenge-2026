@@ -35,3 +35,26 @@ describe('formato pt-BR', () => {
     expect(formatarRelativo('2026-10-15T15:00:00Z', agora)).toBe('há 2 dias');
   });
 });
+
+describe('formatarEndereco', () => {
+  it('compõe rua, referência, bairro, cidade/UF e CEP', async () => {
+    const { formatarEndereco } = await import('./formato');
+    expect(formatarEndereco({ logradouro: 'Avenida Sampaio Vidal', referencia: 'nº 181', bairroNome: 'Centro', cep: '17500-000', cidade: 'Marília', uf: 'SP' }))
+      .toBe('Avenida Sampaio Vidal, nº 181 — Centro, Marília/SP — CEP 17500-000');
+  });
+  it('sem referência e sem cidade/UF (resposta antiga) usa Marília/SP', async () => {
+    const { formatarEndereco } = await import('./formato');
+    expect(formatarEndereco({ logradouro: 'Rua X', referencia: '', bairroNome: 'Centro', cep: '17500-000' }))
+      .toBe('Rua X — Centro, Marília/SP — CEP 17500-000');
+  });
+});
+
+describe('cidade/UF', () => {
+  it('formata Marília/SP a partir das constantes', async () => {
+    const { CIDADE, UF, formatarCidadeUf } = await import('./formato');
+    expect(CIDADE).toBe('Marília');
+    expect(UF).toBe('SP');
+    expect(formatarCidadeUf()).toBe('Marília/SP');
+    expect(formatarCidadeUf('Bauru', 'sp')).toBe('Bauru/SP');
+  });
+});

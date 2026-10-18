@@ -4,6 +4,9 @@
 export interface EnderecoViaCep {
   logradouro: string;
   bairro: string;
+  /** Cidade e UF que o ViaCEP informou (vazias se ele não disse). */
+  cidade: string;
+  uf: string;
 }
 
 export const TEMPO_LIMITE_VIACEP_MS = 3000;
@@ -16,9 +19,9 @@ export async function buscarCep(cep: string, buscar: typeof fetch = fetch): Prom
   try {
     const resposta = await buscar(`https://viacep.com.br/ws/${digitos}/json/`, { signal: controle.signal });
     if (!resposta.ok) return null;
-    const dados = (await resposta.json()) as { erro?: boolean | string; logradouro?: string; bairro?: string };
+    const dados = (await resposta.json()) as { erro?: boolean | string; logradouro?: string; bairro?: string; localidade?: string; uf?: string };
     if (dados.erro) return null;
-    return { logradouro: dados.logradouro ?? '', bairro: dados.bairro ?? '' };
+    return { logradouro: dados.logradouro ?? '', bairro: dados.bairro ?? '', cidade: dados.localidade ?? '', uf: dados.uf ?? '' };
   } catch {
     return null;
   } finally {

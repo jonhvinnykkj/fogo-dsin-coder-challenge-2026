@@ -3,6 +3,7 @@ import './erros-zod';
 import {
   CATEGORIAS_AGENTE, NECESSIDADES_MANUTENCAO, ORGAOS, REGIOES, SITUACOES_AGENTE, SITUACOES_EQUIPAMENTO, TURNOS,
 } from './dominio';
+import { CIDADE, MSG_CIDADE_UF, UF } from './formato';
 import { dentroDeMarilia } from './geo';
 import { TIPOS_EQUIPAMENTO, schemaCaracteristicas, type TipoEquipamentoId } from './tipos-equipamento';
 
@@ -28,6 +29,10 @@ const cep = z
   .transform((v) => (v.includes('-') ? v : `${v.slice(0, 5)}-${v.slice(5)}`))
   .refine((v) => v >= '17500-000' && v <= '17539-999', 'O CEP precisa ser de Marília (17500-000 a 17539-999)');
 
+// Opcionais: quem manda precisa mandar Marília/SP; o servidor grava sempre Marília/SP.
+const cidadeFixa = z.string().optional().refine((v): boolean => v === undefined || v === CIDADE, MSG_CIDADE_UF);
+const ufFixa = z.string().optional().refine((v): boolean => v === undefined || v === UF, MSG_CIDADE_UF);
+
 const camposEquipamento = z.object({
     tipo: opcaoDe(IDS_TIPO, 'Tipo'),
     numeroSerie: z.string({ required_error: 'Informe o número de série' }).trim().min(1, 'Informe o número de série').max(60),
@@ -39,6 +44,8 @@ const camposEquipamento = z.object({
     logradouro: z.string({ required_error: 'Informe o logradouro' }).trim().min(1, 'Informe o logradouro').max(120),
     referencia: z.string().trim().max(120).default(''),
     bairroId: z.number({ required_error: 'Escolha o bairro', invalid_type_error: 'Escolha o bairro' }).int().positive('Escolha o bairro'),
+    cidade: cidadeFixa,
+    uf: ufFixa,
     lat: latitude,
     lng: longitude,
     manutencaoNecessidade: opcaoDe(NECESSIDADES_MANUTENCAO, 'Necessidade de manutenção'),

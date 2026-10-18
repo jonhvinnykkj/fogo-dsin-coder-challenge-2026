@@ -123,6 +123,7 @@ Disponibilidade diária por tipo = tempo operacional ÷ tempo que conta (sem des
 
 ## 5. Regras de negócio
 
+- cidade/UF é sempre Marília/SP (o sistema atende um município).
 - Número de série **único**; código legível gerado (`FOGO-RAD-0007`).
 - GPS **dentro do município** (polígono) e CEP na faixa 17500-000 a 17539-999.
 - Manutenção "agendada" ou "periódica" exige a próxima data.

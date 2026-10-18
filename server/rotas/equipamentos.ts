@@ -20,11 +20,11 @@ export async function rotasEquipamentos(app: FastifyInstance): Promise<void> {
   }, async (req) => servico.listar(ctx, filtrosEquipamentoSchema.parse(req.query)));
 
   app.get('/api/equipamentos/:id', {
-    schema: { tags, summary: 'Ficha do equipamento com histórico de situação, manutenções e alertas' },
+    schema: { tags, summary: 'Ficha do equipamento (endereço com cidade/uf, sempre Marília/SP) com histórico de situação, manutenções e alertas' },
   }, async (req) => servico.detalheDoEquipamento(ctx, id(req)));
 
   app.post('/api/equipamentos', {
-    schema: { tags, summary: 'Cadastra equipamento (gera o código FOGO-<SIGLA>-0000 e o token do dispositivo)' },
+    schema: { tags, summary: 'Cadastra equipamento (gera o código FOGO-<SIGLA>-0000 e o token do dispositivo)', description: 'Endereço: cep, logradouro, referencia, bairroId. cidade e uf são opcionais e, se vierem, precisam ser Marília/SP (400 caso contrário); o servidor sempre grava Marília/SP.' },
   }, async (req, reply) => reply.code(201).send(servico.criarEquipamento(ctx, equipamentoInputSchema.parse(req.body))));
 
   app.put('/api/equipamentos/:id', {

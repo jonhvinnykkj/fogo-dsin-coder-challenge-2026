@@ -13,7 +13,7 @@ vi.mock('../componentes/GraficoTelemetria', () => ({ GraficoTelemetria: () => <d
 
 const FURTADO = {
   id: 7, codigo: 'FOGO-RAD-0007', tipo: 'radar', numeroSerie: 'SN-7', marca: 'Perkons', modelo: 'SC-400', orgao: 'Secretaria de Mobilidade Urbana',
-  situacao: 'furtado', cep: '17500-000', logradouro: 'Avenida Sampaio Vidal', referencia: '', bairroId: 1, bairroNome: 'Centro', regiao: 'Centro',
+  situacao: 'furtado', cep: '17500-000', logradouro: 'Avenida Sampaio Vidal', referencia: '', cidade: 'Marília', uf: 'SP', bairroId: 1, bairroNome: 'Centro', regiao: 'Centro',
   lat: -22.2138, lng: -49.9508, latAtual: -22.2138, lngAtual: -49.9508, ultimoSinalEm: null, criadoEm: '2026-10-01T10:00:00.000Z', atualizadoEm: '2026-10-01T10:00:00.000Z',
   manutencaoNecessidade: 'nenhuma', caracteristicas: { modalidade: 'velocidade', faixas: 2, sentido: 'Centro' }, historico: [], manutencoes: [], alertas: [],
 };
@@ -52,6 +52,12 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('EquipamentoFicha', () => {
+  it('mostra a cidade/UF e o endereço completo', async () => {
+    renderizar();
+    expect((await screen.findAllByText('Marília/SP')).length).toBeGreaterThan(0);
+    expect(screen.getByText('Avenida Sampaio Vidal — Centro, Marília/SP — CEP 17500-000')).toBeInTheDocument();
+  });
+
   it('sair de Furtado para Operacional só envia com "recuperado" marcado e manda recuperado: true', async () => {
     const u = userEvent.setup();
     renderizar();

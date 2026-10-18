@@ -42,6 +42,26 @@ describe('cadastro de equipamento', () => {
     expect(linha.t).toMatch(/^[0-9a-f]{32}$/);
   });
 
+  it('sem cidade/uf no corpo grava Marília/SP, e o GET devolve os dois campos', async () => {
+    const criado = await criarOk();
+    expect(criado).toMatchObject({ cidade: 'Marília', uf: 'SP' });
+    const linha = ctx.db.prepare('SELECT cidade, uf FROM equipamentos WHERE id = ?').get(criado.id);
+    expect(linha).toEqual({ cidade: 'Marília', uf: 'SP' });
+    expect(await ler(criado.id)).toMatchObject({ cidade: 'Marília', uf: 'SP' });
+    const lista = (await app.inject({ method: 'GET', url: '/api/equipamentos' })).json();
+    expect(lista.itens[0]).toMatchObject({ cidade: 'Marília', uf: 'SP' });
+  });
+
+  it('aceita cidade/uf Marília/SP e recusa outra cidade com 400 em português', async () => {
+    expect((await criar({ cidade: 'Marília', uf: 'SP' })).statusCode).toBe(201);
+    const r = await criar({ numeroSerie: 'SN-0002', cidade: 'Bauru' });
+    expect(r.statusCode).toBe(400);
+    expect(r.json().campos.cidade).toBe('O F.O.G.O. atende só Marília/SP: a cidade e a UF precisam ser Marília/SP');
+    const outraUf = await criar({ numeroSerie: 'SN-0003', uf: 'MG' });
+    expect(outraUf.statusCode).toBe(400);
+    expect(outraUf.json().campos.uf).toMatch(/atende só Marília\/SP/);
+  });
+
   it('GET por id devolve os mesmos dados mais histórico, manutenções e alertas', async () => {
     const criado = await criarOk();
     const r = await app.inject({ method: 'GET', url: `/api/equipamentos/${criado.id}` });

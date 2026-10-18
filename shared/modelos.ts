@@ -21,6 +21,9 @@ export interface Bairro {
 export interface Equipamento extends EquipamentoInput {
   id: number;
   codigo: string;
+  /** Sempre Marília/SP: o sistema atende um município. */
+  cidade: string;
+  uf: string;
   bairroNome: string;
   regiao: Regiao;
   latAtual: number;

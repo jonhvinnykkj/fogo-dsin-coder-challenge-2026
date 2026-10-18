@@ -1,6 +1,16 @@
 // Formatadores pt-BR. Datas sempre no fuso America/Sao_Paulo.
 const FUSO = 'America/Sao_Paulo';
 
+/** O F.O.G.O. atende um único município: cidade e UF do endereço são sempre estas. */
+export const CIDADE = 'Marília';
+export const UF = 'SP';
+export const MSG_CIDADE_UF = 'O F.O.G.O. atende só Marília/SP: a cidade e a UF precisam ser Marília/SP';
+
+/** "Marília/SP" (ou outra cidade/UF, como a que o ViaCEP devolve). */
+export function formatarCidadeUf(cidade: string = CIDADE, uf: string = UF): string {
+  return `${cidade}/${uf.toUpperCase()}`;
+}
+
 export function formatarNumero(n: number, casas = 0): string {
   return n.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas });
 }
@@ -40,4 +50,10 @@ export function formatarRelativo(iso: string, agora: Date): string {
   if (h < 24) return `há ${h} h`;
   const dias = Math.round(h / 24);
   return dias === 1 ? 'há 1 dia' : `há ${dias} dias`;
+}
+
+/** "Rua X, referência — Bairro, Marília/SP — CEP 17500-000". Resposta antiga sem cidade/UF cai em Marília/SP. */
+export function formatarEndereco(e: { logradouro: string; referencia?: string; bairroNome: string; cep: string; cidade?: string; uf?: string }): string {
+  const rua = e.referencia ? `${e.logradouro}, ${e.referencia}` : e.logradouro;
+  return `${rua} — ${e.bairroNome}, ${formatarCidadeUf(e.cidade, e.uf)} — CEP ${e.cep}`;
 }

@@ -22,5 +22,8 @@ export function migrar(db: Database): void {
   if (!temColuna('historico_situacao', 'origem')) {
     db.exec("ALTER TABLE historico_situacao ADD COLUMN origem TEXT NOT NULL DEFAULT 'historico' CHECK (origem IN ('historico','ao_vivo'))");
   }
+  // Cidade/UF do endereço: sempre Marília/SP. Linhas antigas ficam com o valor padrão.
+  if (!temColuna('equipamentos', 'cidade')) db.exec("ALTER TABLE equipamentos ADD COLUMN cidade TEXT NOT NULL DEFAULT 'Marília'");
+  if (!temColuna('equipamentos', 'uf')) db.exec("ALTER TABLE equipamentos ADD COLUMN uf TEXT NOT NULL DEFAULT 'SP'");
   if (!temColuna('equipamentos', 'proxima_manutencao_historico')) db.exec('ALTER TABLE equipamentos ADD COLUMN proxima_manutencao_historico TEXT');
 }

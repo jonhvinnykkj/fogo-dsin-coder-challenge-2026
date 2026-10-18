@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import {
   HORARIO_TURNO, ROTULO_CATEGORIA_AGENTE, ROTULO_NECESSIDADE_MANUTENCAO, ROTULO_TIPO_OCORRENCIA, ROTULO_TURNO,
 } from '../../../shared/dominio';
-import { formatarDataHora, formatarNumero, formatarRelativo } from '../../../shared/formato';
+import { formatarDataHora, formatarEndereco, formatarNumero, formatarRelativo } from '../../../shared/formato';
 import type { AgenteDetalhe, EquipamentoDetalhe } from '../../../shared/modelos';
 import { METRICA_PRINCIPAL, metricaDoTipo } from '../../../shared/telemetria';
 import { mensagemDeErro } from '../api/cliente';
@@ -114,7 +114,7 @@ function ResumoEquipamento({ id, titulo, onFechar }: { id: number; titulo: RefOb
                 ? 'Imediata'
                 : eq.proximaManutencao ? `${ROTULO_NECESSIDADE_MANUTENCAO[eq.manutencaoNecessidade]} · próxima em ${formatarDia(eq.proximaManutencao)}` : ROTULO_NECESSIDADE_MANUTENCAO[eq.manutencaoNecessidade],
             },
-            { rotulo: 'Endereço', valor: eq.referencia ? `${eq.logradouro} · ${eq.referencia}` : eq.logradouro, larga: true },
+            { rotulo: 'Endereço', valor: formatarEndereco(eq), larga: true },
           ]}
         />
 

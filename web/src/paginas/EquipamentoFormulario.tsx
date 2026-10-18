@@ -6,6 +6,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   NECESSIDADES_MANUTENCAO, ORGAOS, ROTULO_NECESSIDADE_MANUTENCAO, ROTULO_SITUACAO, SITUACOES_EQUIPAMENTO,
 } from '../../../shared/dominio';
+import { CIDADE, UF, formatarCidadeUf } from '../../../shared/formato';
 import type { Equipamento } from '../../../shared/modelos';
 import { TIPOS_EQUIPAMENTO, tipoPorId, type TipoEquipamentoId } from '../../../shared/tipos-equipamento';
 import { buscarCep } from '../api/viacep';
@@ -72,7 +73,7 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
   const [erroGeral, setErroGeral] = useState<unknown>(null);
   const [tentativas, setTentativas] = useState(0);
   const [sugestaoBairro, setSugestaoBairro] = useState<string | null>(null);
-  const [cepAviso, setCepAviso] = useState<'buscando' | 'falhou' | null>(null);
+  const [cepAviso, setCepAviso] = useState<'buscando' | 'falhou' | { foraDeMarilia: string } | null>(null);
   const buscaCep = useRef(0);
   const logradouroAutomatico = useRef(false);
   const enviando = criar.isPending || atualizar.isPending;
@@ -148,6 +149,12 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
       if (minha !== buscaCep.current) return; // o CEP mudou de novo no meio da busca
       if (!endereco) {
         setCepAviso('falhou');
+        return;
+      }
+      // CEP de outra cidade: avisa e não preenche nada (o sistema atende só Marília/SP).
+      const outraCidade = (endereco.cidade && semAcento(endereco.cidade) !== semAcento(CIDADE)) || (endereco.uf && endereco.uf.toUpperCase() !== UF);
+      if (outraCidade) {
+        setCepAviso({ foraDeMarilia: formatarCidadeUf(endereco.cidade || CIDADE, endereco.uf || UF) });
         return;
       }
       setCepAviso(null);
@@ -272,7 +279,7 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
             <Campo
               rotulo="CEP"
               erro={erros.cep}
-              ajuda={cepAviso === 'buscando' ? 'Buscando o endereço…' : cepAviso === 'falhou' ? 'Não foi possível buscar o CEP — preencha o endereço' : 'Marília: 17500-000 a 17539-999. O logradouro é preenchido sozinho quando possível.'}
+              ajuda={cepAviso === 'buscando' ? 'Buscando o endereço…' : typeof cepAviso === 'object' && cepAviso ? `Este CEP é de ${cepAviso.foraDeMarilia}, fora de ${formatarCidadeUf()}` : cepAviso === 'falhou' ? 'Não foi possível buscar o CEP — preencha o endereço' : 'Marília: 17500-000 a 17539-999. O logradouro é preenchido sozinho quando possível.'}
             >
               {(p) => <input {...p} type="text" inputMode="numeric" autoComplete="postal-code" placeholder="17500-000" maxLength={9} value={estado.cep} onChange={(e) => digitarCep(e.target.value)} />}
             </Campo>
@@ -281,6 +288,9 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
             </Campo>
             <Campo rotulo="Referência" erro={erros.referencia} opcional>
               {(p) => <input {...p} type="text" placeholder="Ex.: em frente ao mercado" value={estado.referencia} onChange={(e) => definir('referencia', e.target.value)} />}
+            </Campo>
+            <Campo rotulo="Cidade/UF" ajuda="O F.O.G.O. atende um município; as coordenadas precisam cair dentro de Marília.">
+              {(p) => <input {...p} type="text" readOnly value={formatarCidadeUf()} />}
             </Campo>
             <Campo rotulo="Bairro" erro={erros.bairroId} ajuda={sugestaoBairro ?? undefined}>
               {(p) => (
