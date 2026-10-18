@@ -36,7 +36,7 @@ export function Raiz() {
       <Composition
         id="Demonstracao"
         component={Demonstracao}
-        durationInFrames={duracaoTotal(PROPS_PADRAO.numeros)}
+        durationInFrames={duracaoTotal(PROPS_PADRAO)}
         defaultProps={PROPS_PADRAO}
         calculateMetadata={calcularDemonstracao}
         {...formato}

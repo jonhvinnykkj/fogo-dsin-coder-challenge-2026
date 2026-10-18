@@ -11,7 +11,7 @@
 //   FOGO_URL=http://localhost:3396 SECO=1 node scripts/gravar.mjs     ensaio: só tira uma foto no fim de cada cena
 //   CENAS=cen-geral,cen-acidente ...                                   só algumas cenas
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -511,4 +511,12 @@ for (const cena of roteiro) {
 
 await navegador.close();
 rmSync(TMP, { recursive: true, force: true });
+
+// duração de cada gravação: a sincronia com a narração usa para saber até onde dá para esticar um plano
+const clipes = {};
+for (const arquivo of readdirSync(SAIDA).filter((a) => a.endsWith('.mp4')).sort()) {
+  const segundos = execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', join(SAIDA, arquivo)], { encoding: 'utf8' });
+  clipes[arquivo.replace(/\.mp4$/, '')] = Number(Number(segundos).toFixed(3));
+}
+writeFileSync(join(DADOS, 'clipes.json'), JSON.stringify({ caminho: 'ffprobe das gravações', dados: clipes }, null, 1));
 console.log('pronto');

@@ -9,6 +9,7 @@ import { LegendaPlaca, type LinhaLegenda } from '../componentes/Legenda';
 import { PlacaTela, type QuadroCamera } from '../componentes/PlacaTela';
 import { curva, marca, video } from '../tema';
 import { progresso } from '../tempo';
+import type { FalaNoPlano } from './sincronia';
 
 export type Entrada = 'corte' | 'empurrar' | 'mascara';
 
@@ -18,9 +19,25 @@ export interface LegendaPlano {
   de: number;
   ate: number;
   lado?: 'esquerda' | 'direita';
+  /** ids das frases da narração que esta legenda resume (o tempo passa a seguir a fala) */
+  com?: string[];
+  /** não entra antes deste segundo (1º plano do capítulo: só depois que o monitor abre) */
+  naoAntes?: number;
+}
+
+export interface EfeitoPlano {
+  /** nome do arquivo em public/audio/sfx, sem .mp3 */
+  som: string;
+  /** segundo da gravação em que o som cai (vira tempo de tela na sincronia) */
+  src: number;
+  /** tempo de tela calculado */
+  t?: number;
+  volume?: number;
 }
 
 export interface Plano {
+  /** cena da narração (narracao.ts); padrão: o nome do clipe */
+  id?: string;
   /** arquivo em public/gravacoes, sem o .mp4 */
   clipe: string;
   /** segundos pulados do começo do clipe */
@@ -33,6 +50,11 @@ export interface Plano {
   /** câmera em segundos locais do plano (x, y de 0 a 1 na gravação; zoom 1 = tela cheia) */
   camera?: { t: number; x: number; y: number; zoom: number }[];
   legendas?: LegendaPlano[];
+  /** quando a 1ª frase começa (segundos do plano); padrão na sincronia */
+  inicioFala?: number;
+  efeitos?: EfeitoPlano[];
+  /** preenchido pela sincronia */
+  falas?: FalaNoPlano[];
 }
 
 export interface Retangulo {

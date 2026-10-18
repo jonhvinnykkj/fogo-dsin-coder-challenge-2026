@@ -6,19 +6,20 @@ import { Marca } from '../componentes/Marca';
 import { curva, escuro, fonte, marca } from '../tema';
 import { mistura, progresso } from '../tempo';
 
+/** Duração mínima; com narração, a abertura cresce para caber a fala (o encaixe da marca acompanha o fim). */
 export const DURACAO_ABERTURA = 180;
 
 const NOME = ['Ferramenta', 'Onisciente', 'de', 'Gestão', 'e', 'Operações'];
 const INICIAIS = new Set([0, 1, 3, 5]);
 const ESCALA = 3.8;
 
-export function Abertura() {
+export function Abertura({ duracao = DURACAO_ABERTURA }: { duracao?: number }) {
   const frame = useCurrentFrame();
   const linha = progresso(frame, 2, 12);
   const bloco = progresso(frame, 12, 16);
-  const doca = progresso(frame, 118, 32, curva.camera);
-  const faixa = progresso(frame, 126, 22);
-  const sai = progresso(frame, 150, 18, curva.saida);
+  const doca = progresso(frame, duracao - 62, 32, curva.camera);
+  const faixa = progresso(frame, duracao - 54, 22);
+  const sai = progresso(frame, duracao - 30, 18, curva.saida);
   const escala = mistura(ESCALA, 1, doca);
   // grande, a placa abraça o texto (238 px = respiro igual dos dois lados); encaixada, volta aos 326 px do app
   const largura = mistura(238, 326, doca);

@@ -1,6 +1,7 @@
 // Números grandes do vídeo, lidos dos JSONs que o roteiro de gravação salvou da API do sistema
 // (public/gravacoes/dados/*.json, ao lado das gravações). Nada aqui é digitado à mão.
 import { staticFile } from 'remotion';
+import type { FalaGravada } from './sincronia';
 
 export type Numeros = {
   /** /api/equipamentos → total */
@@ -71,3 +72,15 @@ export const NUMEROS_VAZIOS: Numeros = {
   bairros: 0,
   dias: 0,
 };
+
+/** Duração de cada gravação (s), para a sincronia saber até onde dá para esticar um plano. */
+export async function carregarDuracaoClipes(): Promise<Record<string, number>> {
+  return ler<Record<string, number>>('clipes');
+}
+
+/** Narração gravada (scripts/narrar.py): frase, cena, arquivo e duração. */
+export async function carregarNarracao(): Promise<FalaGravada[]> {
+  const resposta = await fetch(staticFile('audio/narracao.json'));
+  if (!resposta.ok) throw new Error('Falta public/audio/narracao.json: rode scripts/narrar.py antes de renderizar');
+  return (await resposta.json()) as FalaGravada[];
+}
