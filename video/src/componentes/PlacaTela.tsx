@@ -3,7 +3,7 @@
 // O zoom anda em escala logarítmica (aproximação com velocidade constante) e a imagem nunca deixa borda vazia.
 // `children` fica por cima da imagem em coordenadas da própria imagem (px da captura), e acompanha a câmera.
 import type { CSSProperties, ReactNode } from 'react';
-import { Img, interpolate, staticFile, useCurrentFrame } from 'remotion';
+import { Img, interpolate, OffthreadVideo, staticFile, useCurrentFrame } from 'remotion';
 import { curva as curvas } from '../tema';
 import type { Curva } from '../tempo';
 
@@ -15,8 +15,11 @@ export interface QuadroCamera {
 }
 
 interface Props {
-  /** Caminho dentro de public/ (captura ou, depois, quadro de gravação). */
+  /** Caminho dentro de public/: captura (.png/.jpg) ou gravação (.mp4, toca sem som). */
   src: string;
+  /** Só gravação: quantos quadros pular do começo do arquivo e a velocidade (1 = normal). */
+  trimBefore?: number;
+  velocidade?: number;
   imgLargura: number;
   imgAltura: number;
   largura: number;
@@ -29,7 +32,7 @@ interface Props {
 
 const limitar = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 
-export function PlacaTela({ src, imgLargura, imgAltura, largura, altura, camera, curva = curvas.camera, style, children }: Props) {
+export function PlacaTela({ src, trimBefore = 0, velocidade = 1, imgLargura, imgAltura, largura, altura, camera, curva = curvas.camera, style, children }: Props) {
   const frame = useCurrentFrame();
   const quadros = camera.length === 1 ? [camera[0], { ...camera[0], f: camera[0].f + 1 }] : camera;
   const fs = quadros.map((q) => q.f);
@@ -55,7 +58,11 @@ export function PlacaTela({ src, imgLargura, imgAltura, largura, altura, camera,
           transform: `translate(${tx}px, ${ty}px) scale(${escala})`,
         }}
       >
-        <Img src={staticFile(src)} style={{ display: 'block', width: imgLargura, height: imgAltura }} />
+        {src.endsWith('.mp4') ? (
+          <OffthreadVideo src={staticFile(src)} trimBefore={trimBefore} playbackRate={velocidade} muted style={{ display: 'block', width: imgLargura, height: imgAltura }} />
+        ) : (
+          <Img src={staticFile(src)} style={{ display: 'block', width: imgLargura, height: imgAltura }} />
+        )}
         {children}
       </div>
     </div>

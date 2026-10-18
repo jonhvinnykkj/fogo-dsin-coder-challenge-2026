@@ -4,7 +4,7 @@
 // - marcador: texto claro sobre o grafite e a palavra-chave ganha um bloco laranja por trás (C).
 import type { CSSProperties } from 'react';
 import { interpolateColors, useCurrentFrame } from 'remotion';
-import { fonte, forma, marca } from '../tema';
+import { curva, fonte, forma, marca } from '../tema';
 import { mistura, progresso } from '../tempo';
 
 export type EstiloLegenda = 'bloco' | 'etiqueta' | 'marcador';
@@ -154,6 +154,46 @@ function LegendaMarcador({ linhas, inicio, cor, style }: { linhas: LinhaLegenda[
           </div>
         );
       })}
+    </div>
+  );
+}
+
+interface PropsPlaca {
+  linhas: LinhaLegenda[];
+  /** Quadros (locais) em que a legenda entra e começa a sair. */
+  inicio: number;
+  fim: number;
+  tamanho?: number;
+  style?: CSSProperties;
+}
+
+/**
+ * Legenda por cima da gravação: placa grafite, texto claro e a palavra-chave num bloco laranja (como no quadro C).
+ * Abre da esquerda para a direita e fecha de volta para a esquerda.
+ */
+export function LegendaPlaca({ linhas, inicio, fim, tamanho = 44, style }: PropsPlaca) {
+  const frame = useCurrentFrame();
+  if (frame < inicio - 1 || frame > fim + 12) return null;
+  const abre = progresso(frame, inicio, 12);
+  const fecha = progresso(frame, fim, 10, curva.saida);
+  const corte = fecha > 0 ? `inset(0 ${fecha * 100}% 0 0)` : `inset(0 ${(1 - abre) * 100}% 0 0)`;
+  return (
+    <div
+      style={{
+        display: 'inline-block',
+        padding: `${tamanho * 0.34}px ${tamanho * 0.3}px ${tamanho * 0.4}px ${tamanho * 0.56}px`,
+        borderRadius: forma.raio,
+        background: marca.sobreFogo,
+        clipPath: corte,
+        ...style,
+      }}
+    >
+      <LegendaMarcador
+        linhas={linhas}
+        inicio={inicio + 4}
+        cor="#EDEDEA"
+        style={{ fontFamily: fonte.familia, fontSize: tamanho, fontWeight: 700, lineHeight: 1.2, letterSpacing: '-0.005em' }}
+      />
     </div>
   );
 }

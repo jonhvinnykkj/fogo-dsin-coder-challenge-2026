@@ -1,6 +1,7 @@
-// Composições do vídeo. "Estilos" toca os três quadros de estilo em sequência (A, B, C; 4 s cada) para um render só;
+// Composições do vídeo. "Demonstracao" é o vídeo de entrega (estilo C, gravações reais). "Estilos" toca os três quadros de estilo em sequência (A, B, C; 4 s cada) para um render só;
 // cada um também existe sozinho na pasta "Quadros-de-estilo" do Studio.
 import { Composition, Folder, Series } from 'remotion';
+import { calcularDemonstracao, Demonstracao, duracaoTotal, PROPS_PADRAO } from './demo/Demonstracao';
 import { EstiloA } from './estilos/EstiloA';
 import { EstiloB } from './estilos/EstiloB';
 import { EstiloC } from './estilos/EstiloC';
@@ -32,6 +33,14 @@ const formato = { fps: video.fps, width: video.largura, height: video.altura } a
 export function Raiz() {
   return (
     <>
+      <Composition
+        id="Demonstracao"
+        component={Demonstracao}
+        durationInFrames={duracaoTotal(PROPS_PADRAO.numeros)}
+        defaultProps={PROPS_PADRAO}
+        calculateMetadata={calcularDemonstracao}
+        {...formato}
+      />
       <Composition id="Estilos" component={Estilos} durationInFrames={QUADROS_POR_ESTILO * 3} {...formato} />
       <Folder name="Quadros-de-estilo">
         <Composition id="EstiloA" component={EstiloA} durationInFrames={QUADROS_POR_ESTILO} {...formato} />
