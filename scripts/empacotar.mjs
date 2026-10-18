@@ -13,6 +13,8 @@ const LIMITE_BYTES = 50 * 1024 * 1024
 
 // Pastas inteiras que ficam de fora (em qualquer nível).
 const PASTAS_FORA = new Set(['node_modules', 'dist', 'test-results', 'playwright-report', '.git', '.superpowers', '.impeccable', '.vscode', '.idea'])
+// Caminhos exatos de fora: do projeto do vídeo (video/) só vai o código; renders, gravações de tela e cópias das telas não.
+const CAMINHOS_FORA = new Set([join('video', 'out'), join('video', 'public', 'gravacoes'), join('video', 'public', 'telas')])
 // Arquivos de fora: lixo do sistema, zips, bancos e qualquer .env (.env, .env.local, .env.production…): o repositório vai ser público.
 const arquivoFora = (nome, rel) =>
   nome === '.DS_Store' || nome.endsWith('.zip') || nome === '.env' || nome.startsWith('.env.') || (rel.startsWith(`data${sep}`) && /\.db(-wal|-shm)?$/.test(nome))
@@ -23,7 +25,7 @@ function listar(pasta) {
     const completo = join(pasta, item.name)
     const rel = relative(RAIZ, completo)
     if (item.isDirectory()) {
-      if (!PASTAS_FORA.has(item.name)) achados.push(...listar(completo))
+      if (!PASTAS_FORA.has(item.name) && !CAMINHOS_FORA.has(rel)) achados.push(...listar(completo))
     } else if (item.isFile() && !arquivoFora(item.name, rel)) {
       achados.push(rel)
     }

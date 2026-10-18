@@ -1,0 +1,22 @@
+{
+  "name": "fogo-video",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vídeo de demonstração do F.O.G.O. (Remotion). Projeto separado do app: não usa nem altera as dependências da raiz.",
+  "scripts": {
+    "studio": "remotion studio --public-dir=public",
+    "estilos": "remotion render Estilos out/estilos.mp4 --scale=0.5 --concurrency=1 --public-dir=public",
+    "tipos": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@phosphor-icons/react": "2.1.10",
+    "@remotion/cli": "4.0.526",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.526"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.7",
+    "typescript": "5.9.3"
+  }
+}

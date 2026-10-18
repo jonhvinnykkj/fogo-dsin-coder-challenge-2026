@@ -8,3 +8,7 @@ test-results
 .env*
 .vscode/
 .idea/
+# vídeo de demonstração (projeto Remotion em video/): dependências, renders e gravações de tela ficam fora
+video/node_modules/
+video/out/
+video/public/gravacoes/
