@@ -1,12 +1,15 @@
 // Navegação principal: as seis telas, na ordem do trabalho (operar, cadastrar, manter, reagir, prever).
 // Item ativo vira placa laranja. Recolhida, mostra só os ícones, com nome acessível e dica ao passar o mouse/focar.
 import {
-  BookOpenText, CaretDoubleLeft, CaretDoubleRight, ChartLineUp, IdentificationBadge, MapTrifold, TrafficCone, WarningDiamond,
+  BookOpenText, CaretDoubleLeft, CaretDoubleRight, ChartLineUp, ClockCounterClockwise, IdentificationBadge, MapTrifold, TrafficCone, WarningDiamond,
   Wrench, type Icon,
 } from '@phosphor-icons/react';
 import { NavLink } from 'react-router-dom';
 import { formatarNumero } from '../../../shared/formato';
+import type { Acao } from '../../../shared/seguranca';
 import { useIndicadores } from '../api/consultas';
+import { useUsuario } from '../sessao/Sessao';
+import { pode } from '../../../shared/seguranca';
 import estilos from './Navegacao.module.css';
 
 const contar = (n: number, um: string, varios: string) => `${formatarNumero(n)} ${n === 1 ? um : varios}`;
@@ -16,6 +19,8 @@ interface ItemNavegacao {
   rotulo: string;
   Icone: Icon;
   fim?: boolean;
+  /** Só aparece para quem pode esta ação. */
+  acao?: Acao;
 }
 
 export const ITENS_NAVEGACAO: ItemNavegacao[] = [
@@ -25,6 +30,7 @@ export const ITENS_NAVEGACAO: ItemNavegacao[] = [
   { para: '/manutencao', rotulo: 'Manutenção', Icone: Wrench },
   { para: '/alertas', rotulo: 'Alertas', Icone: WarningDiamond },
   { para: '/previsoes', rotulo: 'Previsões', Icone: ChartLineUp },
+  { para: '/auditoria', rotulo: 'Auditoria', Icone: ClockCounterClockwise, acao: 'auditar' },
 ];
 
 interface Props {
@@ -36,6 +42,8 @@ interface Props {
 
 export function Navegacao({ recolhida = false, onAlternarRecolhida, onNavegar }: Props) {
   const { data: indicadores } = useIndicadores();
+  const usuario = useUsuario();
+  const visiveis = ITENS_NAVEGACAO.filter((i) => !i.acao || usuario === undefined || pode(usuario?.papel, i.acao));
 
   const contagem = (para: string) => {
     if (para === '/alertas' && indicadores && indicadores.alertasAbertos > 0) {
@@ -58,7 +66,7 @@ export function Navegacao({ recolhida = false, onAlternarRecolhida, onNavegar }:
   return (
     <nav className={`${estilos.nav} ${recolhida ? estilos.recolhida : ''}`} aria-label="Navegação principal">
       <ul className={estilos.lista}>
-        {ITENS_NAVEGACAO.map(({ para, rotulo, Icone, fim }) => {
+        {visiveis.map(({ para, rotulo, Icone, fim }) => {
           const c = contagem(para);
           return (
             <li key={para}>

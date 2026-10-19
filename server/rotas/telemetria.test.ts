@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
-import { criarApp } from '../app';
+import { criarAppDeTeste } from '../test/app';
 import { criarCtxDeTeste, type CtxDeTeste } from '../test/ctx';
 import { inserirEquipamentoDeTeste } from '../test/fabricas';
 
@@ -11,7 +11,7 @@ beforeEach(async () => {
   ctx = criarCtxDeTeste();
   inserirEquipamentoDeTeste(ctx, { tipo: 'radar', codigo: 'FOGO-RAD-0001', token: 'segredo-do-radar-1' });
   inserirEquipamentoDeTeste(ctx, { tipo: 'radar', codigo: 'FOGO-RAD-0002', token: 'segredo-do-radar-2' });
-  app = await criarApp(ctx);
+  app = await criarAppDeTeste(ctx);
 });
 afterEach(async () => {
   await app.close();
@@ -73,7 +73,7 @@ describe('simulação e stream (rotas)', () => {
     const { Simulador } = await import('../tempo-real/simulador');
     await app.close();
     ctx.simulador = new Simulador(ctx, { semente: 1 });
-    app = await criarApp(ctx);
+    app = await criarAppDeTeste(ctx);
     const g = await app.inject({ method: 'GET', url: '/api/simulacao' });
     expect(g.json()).toEqual({ velocidade: 1, pausado: false, relogio: '2026-10-17T15:00:00.000Z' });
     const p = await app.inject({ method: 'PATCH', url: '/api/simulacao', payload: { velocidade: 10, pausado: true } });

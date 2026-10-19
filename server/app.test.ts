@@ -3,14 +3,14 @@ import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
-import { criarApp } from './app';
+import { criarAppDeTeste } from './test/app';
 import { criarCtxDeTeste } from './test/ctx';
 
 const TEM_INTERFACE = existsSync(fileURLToPath(new URL('../dist/web/index.html', import.meta.url)));
 
 let app: FastifyInstance;
 beforeAll(async () => {
-  app = await criarApp(criarCtxDeTeste());
+  app = await criarAppDeTeste(criarCtxDeTeste());
 });
 afterAll(async () => {
   await app.close();

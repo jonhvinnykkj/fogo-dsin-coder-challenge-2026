@@ -1,5 +1,5 @@
 // Regras de negócio do cadastro de equipamentos (as rotas só traduzem HTTP).
-import { randomBytes } from 'node:crypto';
+import { gerarTokenDispositivo, hashTokenDispositivo } from '../seguranca/cripto';
 import type { SituacaoEquipamento } from '../../shared/dominio';
 import type { Equipamento, EquipamentoDetalhe, PainelManutencao, PontoTelemetria } from '../../shared/modelos';
 import type { EquipamentoEdicao, EquipamentoInput, FiltrosEquipamento, ManutencaoInput, MudancaSituacao } from '../../shared/schemas';
@@ -59,7 +59,7 @@ export function criarEquipamento(ctx: Base, dados: EquipamentoInput): Equipament
   const id = ctx.db.transaction(() => {
     const sequencial = repo.proximoSequencial(ctx.db, tipoPorId(dados.tipo).sigla);
     const codigo = `FOGO-${tipoPorId(dados.tipo).sigla}-${String(sequencial).padStart(4, '0')}`;
-    return repo.inserirEquipamento(ctx.db, dados, { codigo, token: randomBytes(16).toString('hex'), agora });
+    return repo.inserirEquipamento(ctx.db, dados, { codigo, token: hashTokenDispositivo(gerarTokenDispositivo()), agora });
   })();
   ctx.simulador?.recarregar(); // já pode receber "Simular falha"
   return detalheDoEquipamento(ctx, id);

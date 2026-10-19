@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
-import { criarApp } from '../app';
+import { criarAppDeTeste } from '../test/app';
 import { criarCtxDeTeste, type CtxDeTeste, type RelogioDeTeste } from '../test/ctx';
 import { corpoEquipamento } from '../test/fabricas';
 
@@ -10,7 +10,7 @@ const relogio = () => ctx.relogio as RelogioDeTeste;
 
 beforeEach(async () => {
   ctx = criarCtxDeTeste();
-  app = await criarApp(ctx);
+  app = await criarAppDeTeste(ctx);
 });
 afterEach(async () => {
   await app.close();
@@ -39,7 +39,7 @@ describe('cadastro de equipamento', () => {
     expect(eq.latAtual).toBe(eq.lat);
     expect(eq.ultimoSinalEm).toBeNull();
     const linha = ctx.db.prepare('SELECT token_dispositivo AS t FROM equipamentos WHERE id = ?').get(eq.id) as { t: string };
-    expect(linha.t).toMatch(/^[0-9a-f]{32}$/);
+    expect(linha.t).toMatch(/^sha256:[0-9a-f]{64}$/); // o banco guarda só o hash do token
   });
 
   it('sem cidade/uf no corpo grava Marília/SP, e o GET devolve os dois campos', async () => {

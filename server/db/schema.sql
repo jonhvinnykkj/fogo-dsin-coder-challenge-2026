@@ -161,3 +161,48 @@ CREATE TABLE IF NOT EXISTS meta (
   chave  TEXT PRIMARY KEY,
   valor  TEXT NOT NULL
 );
+
+-- ---- Segurança (login, sessões e auditoria) ----
+
+-- Pessoas que entram no sistema. A senha fica só como hash scrypt com sal (`scrypt$N$r$p$sal$hash`).
+CREATE TABLE IF NOT EXISTS usuarios (
+  id          INTEGER PRIMARY KEY,
+  login       TEXT NOT NULL UNIQUE,
+  nome        TEXT NOT NULL,
+  papel       TEXT NOT NULL CHECK (papel IN ('gestor','operador','agente','leitura')),
+  senha_hash  TEXT NOT NULL,
+  agente_id   INTEGER REFERENCES agentes(id) ON DELETE SET NULL,
+  ativo       INTEGER NOT NULL DEFAULT 1 CHECK (ativo IN (0, 1)),
+  demo        INTEGER NOT NULL DEFAULT 0 CHECK (demo IN (0, 1)),
+  criado_em   TEXT NOT NULL
+);
+
+-- Sessões abertas. Guarda só o SHA-256 do valor do cookie: quem copiar o banco não consegue se passar por ninguém.
+CREATE TABLE IF NOT EXISTS sessoes (
+  id_hash     TEXT PRIMARY KEY,
+  usuario_id  INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  criada_em   TEXT NOT NULL,
+  expira_em   TEXT NOT NULL,
+  ip          TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_sessoes_usuario ON sessoes(usuario_id);
+
+-- Trilha de auditoria: toda escrita na API (e cada tentativa de entrada), com quem, o quê, antes e depois.
+CREATE TABLE IF NOT EXISTS auditoria (
+  id           INTEGER PRIMARY KEY,
+  em           TEXT NOT NULL,
+  usuario_id   INTEGER,
+  login        TEXT,
+  papel        TEXT,
+  acao         TEXT NOT NULL,
+  metodo       TEXT NOT NULL,
+  rota         TEXT NOT NULL,
+  entidade     TEXT,
+  entidade_id  INTEGER,
+  status       INTEGER NOT NULL,
+  antes        TEXT,
+  depois       TEXT,
+  dados        TEXT,
+  ip           TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_auditoria_em ON auditoria(em);

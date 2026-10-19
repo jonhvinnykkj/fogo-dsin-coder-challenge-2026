@@ -1,10 +1,10 @@
-// Raiz do app: cache de dados (TanStack Query), uma conexão de tempo real e as rotas.
+// Raiz do app: cache de dados (TanStack Query), a sessão e as rotas. O tempo real só abre depois de entrar (rotas.tsx).
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import { deveTentarDeNovo } from './api/consultas';
 import { criarRoteador } from './rotas';
-import { TempoRealProvider } from './tempo-real/TempoReal';
+import { SessaoProvider } from './sessao/Sessao';
 
 export function App() {
   const [qc] = useState(
@@ -23,9 +23,9 @@ export function App() {
 
   return (
     <QueryClientProvider client={qc}>
-      <TempoRealProvider>
+      <SessaoProvider>
         <RouterProvider router={roteador} />
-      </TempoRealProvider>
+      </SessaoProvider>
     </QueryClientProvider>
   );
 }

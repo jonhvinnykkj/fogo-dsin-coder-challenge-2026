@@ -19,6 +19,7 @@ import { useAgora } from '../util/useAgora';
 import { useFiltrosUrl } from '../util/useFiltrosUrl';
 import lista from './Lista.module.css';
 import estilos from './Alertas.module.css';
+import { usePode } from '../sessao/Sessao';
 
 const POR_PAGINA = 25;
 
@@ -41,6 +42,7 @@ export default function Alertas() {
   const bairros = useBairros();
   const reconhecer = useReconhecerAlerta();
   const resolver = useResolverAlerta();
+  const podeOperar = usePode('operar');
 
   const criticidade = ler('criticidade') as Criticidade | undefined;
   const filtros: FiltrosAlertas = {
@@ -103,10 +105,10 @@ export default function Alertas() {
       chave: 'acoes', titulo: 'Ações', alinhar: 'direita', semQuebra: true,
       render: (a) => (
         <span className={estilos.acoes}>
-          {!a.resolvidoEm && !a.reconhecidoEm && (
+          {podeOperar && !a.resolvidoEm && !a.reconhecidoEm && (
             <Botao tamanho="pequeno" disabled={ocupado(a.id)} onClick={() => reconhecer.mutate(a.id)}>Reconhecer</Botao>
           )}
-          {!a.resolvidoEm && (
+          {podeOperar && !a.resolvidoEm && (
             <Botao tamanho="pequeno" disabled={ocupado(a.id)} onClick={() => resolver.mutate(a.id)}>Resolver</Botao>
           )}
           {a.lat !== undefined && a.lng !== undefined && (

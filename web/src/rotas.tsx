@@ -6,6 +6,8 @@ import { AvisoErro } from './componentes/AvisoErro';
 import { classeBotao } from './componentes/Botao';
 import { EstadoVazio } from './componentes/EstadoVazio';
 import { Shell } from './componentes/Shell';
+import { ExigePermissao, ExigeSessao } from './sessao/Sessao';
+import { TempoRealProvider } from './tempo-real/TempoReal';
 
 function NaoEncontrada() {
   return (
@@ -45,6 +47,8 @@ void carregarCentral();
 const Central = lazy(carregarCentral);
 const Alertas = lazy(() => import('./paginas/Alertas'));
 const Previsoes = lazy(() => import('./paginas/Previsoes'));
+const Auditoria = lazy(() => import('./paginas/Auditoria'));
+const Entrar = lazy(() => import('./paginas/Entrar'));
 
 function Carregando({ children }: { children: ReactNode }) {
   return <Suspense fallback={<div className="pagina"><EstadoVazio tamanho="pagina" titulo="Carregando…" /></div>}>{children}</Suspense>;
@@ -56,21 +60,31 @@ const Vitrine = import.meta.env.DEV ? lazy(() => import('./paginas/Vitrine')) : 
 const filhas: RouteObject[] = [
   { index: true, element: <Carregando><Central /></Carregando> },
   { path: 'equipamentos', element: <Carregando><Equipamentos /></Carregando> },
-  { path: 'equipamentos/novo', element: <Carregando><EquipamentoFormulario /></Carregando> },
+  { path: 'equipamentos/novo', element: <Carregando><ExigePermissao acao="cadastrar"><EquipamentoFormulario /></ExigePermissao></Carregando> },
   { path: 'equipamentos/:id', element: <Carregando><EquipamentoFicha /></Carregando> },
-  { path: 'equipamentos/:id/editar', element: <Carregando><EquipamentoFormulario /></Carregando> },
+  { path: 'equipamentos/:id/editar', element: <Carregando><ExigePermissao acao="cadastrar"><EquipamentoFormulario /></ExigePermissao></Carregando> },
   { path: 'agentes', element: <Carregando><Agentes /></Carregando> },
-  { path: 'agentes/novo', element: <Carregando><AgenteFormulario /></Carregando> },
+  { path: 'agentes/novo', element: <Carregando><ExigePermissao acao="cadastrar"><AgenteFormulario /></ExigePermissao></Carregando> },
   { path: 'agentes/:id', element: <Carregando><AgenteFicha /></Carregando> },
-  { path: 'agentes/:id/editar', element: <Carregando><AgenteFormulario /></Carregando> },
+  { path: 'agentes/:id/editar', element: <Carregando><ExigePermissao acao="cadastrar"><AgenteFormulario /></ExigePermissao></Carregando> },
   { path: 'manutencao', element: <Carregando><Manutencao /></Carregando> },
   { path: 'alertas', element: <Carregando><Alertas /></Carregando> },
   { path: 'previsoes', element: <Carregando><Previsoes /></Carregando> },
+  { path: 'auditoria', element: <Carregando><ExigePermissao acao="auditar"><Auditoria /></ExigePermissao></Carregando> },
   ...(Vitrine ? [{ path: 'vitrine', element: <Suspense fallback={null}><Vitrine /></Suspense> }] : []),
   { path: '*', element: <NaoEncontrada /> },
 ];
 
-export const rotas: RouteObject[] = [{ path: '/', element: <Shell />, errorElement: <ErroDeRota />, children: filhas }];
+// Tudo fica atrás da sessão; o tempo real (SSE) só abre depois de entrar, com o cookie da sessão.
+export const rotas: RouteObject[] = [
+  { path: '/entrar', element: <Carregando><Entrar /></Carregando>, errorElement: <ErroDeRota /> },
+  {
+    path: '/',
+    element: <ExigeSessao><TempoRealProvider><Shell /></TempoRealProvider></ExigeSessao>,
+    errorElement: <ErroDeRota />,
+    children: filhas,
+  },
+];
 
 export function criarRoteador() {
   return createBrowserRouter(rotas);

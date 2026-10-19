@@ -1,0 +1,61 @@
+.usuario {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  padding-left: var(--e-3);
+  border-left: 1px solid var(--cor-sobre-faixa-suave);
+  color: var(--cor-sobre-faixa);
+}
+
+.icone {
+  flex: none;
+}
+
+.textos {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.nome {
+  max-width: 16ch;
+  overflow: hidden;
+  font-size: var(--t-13);
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.papel {
+  color: var(--cor-sobre-faixa-suave);
+  font-size: var(--t-12);
+  white-space: nowrap;
+}
+
+.sair {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  background: transparent;
+  color: var(--cor-sobre-faixa);
+  cursor: pointer;
+}
+
+.sair:hover {
+  background: var(--cor-faixa-destaque);
+}
+
+.sair:focus-visible {
+  outline: 2px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+/* Celular: só o ícone e o botão de sair. */
+@media (max-width: 720px) {
+  .textos {
+    display: none;
+  }
+}

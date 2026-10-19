@@ -8,6 +8,8 @@ São três partes, num único sistema:
 2. **Central de Operações** — mapa ao vivo com equipamentos e agentes se mexendo, seis indicadores, feed de alertas em tempo real e situação de cada região; dá para acelerar a simulação e injetar acidente, furto, falha ou alagamento.
 3. **Cidade Preditiva** — risco por bairro e hora (24 h e 7 dias), reforço de agentes, equipamentos com chance de falhar, anomalias e tendências; cada previsão diz o que prevê, com quais dados, como ajuda e **quão certa ela foi no passado**.
 
+Por cima das três partes, uma **camada de segurança**: login com quatro papéis (gestor, operador, agente, somente consulta), permissão conferida em cada rota, dados pessoais dos agentes mascarados (LGPD), posição de policiais e guardas aproximada para quem só consulta, trilha de auditoria com antes e depois, senhas em scrypt, tokens de dispositivo só como hash, CSP e limite de requisições. Detalhes em [docs/SEGURANCA.md](docs/SEGURANCA.md).
+
 ![Central de Operações](docs/telas/central.png)
 
 ## Como rodar em 1 minuto
@@ -19,6 +21,8 @@ npm install && npm start
 ```
 
 Abra **http://localhost:3333**. Na primeira vez o sistema compila a interface e cria sozinho o banco `data/fogo.db` com a cidade inteira (poucos segundos: 3,6 s numa medição de 17/10/2026). Não há banco, chave ou conta para configurar.
+
+**Entrada:** a tela de entrada tem um botão por papel (**Gestor**, Operador da central, Agente em campo, Somente consulta). Para ver tudo, entre como **Gestor**. É o modo demonstração, ligado por padrão para a avaliação rodar de primeira. Na primeira partida o terminal também mostra as senhas aleatórias dos quatro usuários (`gestor`, `operador`, `agente`, `consulta`), para entrar com usuário e senha; `FOGO_DEMO=0` desliga os botões (veja [docs/SEGURANCA.md](docs/SEGURANCA.md)).
 
 **Com Docker** (se preferir não instalar o Node):
 
@@ -42,6 +46,7 @@ No PowerShell e no cmd a variável vale até fechar aquele terminal.
 
 ## O que olhar primeiro (roteiro de 2 minutos)
 
+0. **Entrada** (`/entrar`): clique em **Gestor**. Depois, para ver as permissões em ação, saia (ícone no canto superior direito) e entre como **Somente consulta**: os botões de ação somem, telefone e matrícula dos agentes aparecem mascarados e o servidor recusa qualquer escrita com 403.
 1. **Central** (`/`): seis placas de cor cheia, mapa com equipamentos agrupados por situação, agentes deslizando, bairros pintados pelo índice de atenção e o feed de alertas à direita.
 2. Barra no rodapé do mapa: com a velocidade em **1×**, clique em **Injetar evento → Acidente**. Na hora aparece o alerta **crítico** (o acidente injetado usa sempre a gravidade máxima), o agente mais próximo é despachado ao local e o índice do bairro sobe 29 pontos (alerta crítico + ocorrência; na medição de 17/10/2026 o bairro passou de normal (24) para atenção (53)). Em 1× a ocorrência dura alguns minutos; quando termina, o alerta se resolve sozinho (fica registrado como resolução automática).
 3. Agora clique em **60×**: agentes e patinetes andam mais depressa e chegam ocorrências e alertas sem parar. A 60× tudo dura segundos, inclusive um acidente injetado. Mesmo depois de 3 minutos assim, as regiões continuam distintas (17/10/2026: Centro 65, crítico; Sul 46, Oeste 38 e Norte 30, atenção; Leste 8, normal), porque o índice mede a cidade no ritmo real (veja "Decisões e limitações").
@@ -145,9 +150,12 @@ Documentação interativa (Swagger): **http://localhost:3333/api/docs**. Princip
 | Central | `GET /api/central/{indicadores,mapa,regioes,ocorrencias}`, `GET /api/alertas`, `PATCH /api/alertas/:id/{reconhecer,resolver}`, `GET /api/manutencao/painel` |
 | Tempo real | `POST /api/telemetria`, `GET /api/stream` (SSE), `GET/PATCH /api/simulacao`, `POST /api/simulacao/eventos` |
 | Previsões | `GET /api/previsoes/{risco,backtest,reforco,falhas,tendencias,resumo}` (`backtest` = o teste retroativo do risco) |
+| Acesso | `POST /api/auth/{entrar,sair,demo}`, `GET /api/auth/{eu,modo}`, `GET /api/auditoria` (gestor), `POST /api/equipamentos/:id/token` (gestor: gera token novo do dispositivo) |
 | Saúde | `GET /api/saude` |
 
-**Enviando uma leitura como se fosse um equipamento.** Cada equipamento tem um token (gerado na semente, nunca devolvido pela API). Para pegar o de um equipamento do **seu banco local** e mandar uma leitura (com o servidor ligado):
+Toda rota, menos saúde, entrada e telemetria, exige a sessão (cookie `fogo_sessao`, aberto pela entrada). Sem ela: `401`. Sem permissão para o papel: `403`. A tabela de quem pode o quê está em [docs/SEGURANCA.md](docs/SEGURANCA.md).
+
+**Enviando uma leitura como se fosse um equipamento.** Cada equipamento tem um token, e o banco guarda só o hash dele, então ninguém o lê de volta. O script abaixo **gera um token novo** para um equipamento do **seu banco local** (o anterior deixa de valer) e o mostra uma vez; com ele, mande uma leitura (com o servidor ligado):
 
 macOS / Linux:
 
@@ -177,7 +185,7 @@ As métricas aceitas dependem do tipo (ex.: radar = `fluxo`, `velocidadeMedia`, 
 ## Testes
 
 ```bash
-npm test            # Vitest: servidor, regras, previsões e interface (376 testes em 52 arquivos)
+npm test            # Vitest: servidor, regras, previsões, segurança e interface
 npm run typecheck   # TypeScript estrito, servidor e interface
 npm run e2e         # Playwright: sobe o app com banco próprio (porta 3399) e confere Central, Previsões e Equipamentos
 ```
@@ -195,7 +203,7 @@ O E2E usa `data/e2e.db` e o apaga ao terminar; não mexe no seu `data/fogo.db`. 
 - A velocidade 10× e 60× multiplica o ritmo de eventos, mas o relógio é o relógio real (nada é gravado no futuro).
 - **Se o avaliador abrir dias depois**, o histórico é completado até "agora" ao iniciar (a lacuna é preenchida), então "próximas 24 h" continua valendo. A lacuna não cria falhas novas de equipamento; o simulador ao vivo cria.
 - O ganho do risco por bairro é modesto (~7%) e, nos 5 bairros mais arriscados à noite, o modelo empata com a média simples, pelas razões acima; a projeção linear de disponibilidade é pior que repetir a média nesta cidade estável. Dizemos isso na própria tela.
-- Sem login nem permissões: é uma ferramenta de demonstração, e o token por equipamento só protege a entrada de telemetria.
+- **O modo demonstração entra sem senha, de propósito**: é o que permite à comissão avaliar com um clique. Ele aparece no terminal e se desliga com `FOGO_DEMO=0`; o que ficou fora da segurança (HTTPS próprio, 2FA, tela de usuários) está em [docs/SEGURANCA.md](docs/SEGURANCA.md).
 - O mapa precisa de internet para o fundo de ruas; o ViaCEP (preenchimento de CEP) é opcional e o cadastro funciona sem ele.
 - SQLite atende bem a um município simulado; para milhões de leituras por dia o caminho seria um banco de séries temporais (discutido no guia).
 

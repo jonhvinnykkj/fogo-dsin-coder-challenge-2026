@@ -12,6 +12,7 @@ import { ErroDePorta, lerPorta, mensagemPortaOcupada } from './porta';
 import { Barramento } from './tempo-real/barramento';
 import { MotorAlertas } from './tempo-real/motor-alertas';
 import { Simulador } from './tempo-real/simulador';
+import { garantirUsuariosDemo } from './seguranca/usuarios';
 
 // Antes de abrir o banco: PORT inválida é erro de uso, não precisa de pilha de erro.
 let porta: number;
@@ -23,6 +24,7 @@ try {
   process.exit(1);
 }
 const caminhoBanco = resolve(process.env.FOGO_DB ?? 'data/fogo.db');
+const host = process.env.HOST ?? '127.0.0.1';
 
 mkdirSync(dirname(caminhoBanco), { recursive: true });
 
@@ -63,9 +65,20 @@ const legado = ctx.motor.resolverAlertasDeOcorrenciasEncerradas();
 if (legado > 0) console.log(`Alertas antigos de ocorrências já encerradas resolvidos: ${formatarNumero(legado)}`);
 ctx.simulador = new Simulador(ctx);
 
-const app = await criarApp(ctx);
+// Segurança: banco sem usuários ganha um por papel, com senha aleatória mostrada só agora.
+// FOGO_DEMO=0 desliga a entrada com um clique (produção); por padrão ela fica ligada, para a avaliação rodar de primeira.
+const demo = process.env.FOGO_DEMO !== '0';
+const criados = garantirUsuariosDemo(db);
+if (criados.length > 0) {
+  console.log('\nUsuários criados (guarde as senhas: elas não aparecem de novo; troque com "npm run senha -- <usuário>"):');
+  for (const u of criados) console.log(`  ${u.login.padEnd(9)} ${u.senha}   (${u.papel})`);
+  console.log('');
+}
+
+const app = await criarApp(ctx, { demo, cookieSeguro: process.env.FOGO_COOKIE_SEGURO === '1' });
 try {
-  await app.listen({ port: porta, host: '0.0.0.0' });
+  // Só a própria máquina, por padrão: sem isto qualquer um na mesma rede Wi-Fi chegava ao sistema. O Docker usa HOST=0.0.0.0.
+  await app.listen({ port: porta, host: host });
 } catch (erro) {
   if ((erro as NodeJS.ErrnoException).code !== 'EADDRINUSE') throw erro;
   console.error(mensagemPortaOcupada(porta));
@@ -73,6 +86,7 @@ try {
   process.exit(1);
 }
 console.log(`F.O.G.O. no ar em http://localhost:${porta} (banco: ${caminhoBanco})`);
+console.log(demo ? 'Modo demonstração: a tela de entrada tem botões de entrada rápida por papel (FOGO_DEMO=0 desliga).' : 'Modo demonstração desligado: entre com usuário e senha.');
 barramento.iniciarAgrupamento();
 ctx.simulador.iniciar();
 

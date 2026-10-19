@@ -13,6 +13,7 @@ import { Botao } from './Botao';
 import { DialogoManutencao } from './DialogoManutencao';
 import { IconeTipo } from './IconeTipo';
 import estilos from './RankingFalhas.module.css';
+import { usePode } from '../sessao/Sessao';
 
 export const TAMANHO_RANKING = 20;
 
@@ -32,6 +33,7 @@ function textoDaRevisao(f: RiscoFalha): string {
 }
 
 export function RankingFalhas({ itens }: { itens: RiscoFalha[] }) {
+  const podeOperar = usePode('operar');
   const [agendando, setAgendando] = useState<RiscoFalha | null>(null);
   const [agendados, setAgendados] = useState<Record<number, string>>({});
   const lista = itens.slice(0, TAMANHO_RANKING);
@@ -77,7 +79,7 @@ export function RankingFalhas({ itens }: { itens: RiscoFalha[] }) {
                     <CheckCircle weight="fill" size={18} aria-hidden="true" />
                     Manutenção agendada para {formatarDia(agendada)}
                   </span>
-                ) : (
+                ) : podeOperar && (
                   <Botao
                     tamanho="pequeno"
                     icone={<CalendarCheck weight="fill" size={16} aria-hidden="true" />}

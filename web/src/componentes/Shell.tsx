@@ -7,6 +7,7 @@ import { AlternarTema } from './AlternarTema';
 import { Gaveta } from './Gaveta';
 import { IndicadorConexao } from './IndicadorConexao';
 import { Navegacao } from './Navegacao';
+import { MenuUsuario } from './MenuUsuario';
 import { RelogioSimulacao } from './RelogioSimulacao';
 import estilos from './Shell.module.css';
 
@@ -54,6 +55,7 @@ export function Shell() {
           <span className={estilos.temaNaFaixa}>
             <AlternarTema />
           </span>
+          <MenuUsuario />
         </div>
       </header>
 

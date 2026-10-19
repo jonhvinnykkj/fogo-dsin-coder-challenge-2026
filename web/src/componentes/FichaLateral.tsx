@@ -24,6 +24,7 @@ import { IconeTipo } from './IconeTipo';
 import { ListaDados } from './ListaDados';
 import type { SelecaoMapa } from './MapaOperacional';
 import estilos from './FichaLateral.module.css';
+import { usePode } from '../sessao/Sessao';
 
 interface Props {
   selecao: SelecaoMapa;
@@ -73,6 +74,8 @@ function Cabecalho({ titulo, refTitulo, onFechar, children }: {
 }
 
 function ResumoEquipamento({ id, titulo, onFechar }: { id: number; titulo: RefObject<HTMLHeadingElement | null>; onFechar: () => void }) {
+  const podeOperar = usePode('operar');
+  const podeSimular = usePode('simular');
   const consulta = useEquipamento(id);
   const agora = useAgora(30_000);
   const [manutencaoAberta, setManutencaoAberta] = useState(false);
@@ -140,10 +143,12 @@ function ResumoEquipamento({ id, titulo, onFechar }: { id: number; titulo: RefOb
       </div>
       <footer className={estilos.rodape}>
         <Link to={`/equipamentos/${eq.id}`} className={classeBotao('primario', 'pequeno')}>Abrir ficha completa</Link>
-        <Botao tamanho="pequeno" icone={<Wrench weight="fill" size={16} aria-hidden="true" />} onClick={() => setManutencaoAberta(true)}>
-          Registrar manutenção
-        </Botao>
-        {eq.situacao === 'operacional' && (
+        {podeOperar && (
+          <Botao tamanho="pequeno" icone={<Wrench weight="fill" size={16} aria-hidden="true" />} onClick={() => setManutencaoAberta(true)}>
+            Registrar manutenção
+          </Botao>
+        )}
+        {podeSimular && eq.situacao === 'operacional' && (
           <Botao
             variante="fantasma"
             tamanho="pequeno"

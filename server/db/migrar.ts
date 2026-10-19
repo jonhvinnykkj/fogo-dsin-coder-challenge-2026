@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import type { Database } from 'better-sqlite3';
+import { ehHashDeToken, hashTokenDispositivo } from '../seguranca/cripto';
 
 const SQL = readFileSync(new URL('./schema.sql', import.meta.url), 'utf8');
 
@@ -26,4 +27,20 @@ export function migrar(db: Database): void {
   if (!temColuna('equipamentos', 'cidade')) db.exec("ALTER TABLE equipamentos ADD COLUMN cidade TEXT NOT NULL DEFAULT 'Marília'");
   if (!temColuna('equipamentos', 'uf')) db.exec("ALTER TABLE equipamentos ADD COLUMN uf TEXT NOT NULL DEFAULT 'SP'");
   if (!temColuna('equipamentos', 'proxima_manutencao_historico')) db.exec('ALTER TABLE equipamentos ADD COLUMN proxima_manutencao_historico TEXT');
+  converterTokensLegados(db);
+}
+
+/**
+ * Segurança: o banco guarda só o hash do token de cada dispositivo (`sha256:<hex>`). Bancos criados antes disso têm o
+ * token em texto: converte uma vez, na partida. O dispositivo continua usando o mesmo token; só o banco deixa de conhecê-lo.
+ */
+export function converterTokensLegados(db: Database): number {
+  const linhas = db.prepare('SELECT id, token_dispositivo AS t FROM equipamentos').all() as { id: number; t: string }[];
+  const legados = linhas.filter((l) => !ehHashDeToken(l.t));
+  if (legados.length === 0) return 0;
+  const atualizar = db.prepare('UPDATE equipamentos SET token_dispositivo = ? WHERE id = ?');
+  db.transaction(() => {
+    for (const l of legados) atualizar.run(hashTokenDispositivo(l.t), l.id);
+  })();
+  return legados.length;
 }

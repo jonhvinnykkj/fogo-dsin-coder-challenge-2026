@@ -2,7 +2,7 @@ import { performance } from 'node:perf_hooks';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { ResumoPreditivo } from '../../shared/modelos';
-import { criarApp } from '../app';
+import { criarAppDeTeste } from '../test/app';
 import { cidadeSemeada } from '../preditivo/test-helpers';
 
 const ROTAS = ['/api/previsoes/risco?horas=24', '/api/previsoes/risco?horas=168', '/api/previsoes/backtest', '/api/previsoes/reforco',
@@ -10,8 +10,11 @@ const ROTAS = ['/api/previsoes/risco?horas=24', '/api/previsoes/risco?horas=168'
 
 const apps: FastifyInstance[] = [];
 async function appNovo(): Promise<FastifyInstance> {
-  const app = await criarApp(cidadeSemeada());
+  const app = await criarAppDeTeste(cidadeSemeada());
   apps.push(app);
+  // "Frio" é o cache das previsões vazio, não o servidor: a primeira requisição de um app novo ainda inicializa os
+  // ganchos (sessão, cabeçalhos, limite de requisições) e não deve entrar na conta da previsão.
+  await app.inject({ method: 'GET', url: '/api/saude' });
   return app;
 }
 

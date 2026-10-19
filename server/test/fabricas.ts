@@ -1,5 +1,6 @@
 // Cargas válidas para os testes de API. Cada função aceita `sobrescreve` para variar um campo.
 import type { ContextoApp } from '../contexto';
+import { hashTokenDispositivo } from '../seguranca/cripto';
 
 /** Corpo válido de POST /api/equipamentos (um radar no primeiro bairro). */
 export function corpoEquipamento(ctx: ContextoApp, sobrescreve: Record<string, unknown> = {}): Record<string, unknown> {
@@ -67,7 +68,7 @@ export function inserirEquipamentoDeTeste(ctx: ContextoApp, e: EquipamentoDeTest
     VALUES (?, ?, ?, 'Marca', 'Modelo', 'Secretaria de Mobilidade Urbana', ?, '17500-000', ?, '', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(
     e.codigo, e.tipo, `SN-${e.codigo}`, e.situacao ?? 'operacional', e.logradouro ?? 'Avenida Sampaio Vidal', b.id, lat, lng, lat, lng,
     e.proximaManutencao ? 'periodica' : 'nenhuma', e.proximaManutencao ?? null, JSON.stringify(e.caracteristicas ?? {}),
-    e.ultimoSinalEm === undefined ? null : e.ultimoSinalEm, e.token ?? `token-${e.codigo}`, agora, agora,
+    e.ultimoSinalEm === undefined ? null : e.ultimoSinalEm, hashTokenDispositivo(e.token ?? `token-${e.codigo}`), agora, agora,
   );
   return Number(r.lastInsertRowid);
 }

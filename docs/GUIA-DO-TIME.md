@@ -17,6 +17,7 @@ shared/                 código que servidor e interface usam igual (sem Node)
   modelos.ts              formato das respostas da API e dos eventos SSE
   geo.ts + limite-marilia.json   ponto-dentro-do-polígono, distância, limite do município
   formato.ts              números 1.234,5, datas dd/mm/aaaa no fuso de São Paulo, "mais de 99%"
+  seguranca.ts            papéis (gestor, operador, agente, leitura) e o que cada um pode na interface
 server/
   index.ts                a partida: banco → migração → semente/lacuna → app → simulador → escuta a porta
   app.ts                  monta o Fastify (rotas, Swagger, arquivos da interface)
@@ -28,6 +29,7 @@ server/
   rotas/                  uma rota fina por assunto: valida, chama o serviço, responde
   semente/                cria a cidade e o histórico de 60 dias, com padrões plantados
   tempo-real/             ingestão, anomalias, motor de alertas, simulador, barramento de eventos
+  seguranca/              sessão, permissão por rota, LGPD, auditoria, scrypt e hash de tokens (docs/SEGURANCA.md)
   preditivo/              base (estatísticas), risco, backtest, reforço, falhas, tendências, resumo
 web/src/
   paginas/                uma por tela: Central, Equipamentos, fichas e formulários, Agentes, Manutenção, Alertas, Previsões
@@ -195,13 +197,22 @@ Para mostrar a comissão: rodem `npm test` na tela e apontem os testes de `serve
 17. **Desempenho?** Com a cidade povoada, os testes exigem mapa e indicadores em menos de 100 ms e regiões em menos de 200 ms (`server/servicos/central.test.ts`); marcadores agrupados; posições pelo SSE em lotes de 2 s; o simulador isola o erro de cada item para um problema não parar o tick.
 18. **Por que o modo escuro não é automático?** Decisão de produto: tema claro por padrão; a "Sala de controle" (escuro) é uma escolha de quem opera em ambiente com pouca luz.
 19. **Roda sem internet?** Sim, exceto o fundo do mapa (OpenStreetMap). O ViaCEP é opcional.
-20. **O que faltou ou faria depois?** Login e permissões, banco de séries temporais, validação com dados reais, e perfil por região também para a tendência. Os limites estão no README.
+20. **O que faltou ou faria depois?** HTTPS próprio, 2FA e tela de usuários (veja docs/SEGURANCA.md), banco de séries temporais, validação com dados reais, e perfil por região também para a tendência. Os limites estão no README.
 
 ---
 
+### Segurança
+
+21. **Como vocês protegem o sistema?** Toda rota de `/api` exige sessão, menos saúde, entrada e telemetria (que tem token por dispositivo). Quatro papéis com permissão explícita por rota em `server/seguranca/permissoes.ts`; rota nova sem regra é recusada a todos (falha fechado), e um teste garante que nenhuma rota fique sem regra.
+22. **Onde fica a senha?** Só o hash scrypt com sal (`server/seguranca/cripto.ts`). A sessão é um cookie `httpOnly` + `SameSite=Strict`, e o banco guarda só o SHA-256 dele. O token dos dispositivos também fica só como hash.
+23. **E a LGPD?** Telefone e matrícula dos agentes inteiros só para o gestor; a posição de policiais e guardas é aproximada (~500 m) para quem só consulta, inclusive no tempo real (`server/seguranca/protecao.ts`).
+24. **Como sabem quem fez o quê?** Trilha de auditoria (tela **Auditoria**): cada escrita grava quem, papel, IP, resultado e o registro antes e depois; tentativas recusadas e senhas erradas também. Senhas e tokens nunca entram.
+25. **E força bruta, CSRF, XSS?** 10 tentativas de entrada por minuto por IP e a mesma resposta (e o mesmo tempo) para usuário inexistente e senha errada; `SameSite=Strict` + conferência do `Origin`; CSP que só roda scripts do próprio servidor (o script inline do tema entra pelo hash).
+26. **Mas o botão de demonstração entra sem senha!** De propósito, para a comissão avaliar com um clique. Aparece no terminal, está no README e se desliga com `FOGO_DEMO=0`; aí só usuário e senha valem.
+
 ## 9. Sugestão de divisão da apresentação (até 3 pessoas)
 
-- **Pessoa 1 — Inventário e dados** (≈ 3 min): cadastro, filtros, ficha, regras de negócio (seção 5), como a semente planta padrões (seção 3), API e Swagger.
+- **Pessoa 1 — Inventário, dados e segurança** (≈ 3 min): cadastro, filtros, ficha, regras de negócio (seção 5), como a semente planta padrões (seção 3), API e Swagger; entrar como Somente consulta e mostrar o 403 e a Auditoria (perguntas 21 a 26).
 - **Pessoa 2 — Central em tempo real** (≈ 3 min): demonstração ao vivo (injetar acidente em 1×, depois 60×), o caminho do dado (seção 2), alertas que abrem e fecham, SSE × WebSocket, desempenho.
 - **Pessoa 3 — Previsões e IA** (≈ 3 min): "o que prevê / dados / como ajuda / quão certa foi", um exemplo numérico de cada (seção 4), o teste retroativo e a honestidade sobre o 7% (e o empate nos 5 bairros), declaração de uso de IA.
 

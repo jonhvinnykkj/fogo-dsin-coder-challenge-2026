@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
-import { criarApp } from '../app';
+import { criarAppDeTeste } from '../test/app';
 import { inserirAlerta } from '../repositorios/alertas';
 import { criarCtxDeTeste, type CtxDeTeste, type RelogioDeTeste } from '../test/ctx';
 
@@ -9,7 +9,7 @@ let app: FastifyInstance;
 
 beforeEach(async () => {
   ctx = criarCtxDeTeste();
-  app = await criarApp(ctx);
+  app = await criarAppDeTeste(ctx);
 });
 afterEach(async () => {
   await app.close();

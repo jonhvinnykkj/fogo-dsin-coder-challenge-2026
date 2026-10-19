@@ -1,0 +1,149 @@
+.fundo {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--e-5) var(--e-4);
+  background: var(--cor-faixa);
+}
+
+.cartao {
+  width: min(100%, 440px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-4);
+  padding: var(--e-6);
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  box-shadow: var(--sombra-flutuante);
+}
+
+.placa {
+  align-self: flex-start;
+  padding: var(--e-2) var(--e-4);
+  background: var(--cor-fogo);
+  color: var(--cor-sobre-fogo);
+  font-size: var(--t-24);
+  font-weight: 900;
+  font-stretch: var(--largura-expandida);
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--t-24);
+  font-weight: 800;
+}
+
+.subtitulo {
+  margin: calc(-1 * var(--e-3)) 0 0;
+  color: var(--cor-texto-suave);
+  font-size: var(--t-14);
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-3);
+}
+
+.formulario > button {
+  align-self: stretch;
+  justify-content: center;
+}
+
+.erro {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  margin: 0;
+  padding: var(--e-2) var(--e-3);
+  background: var(--cor-erro-fundo);
+  color: var(--cor-erro);
+  font-size: var(--t-14);
+  font-weight: 600;
+}
+
+.demo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-2);
+  padding-top: var(--e-4);
+  border-top: 2px solid var(--cor-zebra);
+}
+
+.demoTitulo {
+  margin: 0;
+  font-size: var(--t-13);
+  font-weight: 700;
+  color: var(--cor-texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.papeis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--e-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.papel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-1);
+  padding: var(--e-3);
+  border: 0;
+  background: var(--cor-superficie-baixa);
+  color: var(--cor-texto);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.papel:hover:not(:disabled) {
+  background: var(--cor-fogo-suave);
+}
+
+.papel:focus-visible {
+  outline: 3px solid var(--cor-foco);
+  outline-offset: 2px;
+}
+
+.papel:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.papelNome {
+  font-weight: 800;
+  font-size: var(--t-14);
+}
+
+.papelDescricao {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-12);
+  line-height: 1.35;
+}
+
+.rodape {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e-2);
+  margin: 0;
+  color: var(--cor-texto-fraco);
+  font-size: var(--t-12);
+}
+
+@media (max-width: 420px) {
+  .cartao {
+    padding: var(--e-5) var(--e-4);
+  }
+  .papeis {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
