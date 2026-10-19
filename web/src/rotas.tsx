@@ -45,6 +45,7 @@ void carregarCentral();
 const Central = lazy(carregarCentral);
 const Alertas = lazy(() => import('./paginas/Alertas'));
 const Previsoes = lazy(() => import('./paginas/Previsoes'));
+const Boletim = lazy(() => import('./paginas/Boletim'));
 
 function Carregando({ children }: { children: ReactNode }) {
   return <Suspense fallback={<div className="pagina"><EstadoVazio tamanho="pagina" titulo="Carregando…" /></div>}>{children}</Suspense>;
@@ -70,7 +71,11 @@ const filhas: RouteObject[] = [
   { path: '*', element: <NaoEncontrada /> },
 ];
 
-export const rotas: RouteObject[] = [{ path: '/', element: <Shell />, errorElement: <ErroDeRota />, children: filhas }];
+export const rotas: RouteObject[] = [
+  { path: '/', element: <Shell />, errorElement: <ErroDeRota />, children: filhas },
+  // Boletim do dia: folha para imprimir, fora da casca (na impressão sai só a folha, sem o menu).
+  { path: '/boletim', element: <Carregando><Boletim /></Carregando>, errorElement: <ErroDeRota /> },
+];
 
 export function criarRoteador() {
   return createBrowserRouter(rotas);

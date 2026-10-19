@@ -1,0 +1,452 @@
+/*
+ * Boletim do dia. Na tela: uma folha A4 sobre o fundo, com a barra de ações em cima. Na impressão: só a folha, em A4.
+ * A folha é sempre "papel" (fundo branco, tinta grafite), mesmo na Sala de controle: é um documento, não um painel.
+ */
+
+@page {
+  size: A4;
+  margin: 10mm 11mm;
+}
+
+.tela {
+  min-height: 100%;
+  padding: var(--e-4);
+  background: var(--cor-fundo);
+}
+
+/* ---- Barra de ações (some na impressão) ---- */
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-2) var(--e-3);
+  max-width: 210mm;
+  margin: 0 auto var(--e-4);
+}
+
+.exportar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-2);
+}
+
+.rotuloExportar {
+  font-weight: 700;
+}
+
+.erroExportacao {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--cor-erro);
+  font-weight: 600;
+}
+
+/* ---- A folha ---- */
+
+.folha {
+  --papel: #ffffff;
+  --tinta: #1e1e1f;
+  --tinta-suave: #55555a;
+  --fio: #dadad5;
+  --faixa: #f2f2ef;
+
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 5mm;
+  width: 210mm;
+  max-width: 100%;
+  min-height: 297mm;
+  margin: 0 auto;
+  padding: 12mm;
+  background: var(--papel);
+  color: var(--tinta);
+  font-size: 10pt;
+  line-height: 1.35;
+  box-shadow: var(--sombra-flutuante);
+}
+
+.cabecalho {
+  display: flex;
+  align-items: stretch;
+  gap: 4mm;
+  padding-bottom: 3mm;
+  border-bottom: 2px solid var(--tinta);
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  padding: 0 4mm;
+  background: var(--cor-fogo);
+  color: var(--cor-sobre-fogo);
+  font-size: 14pt;
+  font-weight: 900;
+  font-stretch: var(--largura-expandida);
+  letter-spacing: 0.02em;
+}
+
+.titulo {
+  margin: 0;
+  font-size: 20pt;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.data {
+  margin: 1mm 0 0;
+  font-size: 10.5pt;
+  font-weight: 700;
+}
+
+.secao {
+  display: flex;
+  flex-direction: column;
+  gap: 2mm;
+  min-width: 0;
+  break-inside: avoid;
+}
+
+.tituloSecao {
+  margin: 0;
+  padding-bottom: 1mm;
+  border-bottom: 1px solid var(--fio);
+  font-size: 11pt;
+  font-weight: 800;
+}
+
+.duasColunas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5mm;
+}
+
+/* ---- Regiões: cinco plaquinhas, com o fio da cor do nível em cima ---- */
+
+.regioes {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2mm;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.regiao {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5mm;
+  padding: 1.5mm 2mm;
+  border-top: 3px solid var(--tinta);
+  background: var(--faixa);
+}
+
+.indiceRegiao {
+  display: flex;
+  align-items: center;
+  gap: 1.5mm;
+  font-size: 12pt;
+  font-weight: 900;
+}
+
+.semQuebra {
+  white-space: nowrap;
+}
+
+.aviso,
+.detalhe,
+.detalheBloco {
+  color: var(--tinta-suave);
+  font-size: 8.5pt;
+}
+
+.aviso {
+  margin: 0;
+}
+
+.detalhe {
+  margin: 0;
+}
+
+.detalheBloco {
+  display: block;
+}
+
+.forte {
+  font-weight: 700;
+}
+
+/* ---- Resumo do dia ---- */
+
+.resumo {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5mm;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.resumo li {
+  display: grid;
+  grid-template-columns: 13mm 1fr;
+  column-gap: 2mm;
+}
+
+.resumo .detalhe {
+  grid-column: 2;
+}
+
+.recomendacao {
+  font-weight: 700;
+}
+
+.prioridade {
+  align-self: start;
+  padding: 0.3mm 1mm;
+  border-radius: 2px;
+  font-size: 7.5pt;
+  font-weight: 800;
+  text-align: center;
+}
+
+.alta {
+  background: var(--crit-alta);
+  color: var(--cor-sobre-fogo);
+}
+
+.media {
+  background: var(--crit-media);
+  color: #1e1e1f;
+}
+
+.baixa {
+  background: var(--fio);
+  color: var(--tinta);
+}
+
+/* ---- Indicadores: seis números grandes, com o fio de cor da Central em cima ---- */
+
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 2mm;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.indicador {
+  display: flex;
+  flex-direction: column;
+  padding: 2mm;
+  border-top: 3px solid var(--tinta);
+  background: var(--faixa);
+}
+
+.valorIndicador {
+  font-size: 17pt;
+  font-weight: 900;
+  font-stretch: var(--largura-condensada);
+  line-height: 1.05;
+}
+
+.rotuloIndicador {
+  font-size: 8.5pt;
+  font-weight: 700;
+}
+
+/* ---- Tabelas e listas ---- */
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9pt;
+}
+
+.tabela th {
+  padding: 0.8mm 1.5mm;
+  background: var(--faixa);
+  font-size: 8pt;
+  font-weight: 700;
+  text-align: left;
+}
+
+.tabela td {
+  padding: 0.8mm 1.5mm;
+  border-bottom: 1px solid var(--fio);
+  vertical-align: top;
+}
+
+.tabela tr {
+  break-inside: avoid;
+}
+
+.num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.selo {
+  display: inline-block;
+  padding: 0 1.2mm;
+  border: 1px solid;
+  border-radius: 2px;
+  color: #1e1e1f;
+  font-size: 8pt;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.vencida {
+  color: var(--crit-critica);
+  font-weight: 700;
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5mm;
+  margin: 0;
+  padding-left: 4mm;
+  font-size: 9pt;
+}
+
+.rodape {
+  margin-top: auto;
+  padding-top: 2mm;
+  border-top: 1px solid var(--fio);
+  color: var(--tinta-suave);
+  font-size: 7.5pt;
+}
+
+/* ---- Tela estreita: a folha vira coluna (a impressão continua em A4) ---- */
+
+@media screen and (max-width: 840px) {
+  .tela {
+    padding: var(--e-2);
+  }
+
+  .folha {
+    min-height: 0;
+    padding: var(--e-4);
+  }
+
+  .duasColunas {
+    grid-template-columns: 1fr;
+  }
+
+  .indicadores,
+  .regioes {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .tabela {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+/* ---- Impressão: só a folha, sem sombra nem margem de tela; as cores saem como na tela ---- */
+
+@media print {
+  :global(html),
+  :global(body),
+  :global(#raiz) {
+    height: auto;
+    background: #ffffff;
+  }
+
+  .acoes {
+    display: none;
+  }
+
+  .tela {
+    padding: 0;
+    background: none;
+  }
+
+  .folha {
+    width: auto;
+    min-height: 0;
+    padding: 0;
+    box-shadow: none;
+    font-size: 8.5pt;
+    gap: 3mm;
+  }
+
+  /* No papel o resumo fica só com as ações; o detalhe de cada uma está na tela de Previsões. */
+  .soNaTela {
+    display: none;
+  }
+
+  .titulo {
+    font-size: 17pt;
+  }
+
+  .tituloSecao {
+    font-size: 10pt;
+  }
+
+  .folha {
+    line-height: 1.25;
+  }
+
+  .secao {
+    gap: 1.2mm;
+  }
+
+  .tituloSecao {
+    padding-bottom: 0.5mm;
+  }
+
+  .tabela,
+  .lista {
+    font-size: 7.8pt;
+    line-height: 1.2;
+  }
+
+  .tabela th,
+  .tabela td {
+    padding: 0.3mm 1mm;
+  }
+
+  .lista {
+    gap: 0.8mm;
+  }
+
+  .valorIndicador {
+    font-size: 13pt;
+  }
+
+  /* No papel, número e nome bastam; o detalhe de cada indicador fica na Central. */
+  .indicador .detalhe {
+    display: none;
+  }
+
+  .indicador,
+  .regiao {
+    padding: 1mm 1.5mm;
+  }
+
+  .regiao .detalhe {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 7.5pt;
+  }
+
+  .tabela .detalhe,
+  .aviso {
+    font-size: 7.5pt;
+  }
+
+  .folha,
+  .folha * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
