@@ -11,6 +11,7 @@ import { ErroApi } from './erros';
 import { rotasAgentes } from './rotas/agentes';
 import { rotasAlertas } from './rotas/alertas';
 import { rotasBairros } from './rotas/bairros';
+import { rotasCampo } from './rotas/campo';
 import { rotasCentral } from './rotas/central';
 import { rotasEquipamentos } from './rotas/equipamentos';
 import { rotasManutencao } from './rotas/manutencao';
@@ -66,6 +67,7 @@ export async function criarApp(ctx: ContextoApp): Promise<FastifyInstance> {
         { name: 'Central', description: 'Indicadores, mapa e situação das regiões da central de operações' },
         { name: 'Tempo real', description: 'Ingestão de telemetria, simulação e fluxo de eventos (SSE)' },
         { name: 'Previsões', description: 'Cidade preditiva: risco por bairro e hora, teste retroativo, reforço de agentes, falhas, tendências e resumo do dia' },
+        { name: 'Modo Campo', description: 'Celular do agente na rua: despacho, chegada e conclusão, equipamentos próximos e relato de problemas' },
       ],
     },
   });
@@ -83,6 +85,7 @@ export async function criarApp(ctx: ContextoApp): Promise<FastifyInstance> {
   await app.register(rotasSimulacao);
   await app.register(rotasStream);
   await app.register(rotasPrevisoes);
+  await app.register(rotasCampo);
 
   // Interface compilada (npm run build): arquivos estáticos + fallback de SPA fora de /api. Caminho com extensão
   // (/assets/index-abc.js, .css, .ico…) é arquivo: se não existe, 404 — uma aba aberta antes de um novo build não recebe o

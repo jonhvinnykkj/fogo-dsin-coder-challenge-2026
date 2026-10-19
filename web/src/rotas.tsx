@@ -45,6 +45,7 @@ void carregarCentral();
 const Central = lazy(carregarCentral);
 const Alertas = lazy(() => import('./paginas/Alertas'));
 const Previsoes = lazy(() => import('./paginas/Previsoes'));
+const Campo = lazy(() => import('./paginas/Campo'));
 
 function Carregando({ children }: { children: ReactNode }) {
   return <Suspense fallback={<div className="pagina"><EstadoVazio tamanho="pagina" titulo="Carregando…" /></div>}>{children}</Suspense>;
@@ -70,7 +71,11 @@ const filhas: RouteObject[] = [
   { path: '*', element: <NaoEncontrada /> },
 ];
 
-export const rotas: RouteObject[] = [{ path: '/', element: <Shell />, errorElement: <ErroDeRota />, children: filhas }];
+export const rotas: RouteObject[] = [
+  { path: '/', element: <Shell />, errorElement: <ErroDeRota />, children: filhas },
+  // Modo Campo: celular do agente na rua, fora da casca do gestor (sem menu lateral).
+  { path: '/campo', element: <Carregando><Campo /></Carregando>, errorElement: <ErroDeRota /> },
+];
 
 export function criarRoteador() {
   return createBrowserRouter(rotas);

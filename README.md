@@ -60,6 +60,18 @@ No PowerShell e no cmd a variável vale até fechar aquele terminal.
 
 Tela de Previsões completa: [docs/telas/previsoes-topo.png](docs/telas/previsoes-topo.png).
 
+## Modo Campo (o celular do agente)
+
+Abra **http://localhost:3333/campo** no celular (ou no navegador em 390 px), ou use "Modo Campo" no menu. É a outra ponta da Central: o gestor vê o agente no mapa, e o agente conta daqui o que acontece na rua.
+
+- **Quem sou eu**: o agente escolhe o próprio nome uma vez (sem login, como o resto do sistema); a escolha fica guardada no aparelho.
+- **Minha situação** em quatro botões grandes (em serviço, em ocorrência, pausa, fora de serviço), pela mesma rota da tela de Agentes.
+- **Despacho**: a ocorrência para a qual a Central o mandou, com rua, bairro e distância; **"Cheguei ao local"** e depois **"Concluir ocorrência"**, que encerra a ocorrência, fecha o alerta dela e o devolve para "em serviço".
+- **Perto de mim**: os 5 equipamentos mais próximos, com a situação de cada um; **"Relatar problema"** (mau funcionamento, furtado ou vandalizado, com observação) muda a situação e abre o alerta na Central pelo mesmo caminho da tela do gestor.
+- **Ao vivo**: um despacho novo chega pelo `/api/stream`, com destaque na tela e vibração quando o aparelho permite.
+
+Para ver o ciclo inteiro, deixe a Central e o `/campo` lado a lado: o simulador despacha agentes o tempo todo, e um acidente injetado vai para o agente de trânsito ou PM em serviço mais próximo. No celular de quem foi despachado, o aviso aparece na hora; "Concluir ocorrência" faz o alerta sumir da Central.
+
 ## Arquitetura
 
 ```
@@ -145,6 +157,7 @@ Documentação interativa (Swagger): **http://localhost:3333/api/docs**. Princip
 | Central | `GET /api/central/{indicadores,mapa,regioes,ocorrencias}`, `GET /api/alertas`, `PATCH /api/alertas/:id/{reconhecer,resolver}`, `GET /api/manutencao/painel` |
 | Tempo real | `POST /api/telemetria`, `GET /api/stream` (SSE), `GET/PATCH /api/simulacao`, `POST /api/simulacao/eventos` |
 | Previsões | `GET /api/previsoes/{risco,backtest,reforco,falhas,tendencias,resumo}` (`backtest` = o teste retroativo do risco) |
+| Modo Campo | `GET /api/campo/agentes/:id/{despacho,equipamentos-proximos}`, `POST /api/campo/agentes/:id/despachos/:ocorrenciaId/{chegada,conclusao}`, `POST /api/campo/agentes/:id/reportes` |
 | Saúde | `GET /api/saude` |
 
 **Enviando uma leitura como se fosse um equipamento.** Cada equipamento tem um token (gerado na semente, nunca devolvido pela API). Para pegar o de um equipamento do **seu banco local** e mandar uma leitura (com o servidor ligado):
