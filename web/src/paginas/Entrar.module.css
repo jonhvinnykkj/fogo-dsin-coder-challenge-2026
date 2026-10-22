@@ -110,6 +110,11 @@
   order: -1;
 }
 
+/* Com o recomendado na linha toda, sobra um número ímpar de papéis: o último também ocupa a linha, sem deixar buraco. */
+.papeis > li:last-child:nth-child(even) {
+  grid-column: 1 / -1;
+}
+
 .recomendado .papel {
   box-shadow: inset 0 0 0 2px var(--cor-fogo);
 }
