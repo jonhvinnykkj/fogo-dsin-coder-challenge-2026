@@ -59,3 +59,20 @@
     display: none;
   }
 }
+
+/* Celular estreito: o ícone também sai (sobra o botão de sair, com área de toque de 40 px). */
+@media (max-width: 640px) {
+  .usuario {
+    gap: 0;
+    padding-left: var(--e-2);
+  }
+
+  .icone {
+    display: none;
+  }
+
+  .sair {
+    width: 40px;
+    height: 40px;
+  }
+}

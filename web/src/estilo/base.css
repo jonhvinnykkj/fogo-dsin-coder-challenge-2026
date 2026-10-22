@@ -160,6 +160,15 @@ table {
   filter: var(--filtro-mapa);
 }
 
+/*
+ * Com zoom fracionado (zoomSnap 0.5) os blocos ficam com 181,02 px em posições quebradas, e o Leaflet 1.9 os mistura
+ * com `plus-lighter` para esconder a emenda. Isso só funciona sobre fundo transparente: aqui as bordas somavam mais de
+ * 100% e viravam linhas brancas finas e um retângulo mais claro no fundo do mapa. Mistura normal: sem emenda visível.
+ */
+.leaflet-container .leaflet-tile-pane img.leaflet-tile {
+  mix-blend-mode: normal;
+}
+
 .leaflet-control-attribution {
   font-size: var(--t-12);
   background: color-mix(in srgb, var(--cor-superficie) 88%, transparent) !important;

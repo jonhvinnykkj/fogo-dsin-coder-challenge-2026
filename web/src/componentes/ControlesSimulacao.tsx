@@ -1,4 +1,4 @@
-// Controles da demonstração, no canto do mapa: velocidade da simulação (1×, 10×, 60×), pausar/retomar e
+// Controles da demonstração, no canto do mapa (no celular, encaixados numa barra embaixo dele): velocidade da simulação (1×, 10×, 60×), pausar/retomar e
 // "Injetar evento" (furto, falha, acidente, alagamento, congestionamento) para a comissão ver a cidade reagir.
 import {
   CarProfile, Drop, HandGrabbing, HourglassMedium, Lightning, Pause, Play, Plugs, type Icon,
@@ -27,9 +27,14 @@ const CONFIRMACAO_MS = 5000;
 interface Props {
   /** Depois que o servidor criou o evento: a Central leva o mapa até ele. */
   onInjetado?: (tipo: TipoEventoSimulado, alertas: Alerta[]) => void;
+  /**
+   * Barra na largura toda, no fluxo da página (a Central a põe logo abaixo do mapa no celular). Flutuando sobre o
+   * mapa ela ficava fora da tela e o dedo que tentava rolar até ela arrastava o mapa.
+   */
+  encaixado?: boolean;
 }
 
-export function ControlesSimulacao({ onInjetado }: Props) {
+export function ControlesSimulacao({ onInjetado, encaixado = false }: Props) {
   const podeSimular = usePode('simular');
   const { data: simulacao } = useSimulacao();
   const definir = useDefinirSimulacao();
@@ -84,7 +89,7 @@ export function ControlesSimulacao({ onInjetado }: Props) {
   if (!podeSimular) return null;
 
   return (
-    <div className={estilos.controles} ref={raiz}>
+    <div className={estilos.controles} ref={raiz} data-encaixado={encaixado || undefined}>
       <div className={estilos.barra} role="group" aria-label="Controles da simulação">
         <div className={estilos.velocidades} role="group" aria-label="Velocidade da simulação">
           {VELOCIDADES.map((v) => (
@@ -108,7 +113,7 @@ export function ControlesSimulacao({ onInjetado }: Props) {
           onClick={() => definir.mutate({ pausado: !pausado })}
         >
           {pausado ? <Play weight="fill" size={16} aria-hidden="true" /> : <Pause weight="fill" size={16} aria-hidden="true" />}
-          {pausado ? 'Retomar' : 'Pausar'}
+          <span className={estilos.rotuloAcao}>{pausado ? 'Retomar' : 'Pausar'}</span>
         </button>
         <button
           ref={botaoMenu}

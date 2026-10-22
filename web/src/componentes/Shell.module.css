@@ -168,7 +168,23 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
+  /* A faixa não cabe com tudo: o botão do menu vira só o ícone (o nome continua para leitor de tela). */
+  .rotuloMenu {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .botaoMenu {
+    flex: none;
+    width: 40px;
+    justify-content: center;
+    padding: 0;
+  }
+
   .placa {
     padding: 0 var(--e-3);
     font-size: var(--t-18);

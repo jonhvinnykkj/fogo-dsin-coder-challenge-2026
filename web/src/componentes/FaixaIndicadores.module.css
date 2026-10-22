@@ -4,8 +4,22 @@
   gap: var(--e-2);
 }
 
-@media (max-width: 900px) {
+/* Celular: uma fileira que se arrasta de lado; cada placa guarda a largura de leitura e o mapa fica com a tela. */
+@media (max-width: 720px) {
   .faixa {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+
+  .faixa::-webkit-scrollbar {
+    display: none;
+  }
+
+  .faixa > * {
+    flex: 0 0 112px;
+    scroll-snap-align: start;
   }
 }

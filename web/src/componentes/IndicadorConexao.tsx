@@ -21,7 +21,7 @@ export function IndicadorConexao() {
       {estado === 'vivo' && <Broadcast weight="fill" size={16} aria-hidden="true" className={estilos.pulso} />}
       {estado === 'caiu' && <WifiSlash weight="fill" size={16} aria-hidden="true" />}
       {estado === 'conectando' && <CircleNotch weight="bold" size={16} aria-hidden="true" className={estilos.girar} />}
-      <span>{estado === 'vivo' ? 'Ao vivo' : estado === 'caiu' ? 'Reconectando…' : 'Conectando…'}</span>
+      <span className={estilos.rotulo}>{estado === 'vivo' ? 'Ao vivo' : estado === 'caiu' ? 'Reconectando…' : 'Conectando…'}</span>
     </span>
   );
 }

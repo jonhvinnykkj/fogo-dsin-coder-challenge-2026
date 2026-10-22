@@ -40,7 +40,19 @@ export default function Auditoria() {
   });
 
   const colunas: Coluna<RegistroAuditoria>[] = [
-    { chave: 'em', titulo: 'Quando', semQuebra: true, render: (r) => formatarDataHora(r.em) },
+    {
+      // Data e hora em duas linhas: numa só a coluna ocupava 130 px e empurrava o resultado para fora da tela do celular.
+      chave: 'em', titulo: 'Quando',
+      render: (r) => {
+        const [data, ...hora] = formatarDataHora(r.em).split(' ');
+        return (
+          <span className={proprios.duasLinhas}>
+            <span className={proprios.semQuebra}>{data}</span>
+            <span className={proprios.fraco}>{hora.join(' ')}</span>
+          </span>
+        );
+      },
+    },
     {
       chave: 'quem', titulo: 'Quem',
       render: (r) => (
@@ -57,13 +69,14 @@ export default function Auditoria() {
         return (
           <span className={proprios.duasLinhas}>
             <span>{r.acao}{r.entidadeId ? ` #${r.entidadeId}` : ''}</span>
+            <span className={`${proprios.soNoCelular} ${r.status >= 400 ? proprios.recusada : proprios.ok}`}>{r.status >= 400 ? `Recusada (${r.status})` : 'Feita'}</span>
             {lista.length > 0 && <span className={proprios.fraco}>{lista.slice(0, 3).join(' · ')}{lista.length > 3 ? ` · +${lista.length - 3}` : ''}</span>}
           </span>
         );
       },
     },
     {
-      chave: 'resultado', titulo: 'Resultado', semQuebra: true,
+      chave: 'resultado', titulo: 'Resultado', semQuebra: true, esconderNoCelular: true,
       render: (r) => <span className={r.status >= 400 ? proprios.recusada : proprios.ok}>{r.status >= 400 ? `Recusada (${r.status})` : 'Feita'}</span>,
     },
     { chave: 'ip', titulo: 'Origem', esconderNoCelular: true, semQuebra: true, render: (r) => r.ip ?? '—' },

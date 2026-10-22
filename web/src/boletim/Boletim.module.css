@@ -343,9 +343,21 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
+  /* A tabela rola de lado, com as células em uma linha (antes o texto espremia as colunas e as linhas ficavam altíssimas). */
   .tabela {
     display: block;
     overflow-x: auto;
+  }
+
+  .tabela th,
+  .tabela td {
+    padding: 6px 8px;
+    white-space: nowrap;
+  }
+
+  .tabela td.detalhe {
+    min-width: 220px;
+    white-space: normal;
   }
 }
 

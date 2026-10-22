@@ -61,6 +61,25 @@
   font-size: var(--t-12);
 }
 
+/*
+ * Faixa da Central em tablet (até 900 px): as seis placas ficam numa linha só, sem o detalhe, para o mapa não
+ * perder altura (em 800×600 as duas linhas de antes deixavam o mapa com 280 px).
+ */
+@media (max-width: 900px) {
+  .compacto {
+    min-height: 0;
+    padding: var(--e-2) var(--e-3);
+  }
+
+  .compacto .valor {
+    font-size: var(--t-24);
+  }
+
+  .compacto .detalhe {
+    display: none;
+  }
+}
+
 @media (max-width: 720px) {
   .bloco {
     min-height: 92px;

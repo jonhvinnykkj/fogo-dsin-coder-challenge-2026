@@ -159,6 +159,56 @@
   color: var(--cor-erro);
 }
 
+/*
+ * Encaixado (celular): sai de cima do mapa e vira uma barra na largura toda, no fluxo, embaixo dele. O menu e o
+ * retorno do comando abrem por cima do mapa (sem empurrar o layout, que faria o mapa mudar de tamanho a cada clique).
+ */
+.controles[data-encaixado] {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  z-index: 1;
+  align-items: stretch;
+  max-width: none;
+  flex: none;
+}
+
+.controles[data-encaixado] .barra {
+  flex-wrap: nowrap;
+  justify-content: space-between;
+}
+
+.controles[data-encaixado] .injetar {
+  flex: 1;
+  justify-content: center;
+  min-width: 0;
+}
+
+.controles[data-encaixado] .menu,
+.controles[data-encaixado] .retorno {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + var(--e-2));
+  width: auto;
+}
+
+.controles[data-encaixado] .ok,
+.controles[data-encaixado] .erro {
+  max-width: none;
+}
+
+/* Só o ícone de pausar/retomar quando a barra aperta (o texto continua para leitor de tela). */
+@media (max-width: 420px) {
+  .rotuloAcao {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+}
+
 @media (max-width: 600px) {
   .acao {
     padding: 0 var(--e-2);
