@@ -87,6 +87,17 @@ describe('MotorAlertas.avaliarLeitura', () => {
     expect(ctx.motor.avaliarLeitura(alvo(ctx, 'FOGO-RAD-0012'), { fluxo: 900 }, new Date(QUARTA_18H))).toHaveLength(1);
   });
 
+  it('equipamento já em mau funcionamento não abre "leitura fora do normal" (a falha já é conhecida)', () => {
+    const { ctx } = cidadeComRadar();
+    ctx.db.prepare("UPDATE equipamentos SET situacao = 'mau_funcionamento' WHERE codigo = 'FOGO-RAD-0012'").run();
+    const a = alvo(ctx, 'FOGO-RAD-0012');
+    expect(ctx.motor.avaliarLeitura(a, { fluxo: 0, velocidadeMedia: 0, infracoes: 0 }, new Date(QUARTA_18H))).toHaveLength(0);
+    expect(abertos(ctx, 'anomalia_leitura')).toBe(0);
+    // Operacional, a mesma leitura continua sendo anomalia.
+    ctx.db.prepare("UPDATE equipamentos SET situacao = 'operacional' WHERE codigo = 'FOGO-RAD-0012'").run();
+    expect(ctx.motor.avaliarLeitura(alvo(ctx, 'FOGO-RAD-0012'), { fluxo: 0 }, new Date(QUARTA_18H))).toHaveLength(1);
+  });
+
   it('sem histórico suficiente não inventa anomalia', () => {
     const ctx = criarCtxDeTeste({ agora: QUARTA_18H });
     inserirEquipamentoDeTeste(ctx, { tipo: 'radar', codigo: 'FOGO-RAD-0003' });

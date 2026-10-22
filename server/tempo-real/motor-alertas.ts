@@ -312,7 +312,9 @@ export class MotorAlertas {
       }
     }
 
-    if (!alagando) {
+    // Equipamento já em mau funcionamento tem a falha declarada (alerta de falha ou a própria situação): a leitura ruim dele
+    // É a falha, não um fato novo. Sem isto, todo equipamento que a semente entrega falhando abre "leitura fora do normal" na partida.
+    if (!alagando && alvo.situacao !== 'mau_funcionamento') {
       this.acompanharAnomaliasAbertas(alvo, metricas, em); // Regra 3
       const anomalia = detectarAnomalia(this.base(alvo, em), metricas, alvo.tipo);
       const prefixo = `anomalia:${alvo.id}:`;
