@@ -5,7 +5,7 @@
 //
 // Fluxo dos dados: tudo vem do cache do TanStack Query, mantido vivo pelo SSE (useStream). O mapa consulta as
 // próprias posições (só ele re-renderiza a cada 2 s); esta página só re-renderiza com indicadores, alertas e regiões.
-import { Faders, ListBullets, SquaresFour, WarningDiamond } from '@phosphor-icons/react';
+import { Faders, ListBullets, SquaresFour, WarningDiamond, X } from '@phosphor-icons/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -18,6 +18,7 @@ import type { Alerta } from '../../../shared/modelos';
 import { filtrosCentralSchema, type FiltrosCentral } from '../../../shared/schemas';
 import { TIPOS_EQUIPAMENTO } from '../../../shared/tipos-equipamento';
 import { chaves, limparFiltros, useAlertas, useBairros, useIndicadores, useRegioes } from '../api/consultas';
+import { Botao } from '../componentes/Botao';
 import { BarraFiltros, type DefinicaoFiltro, type ValorFiltro } from '../componentes/BarraFiltros';
 import { ControlesSimulacao } from '../componentes/ControlesSimulacao';
 import { FaixaIndicadores } from '../componentes/FaixaIndicadores';
@@ -312,6 +313,7 @@ export default function Central() {
         <section className={estilos.areaMapa} aria-label="Mapa e filtros">
           <div className={estilos.ferramentas}>
             <button
+              id="botao-filtros"
               type="button"
               className={`${estilos.botaoFiltros} ${filtrado ? estilos.comFiltros : ''}`}
               aria-expanded={filtrosAbertos}
@@ -334,7 +336,24 @@ export default function Central() {
           </div>
 
           {filtrosAbertos && (
-            <div id="filtros-central" className={estilos.filtros}>
+            <div
+              id="filtros-central"
+              className={estilos.filtros}
+              role="region"
+              aria-label="Filtros do mapa"
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  setFiltrosAbertos(false);
+                  document.getElementById('botao-filtros')?.focus();
+                }
+              }}
+            >
+              <div className={estilos.topoFiltros}>
+                <h2>Filtros</h2>
+                <Botao variante="fantasma" tamanho="pequeno" icone={<X weight="bold" size={14} aria-hidden="true" />} onClick={() => setFiltrosAbertos(false)}>
+                  Fechar
+                </Botao>
+              </div>
               <BarraFiltros filtros={definicoes} valores={valores} onChange={mudarFiltro} onLimpar={() => setParams({}, { replace: true })} />
               <p className={estilos.ajudaFiltros}>
                 Região, bairro e órgão valem para equipamentos e agentes (do agente, conta a base). Situação, tipo e manutenção

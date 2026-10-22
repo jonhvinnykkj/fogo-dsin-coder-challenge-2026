@@ -157,17 +157,40 @@
   border-radius: 50%;
 }
 
+.areaMapa {
+  position: relative;
+}
+
+/* Painel por cima do mapa (não empurra nada): o mapa mantém a altura inteira com os filtros abertos. */
 .filtros {
-  /* Os filtros agora têm três grupos: em tela baixa o painel rola, para o mapa não ficar sem espaço. */
-  max-height: 40vh;
+  position: absolute;
+  z-index: 1100;
+  top: calc(34px + var(--e-2));
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-2);
+  max-height: calc(100% - 34px - var(--e-4));
   overflow-y: auto;
-  padding: var(--e-2);
+  padding: var(--e-3);
   border-radius: var(--raio);
   background: var(--cor-superficie-baixa);
+  box-shadow: var(--sombra-flutuante);
+}
+
+.topoFiltros {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-2);
+}
+
+.topoFiltros h2 {
+  font-size: var(--t-14);
 }
 
 .ajudaFiltros {
-  margin-top: var(--e-2);
   padding-left: var(--e-1);
   color: var(--cor-texto-suave);
   font-size: var(--t-12);
