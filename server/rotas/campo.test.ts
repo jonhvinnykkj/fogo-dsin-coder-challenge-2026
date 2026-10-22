@@ -152,6 +152,17 @@ describe('GET /api/campo/agentes/:id/equipamentos-proximos', () => {
   });
 });
 
+describe('equipamentos-proximos e o veículo do próprio agente', () => {
+  it('a moto vinculada ao agente não aparece na lista (ela está a 0 m); a dos colegas continua', async () => {
+    const id = await novoAgente();
+    const minha = inserirEquipamentoDeTeste(ctx, { tipo: 'moto_agente', codigo: 'FOGO-MOT-0001', lat: bairro.lat, lng: bairro.lng });
+    inserirEquipamentoDeTeste(ctx, { tipo: 'moto_agente', codigo: 'FOGO-MOT-0002', lat: bairro.lat + 0.001, lng: bairro.lng });
+    ctx.db.prepare('UPDATE agentes SET equipamento_id = ? WHERE id = ?').run(minha, id);
+    const r = await app.inject({ method: 'GET', url: url(id, '/equipamentos-proximos') });
+    expect((r.json() as { codigo: string }[]).map((e) => e.codigo)).toEqual(['FOGO-MOT-0002']);
+  });
+});
+
 describe('POST /api/campo/agentes/:id/reportes', () => {
   async function cenario() {
     const id = await novoAgente();

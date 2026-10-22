@@ -87,6 +87,17 @@ describe('MotorAlertas.avaliarLeitura', () => {
     expect(ctx.motor.avaliarLeitura(alvo(ctx, 'FOGO-RAD-0012'), { fluxo: 900 }, new Date(QUARTA_18H))).toHaveLength(1);
   });
 
+  it('equipamento já em mau funcionamento não abre "leitura fora do normal" (a falha já é conhecida)', () => {
+    const { ctx } = cidadeComRadar();
+    ctx.db.prepare("UPDATE equipamentos SET situacao = 'mau_funcionamento' WHERE codigo = 'FOGO-RAD-0012'").run();
+    const a = alvo(ctx, 'FOGO-RAD-0012');
+    expect(ctx.motor.avaliarLeitura(a, { fluxo: 0, velocidadeMedia: 0, infracoes: 0 }, new Date(QUARTA_18H))).toHaveLength(0);
+    expect(abertos(ctx, 'anomalia_leitura')).toBe(0);
+    // Operacional, a mesma leitura continua sendo anomalia.
+    ctx.db.prepare("UPDATE equipamentos SET situacao = 'operacional' WHERE codigo = 'FOGO-RAD-0012'").run();
+    expect(ctx.motor.avaliarLeitura(alvo(ctx, 'FOGO-RAD-0012'), { fluxo: 0 }, new Date(QUARTA_18H))).toHaveLength(1);
+  });
+
   it('sem histórico suficiente não inventa anomalia', () => {
     const ctx = criarCtxDeTeste({ agora: QUARTA_18H });
     inserirEquipamentoDeTeste(ctx, { tipo: 'radar', codigo: 'FOGO-RAD-0003' });
@@ -118,6 +129,23 @@ describe('MotorAlertas.avaliarLeitura', () => {
     expect(abertos(ctx, 'alagamento')).toBe(1);
     ctx.motor.avaliarLeitura(alvo(ctx, 'FOGO-ALG-0001'), { nivelCm: 5 }, em);
     expect(abertos(ctx, 'alagamento')).toBe(0);
+  });
+
+  it('alagamento: sensor e ocorrência do mesmo bairro são um fato só, em qualquer ordem', () => {
+    const ctx = criarCtxDeTeste();
+    inserirEquipamentoDeTeste(ctx, { tipo: 'sensor_alagamento', codigo: 'FOGO-ALG-0001', caracteristicas: { alturaAlertaCm: 30 } });
+    const sensor = alvo(ctx, 'FOGO-ALG-0001');
+    const em = new Date('2026-10-17T15:00:00.000Z');
+    const ocorrencia = { id: 1, tipo: 'alagamento', gravidade: 3, bairroId: sensor.bairroId, lat: sensor.lat, lng: sensor.lng, inicio: em.toISOString(), descricao: 'Bueiro transbordando', chuva: true, origem: 'tempo_real' } as const;
+    // Sensor primeiro: a ocorrência do mesmo bairro não abre outro crítico.
+    ctx.motor.avaliarLeitura(sensor, { nivelCm: 41 }, em);
+    expect(ctx.motor.alertarOcorrencia(ocorrencia, sensor.bairroNome, em)).toBeNull();
+    expect(abertos(ctx, 'alagamento')).toBe(1);
+    // Ocorrência primeiro: o sensor, ao passar da altura, confirma o mesmo fato.
+    ctx.motor.avaliarLeitura(sensor, { nivelCm: 5 }, em); // resolve o alerta do sensor
+    expect(ctx.motor.alertarOcorrencia({ ...ocorrencia, id: 2 }, sensor.bairroNome, em)).not.toBeNull();
+    expect(ctx.motor.avaliarLeitura(sensor, { nivelCm: 41 }, em)).toHaveLength(0);
+    expect(abertos(ctx, 'alagamento')).toBe(1);
   });
 
   it('não avalia equipamento que não está operando (em manutenção)', () => {

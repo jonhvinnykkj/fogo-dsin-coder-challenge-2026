@@ -99,12 +99,14 @@ export class MotorAlertas {
   // Consultas preparadas uma vez (o caminho de leitura passa por aqui milhares de vezes por minuto).
   private readonly qAbertosPorChave: Statement;
   private readonly qAnomaliasDoEquipamento: Statement;
+  private readonly qAlagamentoAbertoNoBairro: Statement;
 
   constructor(private readonly ctx: { db: Database; barramento: { emitir(e: EventoFogo): void }; relogio: { agora(): Date } }) {
     this.qAbertosPorChave = ctx.db.prepare('SELECT id FROM alertas WHERE chave_dedup = ? AND resolvido_em IS NULL');
     this.qAnomaliasDoEquipamento = ctx.db.prepare(
       "SELECT chave_dedup FROM alertas WHERE equipamento_id = ? AND tipo = 'anomalia_leitura' AND resolvido_em IS NULL AND chave_dedup IS NOT NULL",
     );
+    this.qAlagamentoAbertoNoBairro = ctx.db.prepare("SELECT 1 FROM alertas WHERE tipo = 'alagamento' AND bairro_id = ? AND resolvido_em IS NULL LIMIT 1");
     // Reconstrói o que estava aberto antes do reinício.
     const abertos = ctx.db.prepare("SELECT tipo, equipamento_id AS e FROM alertas WHERE resolvido_em IS NULL AND equipamento_id IS NOT NULL AND tipo IN ('sem_sinal', 'anomalia_leitura')").all() as { tipo: string; e: number }[];
     for (const a of abertos) (a.tipo === 'sem_sinal' ? this.calados : this.comAnomalia).add(a.e);
@@ -301,7 +303,8 @@ export class MotorAlertas {
       const altura = Number(alvo.caracteristicas.alturaAlertaCm);
       if (Number.isFinite(altura) && metricas.nivelCm > altura) {
         alagando = true;
-        emitido({
+        // A ocorrência de alagamento do bairro já está na Central: o sensor confirma o mesmo fato, não abre outro crítico.
+        if (!this.qAlagamentoAbertoNoBairro.get(alvo.bairroId)) emitido({
           ...base, tipo: 'alagamento', criticidade: 'critica', lat: alvo.lat, lng: alvo.lng, chaveDedup: `alagamento:${alvo.id}`,
           titulo: `Alagamento em ${alvo.bairroNome}: ${alvo.codigo} acima da altura de alerta`,
           descricao: `${quem(alvo)} (${onde(alvo)}) mediu ${formatarNumero(metricas.nivelCm, 1)} cm de água, acima da altura de alerta de ${formatarNumero(altura, 0)} cm.`,
@@ -312,7 +315,9 @@ export class MotorAlertas {
       }
     }
 
-    if (!alagando) {
+    // Equipamento já em mau funcionamento tem a falha declarada (alerta de falha ou a própria situação): a leitura ruim dele
+    // É a falha, não um fato novo. Sem isto, todo equipamento que a semente entrega falhando abre "leitura fora do normal" na partida.
+    if (!alagando && alvo.situacao !== 'mau_funcionamento') {
       this.acompanharAnomaliasAbertas(alvo, metricas, em); // Regra 3
       const anomalia = detectarAnomalia(this.base(alvo, em), metricas, alvo.tipo);
       const prefixo = `anomalia:${alvo.id}:`;
@@ -356,6 +361,8 @@ export class MotorAlertas {
     const criticidade: Criticidade | undefined =
       o.tipo === 'acidente' ? (o.gravidade === 4 ? 'critica' : 'alta') : o.tipo === 'congestionamento' ? 'media' : o.tipo === 'alagamento' ? 'critica' : undefined;
     if (!criticidade) return null;
+    // Alagamento já alertado no bairro (pelo sensor ou por outra ocorrência): é o mesmo fato, não abre um segundo crítico.
+    if (o.tipo === 'alagamento' && this.qAlagamentoAbertoNoBairro.get(o.bairroId)) return null;
     return this.registrar({
       tipo: o.tipo, criticidade, bairroId: o.bairroId, lat: o.lat, lng: o.lng, criadoEm: em.toISOString(), chaveDedup: `ocorrencia:${o.id}`,
       ...(o.equipamentoId !== undefined && { equipamentoId: o.equipamentoId }),
