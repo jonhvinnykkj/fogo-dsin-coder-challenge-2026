@@ -221,6 +221,8 @@ export interface ExplicacaoPrevisao {
   dadosUsados: string[];
   comoAjuda: string;
   confiabilidade: { metrica: string; valor: number; descricao: string }[];
+  /** Sem confiabilidade: por que não há medida de acerto (no lugar do aviso genérico). */
+  semMedida?: string;
 }
 
 export type NivelRisco = 'baixo' | 'moderado' | 'alto' | 'critico';

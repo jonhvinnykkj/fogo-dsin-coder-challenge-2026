@@ -16,8 +16,8 @@ export const POR_VEZ = 8;
 
 /**
  * O servidor não manda `explicacao` para as anomalias (elas viram alertas, não uma rota de previsão). Este texto descreve o
- * detector de server/tempo-real/anomalias.ts e as regras de server/tempo-real/motor-alertas.ts. Ainda não há uma medida de
- * acerto (quantos alertas eram mesmo falha), então a confiabilidade fica vazia e o cartão diz isso.
+ * detector de server/tempo-real/anomalias.ts e as regras de server/tempo-real/motor-alertas.ts. Não há medida de acerto
+ * (quantos alertas eram mesmo falha): os alertas só existem com o sistema rodando. O cartão explica isso em vez de ficar vazio.
  */
 export const EXPLICACAO_ANOMALIAS: ExplicacaoPrevisao = {
   oQuePreve: 'Leituras de equipamento muito fora do normal daquele equipamento naquela hora: radar zerado no pico, velocidade despencando, excessos de peso seguidos, bateria ou conexão caindo.',
@@ -28,6 +28,8 @@ export const EXPLICACAO_ANOMALIAS: ExplicacaoPrevisao = {
   ],
   comoAjuda: 'Avisa antes da reclamação: a leitura a 3 variações habituais ou mais do normal, em 2 leituras seguidas ou muito fora de uma vez, vira alerta com o esperado e o medido. O alerta fecha sozinho após 3 leituras normais seguidas.',
   confiabilidade: [],
+  semMedida:
+    'Anomalia não é previsão: é um sinal para olhar. Por isso não há medida de acerto. Os alertas só existem com o sistema rodando, e uma instalação nova começa sem nenhum para conferir quantos viraram falha. Quem confirma é a equipe, olhando o equipamento.',
 };
 
 interface Props {

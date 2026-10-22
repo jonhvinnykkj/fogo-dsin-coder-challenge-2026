@@ -48,7 +48,7 @@ export function CartaoExplicacao({ explicacao, titulo = 'Como esta previsão fun
       </div>
       <Bloco nivel={nivelBloco} icone={<Gauge weight="fill" size={18} />} titulo="Confiabilidade" className={estilos.confiabilidade}>
         {explicacao.confiabilidade.length === 0 ? (
-          <p className={estilos.semMedida}>{SEM_MEDIDA}</p>
+          <p className={estilos.semMedida}>{explicacao.semMedida ?? SEM_MEDIDA}</p>
         ) : (
           <dl className={estilos.metricas}>
             {explicacao.confiabilidade.map((c) => {

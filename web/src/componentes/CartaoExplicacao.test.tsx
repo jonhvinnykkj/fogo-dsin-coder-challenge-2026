@@ -50,4 +50,11 @@ describe('CartaoExplicacao', () => {
     expect(within(bloco).getByText('Sem medida de acerto ainda')).toBeInTheDocument();
     expect(within(bloco).queryByRole('definition')).not.toBeInTheDocument();
   });
+
+  it('sem confiabilidade, mas com o motivo, mostra o motivo no lugar do aviso genérico', () => {
+    render(<CartaoExplicacao explicacao={{ ...EXPLICACAO, confiabilidade: [], semMedida: 'Anomalia não é previsão: é um sinal para olhar.' }} />);
+    const bloco = screen.getByRole('heading', { name: 'Confiabilidade' }).parentElement!;
+    expect(within(bloco).getByText('Anomalia não é previsão: é um sinal para olhar.')).toBeInTheDocument();
+    expect(within(bloco).queryByText('Sem medida de acerto ainda')).not.toBeInTheDocument();
+  });
 });
