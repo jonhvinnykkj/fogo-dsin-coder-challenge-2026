@@ -58,7 +58,10 @@ export default function Previsoes() {
     marcarAtiva(id);
     const reduzido = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     secao.scrollIntoView({ behavior: reduzido ? 'auto' : 'smooth', block: 'start' });
-    window.history.replaceState(window.history.state, '', `#${id}`);
+    // Endereço montado por inteiro (caminho + consulta + uma âncora só): um "#id" solto, resolvido contra uma URL que já
+    // tem âncora, já deixou "#retroativo#retroativo" na barra em alguns navegadores.
+    const { pathname, search } = window.location;
+    window.history.replaceState(window.history.state, '', `${pathname}${search}#${id}`);
     document.getElementById(`${id}-titulo`)?.focus({ preventScroll: true });
   }, [marcarAtiva]);
 

@@ -27,14 +27,13 @@
     scroll-snap-align: start;
   }
 
-  /* sombra na borda direita enquanto há placas fora da tela */
+  /* esmaece a borda direita para a cor da página enquanto há placas fora da tela: "tem mais por aqui" */
   .moldura::after {
     content: '';
     position: absolute;
     inset: 0 0 0 auto;
-    width: 36px;
-    border-radius: 0 var(--raio) var(--raio) 0;
-    background: linear-gradient(90deg, transparent, rgb(0 0 0 / 0.35));
+    width: 44px;
+    background: linear-gradient(90deg, transparent, var(--cor-fundo) 85%);
     opacity: 0;
     pointer-events: none;
     transition: opacity var(--duracao) var(--curva);
