@@ -131,6 +131,23 @@ describe('MotorAlertas.avaliarLeitura', () => {
     expect(abertos(ctx, 'alagamento')).toBe(0);
   });
 
+  it('alagamento: sensor e ocorrência do mesmo bairro são um fato só, em qualquer ordem', () => {
+    const ctx = criarCtxDeTeste();
+    inserirEquipamentoDeTeste(ctx, { tipo: 'sensor_alagamento', codigo: 'FOGO-ALG-0001', caracteristicas: { alturaAlertaCm: 30 } });
+    const sensor = alvo(ctx, 'FOGO-ALG-0001');
+    const em = new Date('2026-10-17T15:00:00.000Z');
+    const ocorrencia = { id: 1, tipo: 'alagamento', gravidade: 3, bairroId: sensor.bairroId, lat: sensor.lat, lng: sensor.lng, inicio: em.toISOString(), descricao: 'Bueiro transbordando', chuva: true, origem: 'tempo_real' } as const;
+    // Sensor primeiro: a ocorrência do mesmo bairro não abre outro crítico.
+    ctx.motor.avaliarLeitura(sensor, { nivelCm: 41 }, em);
+    expect(ctx.motor.alertarOcorrencia(ocorrencia, sensor.bairroNome, em)).toBeNull();
+    expect(abertos(ctx, 'alagamento')).toBe(1);
+    // Ocorrência primeiro: o sensor, ao passar da altura, confirma o mesmo fato.
+    ctx.motor.avaliarLeitura(sensor, { nivelCm: 5 }, em); // resolve o alerta do sensor
+    expect(ctx.motor.alertarOcorrencia({ ...ocorrencia, id: 2 }, sensor.bairroNome, em)).not.toBeNull();
+    expect(ctx.motor.avaliarLeitura(sensor, { nivelCm: 41 }, em)).toHaveLength(0);
+    expect(abertos(ctx, 'alagamento')).toBe(1);
+  });
+
   it('não avalia equipamento que não está operando (em manutenção)', () => {
     const ctx = criarCtxDeTeste();
     inserirEquipamentoDeTeste(ctx, { tipo: 'sensor_alagamento', codigo: 'FOGO-ALG-0002', situacao: 'em_manutencao', caracteristicas: { alturaAlertaCm: 30 } });
