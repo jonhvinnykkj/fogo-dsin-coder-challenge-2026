@@ -215,7 +215,7 @@ npm run typecheck   # TypeScript estrito, servidor e interface
 npm run e2e         # Playwright: sobe o app com banco próprio (porta 3399) e confere Central, Previsões e Equipamentos
 ```
 
-O E2E usa `data/e2e.db` e o apaga ao terminar; não mexe no seu `data/fogo.db`. Na primeira execução do Playwright pode ser preciso `npx playwright install chromium`.
+O E2E usa `data/e2e.db`, apaga o banco velho antes de começar e o apaga de novo ao terminar (no Windows, se o arquivo ainda estiver preso, o próximo `npm run e2e` o remove); não mexe no seu `data/fogo.db`. Na primeira execução do Playwright pode ser preciso `npx playwright install chromium`.
 
 `npm run empacotar` gera `fogo-dsin-coder-challenge.zip` (sem `node_modules`, `dist`, bancos e pastas de trabalho; falha se passar de 50 MB).
 
