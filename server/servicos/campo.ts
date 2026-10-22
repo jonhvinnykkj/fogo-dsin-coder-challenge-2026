@@ -105,10 +105,15 @@ function paraProximo(l: repo.LinhaEquipamentoNaRua, de: Ponto): EquipamentoProxi
   };
 }
 
-/** Os `limite` equipamentos na rua mais próximos da posição atual do agente (a dos móveis vem da telemetria). */
+/**
+ * Os `limite` equipamentos na rua mais próximos da posição atual do agente (a dos móveis vem da telemetria).
+ * O veículo vinculado ao próprio agente fica de fora: ele anda junto (0 m) e não é "perto de mim", é a condução dele.
+ */
 export function equipamentosProximos(ctx: ContextoApp, agenteId: number, limite: number): EquipamentoProximo[] {
-  const de = posicaoDoAgente(exigirAgente(ctx, agenteId));
+  const agente = exigirAgente(ctx, agenteId);
+  const de = posicaoDoAgente(agente);
   return repo.equipamentosNaRua(ctx.db)
+    .filter((l) => l.id !== agente.equipamentoId)
     .map((l) => paraProximo(l, de))
     .sort((a, b) => a.distanciaMetros - b.distanciaMetros || a.id - b.id)
     .slice(0, limite);
