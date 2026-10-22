@@ -8,7 +8,8 @@
 // Uso de patinetes = horas em uso por dia (métrica emUso da telemetria, % de cada hora), somando os patinetes do bairro;
 //   média dos últimos 30 dias completos e variação da última semana contra a anterior. Ex.: 40 h → 34 h = −15%.
 // Falhas por 100 equipamentos de cada marca/modelo nos últimos 60 dias (falha = mudança para mau funcionamento).
-//   Ex.: 48 falhas em 20 câmeras VX-200 → 240 por 100.
+//   Ex.: 48 falhas em 20 câmeras VX-200 → 240 por 100. Cada falha entra uma vez (uma ordem de serviço, uma mudança para mau
+//   funcionamento); o número passa de 100 porque o mesmo equipamento pode falhar mais de uma vez em 60 dias.
 // Tudo só até o fim do histórico (fimDosDados = meta.historico_ate + 1 h): o que a simulação ao vivo faz (falhas, consertos,
 //   furtos, telemetria) não entra. O "hoje" das séries é o último dia com dados, e conta até o fim deles.
 import type { Database } from 'better-sqlite3';
@@ -232,7 +233,8 @@ function explicarTendencias(
       {
         metrica: 'Falhas analisadas por marca e modelo',
         valor: totalFalhas,
-        descricao: `Taxas calculadas sobre ${formatarNumero(totalFalhas)} falhas; modelos com frota pequena (menos de 5 equipamentos) variam muito de um mês para outro.`,
+        descricao: `Taxas calculadas sobre ${formatarNumero(totalFalhas)} falhas; modelos com frota pequena (menos de 5 equipamentos) variam muito de um mês para outro. `
+          + 'A taxa pode passar de 100 por 100 equipamentos porque conta falhas, não equipamentos: o mesmo equipamento pode falhar mais de uma vez em 60 dias.',
       },
     ],
   };

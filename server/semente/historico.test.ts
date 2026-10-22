@@ -197,4 +197,18 @@ describe('padrões plantados nas falhas de equipamento', () => {
     expect(depoisDaUltima('furtado')).toBe(0);
     expect(depoisDaUltima('desativado')).toBe(0);
   });
+
+  it('sensor de alagamento: chuva comum de 9 mm só molha (abaixo de qualquer altura de alerta); temporal de 40 mm alaga no pico', () => {
+    // Alturas de alerta da semente: 20 a 50 cm. A escala do bairro vai de 0,6 a 1,5.
+    const rng = criarRng(3);
+    const pico = new Date('2026-10-14T19:00:00.000Z'); // 16 h em São Paulo: o pico do perfil de tempestade
+    for (const escala of [0.6, 1, 1.5]) {
+      for (let i = 0; i < 40; i++) {
+        const fraca = gerarLeituraHora('sensor_alagamento', pico, rng, { chuva: true, chuvaMm: 9.3, falhando: false, bairroFator: escala });
+        expect(fraca.nivelCm, `9,3 mm, escala ${escala}`).toBeLessThan(20);
+      }
+      const temporal = gerarLeituraHora('sensor_alagamento', pico, rng, { chuva: true, chuvaMm: 40, falhando: false, bairroFator: escala });
+      expect(temporal.nivelCm, `40 mm, escala ${escala}`).toBeGreaterThan(20);
+    }
+  });
 });

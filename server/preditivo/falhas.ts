@@ -17,6 +17,9 @@
 //   fator_idade     = 1 + anos desde a instalação ÷ 5. Ex.: 3 anos → 1,6.
 //   fator_manutenção = 1 + dias de manutenção atrasada ÷ 30, no máximo 3. Ex.: 40 dias → 2,33.
 //   fator_quedas    = 1 + horas com sinal fraco (menos de 55 min conectado) nas últimas 72 h ÷ 3. Ex.: 6 horas → 3.
+//                     Só conta o sinal fraco DEPOIS da última manutenção ou recuperação do equipamento: as horas offline do
+//                     defeito que ele acabou de consertar não são aviso de falha nova (sem esta regra, o equipamento que o
+//                     simulador consertava voltava à lista no topo, com a chance perto de 100%).
 // O teste retroativo refaz a conta como se fosse 7 dias atrás e compara com as falhas que de fato aconteceram.
 // Dados: só até o fim do histórico (fimDosDados = meta.historico_ate + 1 h). Falhas, quedas de sinal e mudanças de situação
 // da simulação ao vivo (150 vezes a taxa real × a velocidade) não entram: o modelo é o aprendido com o histórico, e a lista
@@ -28,7 +31,7 @@ import type { ExplicacaoPrevisao, RespostaFalhas, RiscoFalha } from '../../share
 import { NOME_DO_TIPO, type TipoEquipamentoId } from '../../shared/tipos-equipamento';
 import { dataLocal } from '../tempo';
 import {
-  arred, DIA_MS, falhasPorEquipamento, fimDosDados, HORA_MS, inicioDaHoraMs, inicioDoHistorico, mediana, mudancasDeSituacao, quedasDeSinal, situacaoNoInstante,
+  arred, contarQuedas, DIA_MS, falhasPorEquipamento, fimDosDados, HORA_MS, horasComSinalFraco, inicioDaHoraMs, inicioDoHistorico, mediana, mudancasDeSituacao, situacaoNoInstante, ultimaRecuperacao,
 } from './base';
 
 export const DIAS_TAXA = 60;
@@ -86,7 +89,10 @@ export function calcularRiscosDeFalha(db: Database, instanteMs: number, { atual 
   const desde = Math.max(fimMs - DIAS_TAXA * DIA_MS, inicioDoHistorico(db) ?? fimMs - DIAS_TAXA * DIA_MS);
   const diasJanela = Math.max(1, (fimMs - desde) / DIA_MS);
   const falhas = falhasPorEquipamento(db, desde, fimMs);
-  const quedas = quedasDeSinal(db, fimMs - HORAS_QUEDAS * HORA_MS, inicioDaHoraMs(fimMs));
+  // O modelo (equipamento típico) usa só o que o histórico sabe até o fim dos dados; a lista também enxerga o conserto de agora.
+  const horasFracas = horasComSinalFraco(db, fimMs - HORAS_QUEDAS * HORA_MS, inicioDaHoraMs(fimMs));
+  const quedasModelo = contarQuedas(horasFracas, ultimaRecuperacao(db, fimMs));
+  const quedas = contarQuedas(horasFracas, ultimaRecuperacao(db, instanteMs));
   const hoje = dataLocal(new Date(instanteMs));
 
   // Taxas por tipo e por modelo (frota = tudo que já estava instalado no fim dos dados).
@@ -117,13 +123,13 @@ export function calcularRiscosDeFalha(db: Database, instanteMs: number, { atual 
   // Fatores de cada equipamento que entra na conta: em operação no fim dos dados (o típico sai deles) ou na lista pedida.
   const naLista = (e: LinhaEquipamento) => (atual ? e.situacao : noFim.get(e.id)) === 'operacional';
   const noModelo = (e: LinhaEquipamento) => existia(e) && noFim.get(e.id) === 'operacional';
-  const fatores = (e: LinhaEquipamento, proxima: string | null) => {
+  const fatores = (e: LinhaEquipamento, proxima: string | null, quedasDe = quedas) => {
     const fm = fatorModelo(e);
     const anos = e.instalado_em ? Math.max(0, (instanteMs - Date.parse(e.instalado_em)) / ANO_MS) : 0;
     const fi = 1 + anos / 5;
     const atraso = proxima ? Math.max(0, Math.round((Date.parse(hoje) - Date.parse(proxima.slice(0, 10))) / DIA_MS)) : 0;
     const fman = Math.min(3, 1 + atraso / 30);
-    const q = quedas.get(e.id) ?? 0;
+    const q = quedasDe.get(e.id) ?? 0;
     const fq = 1 + q / 3;
     return { e, f: { fm, fi, anos, fman, atraso, fq, quedas: q }, produto: fm * fi * fman * fq };
   };
@@ -131,7 +137,7 @@ export function calcularRiscosDeFalha(db: Database, instanteMs: number, { atual 
   // manutenção do fim do histórico).
   const produtosDoTipo = new Map<string, number[]>();
   for (const e of equipamentos) {
-    if (noModelo(e)) produtosDoTipo.set(e.tipo, [...(produtosDoTipo.get(e.tipo) ?? []), fatores(e, e.proxima_historico).produto]);
+    if (noModelo(e)) produtosDoTipo.set(e.tipo, [...(produtosDoTipo.get(e.tipo) ?? []), fatores(e, e.proxima_historico, quedasModelo).produto]);
   }
   const tipico = new Map([...produtosDoTipo].map(([tipo, xs]) => [tipo, mediana(xs)]));
 

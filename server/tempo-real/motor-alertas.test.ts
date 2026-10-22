@@ -131,6 +131,16 @@ describe('MotorAlertas.avaliarLeitura', () => {
     expect(abertos(ctx, 'alagamento')).toBe(0);
   });
 
+  it('a criticidade do alerta de acidente segue a gravidade: 1 baixa, 2 média, 3 alta, 4 crítica', () => {
+    const ctx = criarCtxDeTeste();
+    const b = ctx.db.prepare('SELECT id, nome, lat, lng FROM bairros ORDER BY id LIMIT 1').get() as { id: number; nome: string; lat: number; lng: number };
+    const em = new Date('2026-10-17T15:00:00.000Z');
+    const criticidades = ([1, 2, 3, 4] as const).map((gravidade) => ctx.motor.alertarOcorrencia(
+      { id: gravidade, tipo: 'acidente', gravidade, bairroId: b.id, lat: b.lat, lng: b.lng, inicio: em.toISOString(), descricao: 'Atropelamento', chuva: false, origem: 'tempo_real' }, b.nome, em,
+    )?.criticidade);
+    expect(criticidades).toEqual(['baixa', 'media', 'alta', 'critica']);
+  });
+
   it('alagamento: sensor e ocorrência do mesmo bairro são um fato só, em qualquer ordem', () => {
     const ctx = criarCtxDeTeste();
     inserirEquipamentoDeTeste(ctx, { tipo: 'sensor_alagamento', codigo: 'FOGO-ALG-0001', caracteristicas: { alturaAlertaCm: 30 } });

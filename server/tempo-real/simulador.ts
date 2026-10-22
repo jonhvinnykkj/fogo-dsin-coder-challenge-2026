@@ -107,6 +107,8 @@ export class Simulador {
   private readonly semente: number;
   private velocidade: EstadoSimulacao['velocidade'] = 1;
   private pausado = false;
+  /** O relógio da simulação no instante da pausa: enquanto pausada, `estado()` mostra este, não o relógio que anda. */
+  private congeladoEm: Date | undefined;
   private temporizador: NodeJS.Timeout | undefined;
   private temporizadorIndicadores: NodeJS.Timeout | undefined;
 
@@ -162,7 +164,7 @@ export class Simulador {
   }
 
   estado(): EstadoSimulacao {
-    return { velocidade: this.velocidade, pausado: this.pausado, relogio: this.ctx.relogio.agora().toISOString() };
+    return { velocidade: this.velocidade, pausado: this.pausado, relogio: (this.pausado && this.congeladoEm ? this.congeladoEm : this.ctx.relogio.agora()).toISOString() };
   }
 
   /**
@@ -182,6 +184,8 @@ export class Simulador {
     if (mudanca.pausado !== undefined) {
       // Ao retomar, todo mundo transmite de uma vez: depois de uma pausa ninguém pode parecer "sem sinal".
       if (this.pausado && !mudanca.pausado) this.sincronizar = true;
+      if (mudanca.pausado && !this.pausado) this.congeladoEm = this.ctx.relogio.agora();
+      if (!mudanca.pausado) this.congeladoEm = undefined;
       this.pausado = mudanca.pausado;
     }
     const estado = this.estado();
@@ -319,6 +323,7 @@ export class Simulador {
    */
   private adotarMudancaDeFora(e: EqSim, situacao: SituacaoEquipamento, lat: number, lng: number): void {
     e.situacao = situacao;
+    if (situacao !== 'operacional') this.ctx.motor.equipamentoSaiuDeOperacao(e.id);
     e.lat = lat;
     e.lng = lng;
     e.alvo = e.destino = undefined;
@@ -448,6 +453,7 @@ export class Simulador {
   private mudarSituacao(e: EqSim, para: SituacaoEquipamento, motivo: string, agora: Date): void {
     gravarSituacao(this.ctx.db, e.id, e.situacao, para, motivo, agora.toISOString());
     e.situacao = para;
+    if (para !== 'operacional') this.ctx.motor.equipamentoSaiuDeOperacao(e.id, agora);
     const mapa = equipamentoMapaPorId(this.ctx.db, e.id, dataLocal(agora));
     if (mapa) this.ctx.barramento.emitir({ tipo: 'equipamento', dados: mapa });
   }
@@ -671,10 +677,24 @@ export class Simulador {
       }
       case 'alagamento': {
         if (alvo && alvo.tipo !== 'sensor_alagamento') throw invalido('O alvo do alagamento precisa ser um sensor de alagamento');
-        const sensor = alvo ?? sortear(['sensor_alagamento']);
+        // Alagamento não duplica por bairro (sensor × ocorrência, ver o motor): o evento escolhe um sensor em bairro SEM alagamento
+        // aberto. Se o alvo (ou todos os bairros) já alaga, o fato já está na Central e a resposta é o alerta que o cobre.
+        const alagado = (bairroId: number) => this.ctx.motor.alagamentoAbertoNoBairro(bairroId);
+        const sensores = this.equipamentos.filter((e) => e.situacao === 'operacional' && e.tipo === 'sensor_alagamento');
+        const livres = sensores.filter((e) => !alagado(e.bairroId));
+        const sensor = alvo ?? (livres.length ? this.rng.escolher(livres) : undefined);
+        let ponto: { bairroId: number; lat: number; lng: number } | undefined;
+        if (!sensor && !sensores.length) {
+          // Sem nenhum sensor: o alagamento vem só da ocorrência, num bairro que ainda não alaga.
+          const bairrosLivres = this.ctxHoras!.bairros.filter((b) => !alagado(b.id));
+          if (bairrosLivres.length) ponto = this.pontoSorteado(this.rng.escolher(bairrosLivres));
+        }
+        const bairroAlvo = sensor?.bairroId ?? ponto?.bairroId ?? sensores[0]?.bairroId;
+        const existente = (bairroAlvo === undefined ? undefined : alagado(bairroAlvo)) ?? (sensor || ponto ? undefined : this.ctx.motor.algumAlagamentoAberto());
+        if (existente) return [existente];
         const alvoMotor = sensor ? alvoPorId(this.ctx.db, sensor.id) : undefined;
         const altura = Number(alvoMotor?.caracteristicas.alturaAlertaCm);
-        const base = sensor ? { bairroId: sensor.bairroId, lat: sensor.lat, lng: sensor.lng, equipamentoId: sensor.id } : { ...this.pontoSorteado(), };
+        const base = sensor ? { bairroId: sensor.bairroId, lat: sensor.lat, lng: sensor.lng, equipamentoId: sensor.id } : ponto ?? this.pontoSorteado();
         const { alerta } = this.registrarOcorrencia(
           { tipo: 'alagamento', gravidade: gravidadeMaxima('alagamento'), ...base, descricao: this.rng.escolher(DESCRICOES_INJETADAS.alagamento), origem: 'injetado' },
           agora, { alertar: !(sensor && sensor.situacao === 'operacional' && Number.isFinite(altura)) },
@@ -702,8 +722,8 @@ export class Simulador {
   }
 
   /** Um ponto de rua em bairro sorteado, para eventos sem equipamento de referência. */
-  private pontoSorteado(): { bairroId: number; lat: number; lng: number } {
-    const bairro = this.rng.escolher(this.ctxHoras!.bairros);
+  private pontoSorteado(escolhido?: { id: number; indice: number }): { bairroId: number; lat: number; lng: number } {
+    const bairro = escolhido ?? this.rng.escolher(this.ctxHoras!.bairros);
     const p = this.ctx.geo.pontoAleatorioNaRua(this.rng, bairro.indice);
     return { bairroId: bairro.id, lat: Math.round(p.lat * 1e6) / 1e6, lng: Math.round(p.lng * 1e6) / 1e6 };
   }

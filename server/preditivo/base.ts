@@ -303,7 +303,7 @@ export function calcularEstatisticas(hist: HistoricoOcorrencias, corteMs: number
 /** Falhas (mudanças para mau funcionamento) do histórico gerado, por equipamento, em [desde, ate). */
 export function falhasPorEquipamento(db: Database, desdeMs: number, ateMs: number): Map<number, number> {
   const linhas = db
-    .prepare("SELECT equipamento_id, COUNT(*) AS n FROM historico_situacao WHERE para = 'mau_funcionamento' AND origem = 'historico' AND em >= ? AND em < ? GROUP BY equipamento_id")
+    .prepare("SELECT equipamento_id, COUNT(*) AS n FROM historico_situacao WHERE para = 'mau_funcionamento' AND origem = 'historico' AND em >= ? AND em <= ? GROUP BY equipamento_id")
     .all(iso(desdeMs), iso(ateMs)) as { equipamento_id: number; n: number }[];
   return new Map(linhas.map((l) => [l.equipamento_id, l.n]));
 }
@@ -348,13 +348,47 @@ export function situacaoNoInstante(
 /** Hora com menos de 55 minutos conectados conta como queda de sinal. */
 export const LIMIAR_QUEDA_MIN = 55;
 
-/** Horas com sinal fraco (online_min < 55) por equipamento em [desde, ate). Usa a chave (equipamento, hora): sem varrer a tabela. */
-export function quedasDeSinal(db: Database, desdeMs: number, ateMs: number): Map<number, number> {
+/**
+ * Instante (ms) da última manutenção concluída ou recuperação (volta a operacional) de cada equipamento, até `ateMs` (inclusive).
+ * Vale qualquer origem: o conserto que o simulador ou a tela fez agora também conta. Quem nunca foi consertado não aparece.
+ */
+export function ultimaRecuperacao(db: Database, ateMs: number): Map<number, number> {
+  const mapa = new Map<number, number>();
+  const guardar = (linhas: { id: number; em: string | null }[]) => {
+    for (const l of linhas) if (l.em) mapa.set(l.id, Math.max(mapa.get(l.id) ?? 0, Date.parse(l.em)));
+  };
+  guardar(db.prepare("SELECT equipamento_id AS id, MAX(em) AS em FROM historico_situacao WHERE para = 'operacional' AND em <= ? GROUP BY equipamento_id").all(iso(ateMs)) as { id: number; em: string | null }[]);
+  guardar(db.prepare('SELECT equipamento_id AS id, MAX(concluida_em) AS em FROM manutencoes WHERE concluida_em IS NOT NULL AND concluida_em <= ? GROUP BY equipamento_id').all(iso(ateMs)) as { id: number; em: string | null }[]);
+  return mapa;
+}
+
+/** Início (ms) de cada hora com sinal fraco (online_min < 55) em [desde, ate), por equipamento. Usa a chave (equipamento, hora): sem varrer a tabela. */
+export function horasComSinalFraco(db: Database, desdeMs: number, ateMs: number): Map<number, number[]> {
   const linhas = db
     .prepare(
-      `SELECT e.id AS id, (SELECT COUNT(*) FROM telemetria_hora t WHERE t.equipamento_id = e.id AND t.hora >= ? AND t.hora < ? AND t.online_min < ?) AS n
-       FROM equipamentos e`,
+      `SELECT e.id AS id, t.hora AS hora FROM equipamentos e
+       JOIN telemetria_hora t ON t.equipamento_id = e.id AND t.hora >= ? AND t.hora < ? AND t.online_min < ?`,
     )
-    .all(iso(desdeMs), iso(ateMs), LIMIAR_QUEDA_MIN) as { id: number; n: number }[];
-  return new Map(linhas.filter((l) => l.n > 0).map((l) => [l.id, l.n]));
+    .all(iso(desdeMs), iso(ateMs), LIMIAR_QUEDA_MIN) as { id: number; hora: string }[];
+  const mapa = new Map<number, number[]>();
+  for (const l of linhas) mapa.set(l.id, [...(mapa.get(l.id) ?? []), Date.parse(l.hora)]);
+  return mapa;
+}
+
+/**
+ * Horas com sinal fraco por equipamento em [desde, ate). Com `depoisDe` (ver `ultimaRecuperacao`), cada equipamento só conta
+ * as horas que começam depois da última manutenção ou recuperação dele: o sinal fraco de antes do conserto era o próprio
+ * defeito, já resolvido, e não sinal de falha futura.
+ */
+export function quedasDeSinal(db: Database, desdeMs: number, ateMs: number, depoisDe?: ReadonlyMap<number, number>): Map<number, number> {
+  return contarQuedas(horasComSinalFraco(db, desdeMs, ateMs), depoisDe);
+}
+
+export function contarQuedas(horas: ReadonlyMap<number, readonly number[]>, depoisDe?: ReadonlyMap<number, number>): Map<number, number> {
+  const mapa = new Map<number, number>();
+  for (const [id, lista] of horas) {
+    const n = lista.filter((h) => h >= (depoisDe?.get(id) ?? 0)).length;
+    if (n > 0) mapa.set(id, n);
+  }
+  return mapa;
 }

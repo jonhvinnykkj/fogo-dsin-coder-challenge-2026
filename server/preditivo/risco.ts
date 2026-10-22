@@ -193,7 +193,7 @@ export function confiabilidadeDoRisco(bt: ResultadoBacktest): ExplicacaoPrevisao
       metrica: 'Erro médio por bairro a cada 3 horas',
       valor: bt.maeModelo,
       descricao: `Nos ${bt.dias} dias antes de hoje, a previsão feita na véspera errou em média ${formatarNumero(bt.maeModelo, 2)} ocorrência por bairro em cada bloco de 3 horas: `
-        + `${formatarNumero(Math.abs(bt.ganhoPct), 0)}% ${bt.ganhoPct >= 0 ? 'menos' : 'mais'} que repetir a média de cada bairro (${formatarNumero(bt.maeIngenuo, 2)}).`,
+        + `${formatarNumero(Math.abs(bt.ganhoPct), 1)}% ${bt.ganhoPct >= 0 ? 'menos' : 'mais'} que repetir a média de cada bairro (${formatarNumero(bt.maeIngenuo, 2)}).`,
     },
     {
       metrica: 'Acerto dos 5 bairros mais arriscados à noite',

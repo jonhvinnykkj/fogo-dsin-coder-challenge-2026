@@ -65,6 +65,15 @@ describe('semear: a semente cumpre as regras de cadastro', () => {
   });
 });
 
+describe('semear: situação dos equipamentos', () => {
+  it('nenhum bairro começa com mais de 2 equipamentos indisponíveis (a Central não abre em crise)', () => {
+    const maior = a.db.prepare(`SELECT MAX(n) AS n FROM (SELECT COUNT(*) AS n FROM equipamentos WHERE situacao IN ('mau_funcionamento', 'em_manutencao', 'furtado') GROUP BY bairro_id)`).get() as { n: number };
+    expect(maior.n).toBeLessThanOrEqual(2);
+    // A cota geral não muda: espalhar não faz sumir equipamento indisponível.
+    expect(n(a.db, "SELECT COUNT(*) AS n FROM equipamentos WHERE situacao IN ('mau_funcionamento', 'em_manutencao', 'furtado')")).toBeGreaterThanOrEqual(35);
+  });
+});
+
 describe('semear', () => {
   it('cria a cidade num banco vazio: 300 a 400 equipamentos e 60 a 100 agentes', () => {
     expect(resultado.criado).toBe(true);

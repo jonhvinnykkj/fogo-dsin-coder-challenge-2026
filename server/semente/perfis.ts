@@ -48,6 +48,13 @@ export const BATERIA_PATINETE: readonly number[] =
 export const PERFIL_TEMPESTADE: readonly number[] =
   [0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.10, 0.15, 0.25, 0.50, 1.00, 1.40, 1.60, 1.50, 1.20, 0.90, 0.60, 0.35, 0.20, 0.10];
 
+/**
+ * Quanto da chuva (mm do dia × intensidade da hora) a drenagem da cidade absorve antes de a água subir nos sensores.
+ * Sem isto, um dia de 9 mm (chuva comum) já passava dos 20 a 50 cm de alerta no pico da tarde e a Central abria na partida
+ * com 4 alagamentos críticos. Com 16, a chuva fraca só molha a rua; temporal (a partir de uns 20 mm no dia) alaga como antes.
+ */
+export const DRENAGEM_ABSORVE = 16;
+
 export const soma = (xs: readonly number[]) => xs.reduce((s, x) => s + x, 0);
 
 export function fatorTrafego(hora: Date): number {
@@ -203,7 +210,8 @@ export function gerarLeituraHora(tipo: TipoEquipamentoId, hora: Date, rng: Rng, 
     case 'sensor_alagamento': {
       if (ctx.falhando) return { nivelCm: 0 };
       const chuvaMm = ctx.chuva ? (ctx.chuvaMm ?? 15) : 0;
-      const nivel = rng.entre(0.5, 3) + chuvaMm * 1.5 * PERFIL_TEMPESTADE[p.hora]! * f * rng.entre(0.8, 1.2);
+      const excesso = Math.max(0, chuvaMm * PERFIL_TEMPESTADE[p.hora]! - DRENAGEM_ABSORVE);
+      const nivel = rng.entre(0.5, 3) + excesso * 1.5 * f * rng.entre(0.8, 1.2);
       return { nivelCm: r1(nivel) };
     }
   }
