@@ -7,7 +7,7 @@ import { conferirLeitura } from '../tempo-real/faixas';
 import { ingerirTelemetria } from '../tempo-real/ingestao';
 import { alvoPorCodigo } from '../tempo-real/motor-alertas';
 
-const corpoSchema = z.object({
+export const corpoSchema = z.object({
   codigo: z.string({ required_error: 'Informe o código do equipamento' }).trim().min(1, 'Informe o código do equipamento').max(40),
   em: z
     .string({ invalid_type_error: 'Hora da leitura: use texto ISO 8601' })

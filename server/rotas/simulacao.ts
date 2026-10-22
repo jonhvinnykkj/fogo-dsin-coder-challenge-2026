@@ -6,14 +6,14 @@ import { TIPOS_EVENTO_SIMULADO } from '../../shared/dominio';
 
 const tags = ['Tempo real'];
 
-const mudancaSchema = z.object({
+export const mudancaSchema = z.object({
   velocidade: z.union([z.literal(1), z.literal(10), z.literal(60)], { errorMap: () => ({ message: 'Velocidade: use 1, 10 ou 60' }) }).optional(),
   pausado: z.boolean({ invalid_type_error: 'Pausado: use verdadeiro ou falso' }).optional(),
 });
 
 const idDoEquipamento = (campo: string) => z.number({ invalid_type_error: `${campo}: informe o id do equipamento` }).int().positive().optional();
 // `.strict()`: campo que a rota não conhece (bairroId, por exemplo) era ignorado em silêncio e o evento saía em outro lugar.
-const eventoSchema = z
+export const eventoSchema = z
   .object({
     tipo: z.enum(TIPOS_EVENTO_SIMULADO, { errorMap: () => ({ message: `Tipo de evento: use ${TIPOS_EVENTO_SIMULADO.join(', ')}` }) }),
     alvoId: idDoEquipamento('alvoId'),

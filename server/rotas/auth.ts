@@ -10,11 +10,11 @@ import { abrirSessao, credenciaisPorLogin, encerrarSessao, usuarioDemoDoPapel } 
 
 const tags = ['Acesso'];
 
-const entradaSchema = z.object({
+export const entradaSchema = z.object({
   login: z.string({ required_error: 'Informe o usuário' }).trim().min(1, 'Informe o usuário').max(60),
   senha: z.string({ required_error: 'Informe a senha' }).min(1, 'Informe a senha').max(200),
 });
-const demoSchema = z.object({
+export const demoSchema = z.object({
   papel: z.enum(PAPEIS, { errorMap: () => ({ message: `Papel: use ${PAPEIS.join(', ')}` }) }),
 });
 

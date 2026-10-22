@@ -8,7 +8,7 @@ import * as servico from '../servicos/agentes';
 import { lerId } from './id';
 
 const tags = ['Agentes'];
-const situacaoSchema = z.object({
+export const situacaoSchema = z.object({
   situacao: z.enum(SITUACOES_AGENTE, { errorMap: () => ({ message: 'Situação: valor inválido' }) }),
 });
 

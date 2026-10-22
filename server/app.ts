@@ -15,6 +15,7 @@ import { rotasAlertas } from './rotas/alertas';
 import { rotasBairros } from './rotas/bairros';
 import { rotasCampo } from './rotas/campo';
 import { rotasCentral } from './rotas/central';
+import { documentarRotas } from './rotas/documentacao';
 import { rotasEquipamentos } from './rotas/equipamentos';
 import { rotasManutencao } from './rotas/manutencao';
 import { rotasPrevisoes } from './rotas/previsoes';
@@ -102,6 +103,7 @@ export async function criarApp(ctx: ContextoApp, seguranca: OpcoesSeguranca = {}
       },
       security: [{ sessao: [] }],
       tags: [
+        { name: 'Sistema', description: 'Saúde do servidor' },
         { name: 'Catálogo', description: 'Tipos de equipamento e bairros' },
         { name: 'Equipamentos', description: 'Cadastro, situação e telemetria' },
         { name: 'Agentes', description: 'Cadastro de agentes' },
@@ -116,6 +118,12 @@ export async function criarApp(ctx: ContextoApp, seguranca: OpcoesSeguranca = {}
     },
   });
   await app.register(fastifySwaggerUi, { routePrefix: '/api/docs' });
+
+  // Os esquemas do Fastify existem só para o Swagger: quem valida é o zod de cada rota, e quem serializa é o JSON.stringify.
+  // Sem isto, um `body` ou um `response` documentado passaria a validar (e a coagir tipos) ou a podar campos da resposta.
+  app.setValidatorCompiler(() => (dados) => ({ value: dados }));
+  app.setSerializerCompiler(() => (dados) => JSON.stringify(dados));
+  documentarRotas(app);
 
   // Antes das rotas: os ganchos de sessão, permissão, LGPD e auditoria valem para todas.
   await instalarSeguranca(app, { pastaWeb: PASTA_WEB, ...seguranca });

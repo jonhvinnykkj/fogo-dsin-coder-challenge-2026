@@ -8,7 +8,7 @@ import { lerId } from './id';
 const tags = ['Alertas'];
 const vazioComoAusente = <T extends z.ZodTypeAny>(s: T) => z.preprocess((v) => (v === '' ? undefined : v), s.optional());
 
-const filtrosSchema = z.object({
+export const filtrosSchema = z.object({
   status: z.enum(['abertos', 'todos'], { errorMap: () => ({ message: 'Status: use abertos ou todos' }) }).default('abertos'),
   criticidade: vazioComoAusente(z.enum(CRITICIDADES, { errorMap: () => ({ message: 'Criticidade: valor inválido' }) })),
   tipo: vazioComoAusente(z.string().trim().min(1).max(60)),

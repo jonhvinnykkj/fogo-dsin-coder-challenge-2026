@@ -8,7 +8,7 @@ import { lerId } from './id';
 
 const vazioComoAusente = <T extends z.ZodTypeAny>(s: T) => z.preprocess((v) => (v === '' ? undefined : v), s.optional());
 
-const filtrosSchema = z.object({
+export const filtrosSchema = z.object({
   login: vazioComoAusente(z.string().trim().max(60)),
   entidade: vazioComoAusente(z.string().trim().max(40)),
   pagina: z.coerce.number().int().min(1).default(1),
