@@ -54,3 +54,71 @@
   color: var(--cor-erro);
   font-weight: 600;
 }
+
+/* Celular: cada alerta é um cartão com as ações logo abaixo (a tabela as deixava fora da tela). */
+.cartoes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-2);
+}
+
+.cartao {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--e-3) var(--e-3) var(--e-3) calc(var(--e-3) + 5px);
+  border-radius: var(--raio);
+  background: var(--cor-superficie);
+  box-shadow: inset 5px 0 0 var(--barra, var(--cor-superficie-alta));
+}
+
+.cartao_critica {
+  --barra: var(--crit-critica);
+}
+
+.cartao_alta {
+  --barra: var(--crit-alta);
+}
+
+.cartao_media {
+  --barra: var(--crit-media);
+}
+
+.cartao_baixa {
+  --barra: var(--crit-baixa);
+}
+
+.cartaoTopo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-2);
+}
+
+.cartaoTopo .situacao {
+  margin-left: auto;
+}
+
+.cartaoLocal {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cartao .acoes {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.cartoesVazio {
+  padding: var(--e-4);
+  color: var(--cor-texto-suave);
+  text-align: center;
+}
+
+.paginas {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-2);
+}
