@@ -81,8 +81,9 @@ describe('Swagger', () => {
     expect(op('GET', '/api/saude').summary).toMatch(/saúde/i);
   });
 
-  it('os textos batem com o comportamento (sem prometer token no cadastro nem "quem viu" no reconhecimento)', () => {
-    expect(op('POST', '/api/equipamentos').summary).not.toMatch(/token/i);
+  it('os textos batem com o comportamento (token devolvido uma vez no cadastro; sem "quem viu" no reconhecimento)', () => {
+    expect(op('POST', '/api/equipamentos').summary).toMatch(/token/i);
+    expect(op('POST', '/api/equipamentos').description).toMatch(/tokenDispositivo/);
     expect(op('PATCH', '/api/alertas/:id/reconhecer').summary).not.toMatch(/quem viu/i);
     expect(op('PATCH', '/api/alertas/:id/reconhecer').summary).toMatch(/hora/);
   });

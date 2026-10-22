@@ -67,8 +67,7 @@ const DOCS: Record<string, Doc> = {
 
   'GET /api/equipamentos': { consulta: filtrosEquipamentoSchema },
   'POST /api/equipamentos': {
-    // Neutro de propósito: o que a resposta devolve do token está descrito pela rota que o gera (POST /api/equipamentos/{id}/token).
-    resumo: 'Cadastra equipamento (gera o código FOGO-<SIGLA>-0000)',
+    // Resumo e descrição vêm da própria rota (a resposta traz o token do dispositivo uma única vez).
     corpo: equipamentoInputSchema,
     ok: 201,
     tambem: [409],
