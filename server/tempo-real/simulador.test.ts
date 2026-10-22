@@ -127,6 +127,46 @@ describe('Simulador', () => {
     expect(alertas[0]).toMatchObject({ tipo: 'alagamento', criticidade: 'critica' });
   });
 
+  it("injetar('alagamento') escolhe o sensor de um bairro SEM alagamento aberto; 20 injeções seguidas sempre produzem ou apontam um alerta", () => {
+    const ctx = cidadezinha();
+    const [b1, b2] = ctx.db.prepare('SELECT id FROM bairros ORDER BY id LIMIT 2').all() as { id: number }[];
+    const sensor2 = inserirEquipamentoDeTeste(ctx, { tipo: 'sensor_alagamento', codigo: 'FOGO-ALG-0002', caracteristicas: { alturaAlertaCm: 30 }, ultimoSinalEm: '2026-10-14T20:59:00.000Z' });
+    ctx.db.prepare('UPDATE equipamentos SET bairro_id = ? WHERE id = ?').run(b2!.id, sensor2);
+    // O bairro do primeiro sensor já alaga (alerta aberto, por exemplo da ocorrência): o evento tem de ir para o outro.
+    ctx.motor.registrar({
+      tipo: 'alagamento', criticidade: 'critica', bairroId: b1!.id, titulo: 'Alagamento já aberto', descricao: 'já aberto', criadoEm: '2026-10-14T20:50:00.000Z', chaveDedup: 'ocorrencia:9999',
+    });
+    const sim = new Simulador(ctx, { semente: 11 });
+    const primeira = sim.injetar('alagamento');
+    expect(primeira).toHaveLength(1);
+    expect(primeira[0]).toMatchObject({ tipo: 'alagamento', criticidade: 'critica', bairroId: b2!.id });
+    expect(primeira[0]!.descricao).toContain('FOGO-ALG-0002');
+    // Agora os dois bairros alagam: o resto devolve o alerta existente (a tela mostra o que cobre o fato), sem ocorrência duplicada.
+    const antes = (ctx.db.prepare("SELECT COUNT(*) AS n FROM ocorrencias WHERE tipo = 'alagamento'").get() as { n: number }).n;
+    for (let i = 0; i < 20; i++) {
+      const alertas = sim.injetar('alagamento');
+      expect(alertas.length).toBeGreaterThanOrEqual(1);
+      expect(alertas[0]).toMatchObject({ tipo: 'alagamento' });
+      expect(alertas[0]!.resolvidoEm ?? null).toBeNull();
+    }
+    expect((ctx.db.prepare("SELECT COUNT(*) AS n FROM ocorrencias WHERE tipo = 'alagamento'").get() as { n: number }).n).toBe(antes);
+    expect((ctx.db.prepare("SELECT COUNT(*) AS n FROM alertas WHERE tipo = 'alagamento' AND resolvido_em IS NULL").get() as { n: number }).n).toBe(2);
+  });
+
+  it('falha no equipamento fecha na hora o alerta de falha provável dele (não ficam os dois abertos)', () => {
+    const ctx = cidadezinha();
+    const camera = (ctx.db.prepare("SELECT id FROM equipamentos WHERE codigo = 'FOGO-CAM-0001'").get() as { id: number }).id;
+    ctx.motor.registrar({
+      tipo: 'falha_provavel', criticidade: 'media', equipamentoId: camera, titulo: 'FOGO-CAM-0001 com 59% de chance de falhar em 7 dias', descricao: 'previsão',
+      criadoEm: '2026-10-14T20:55:00.000Z', chaveDedup: `falha_provavel:${camera}`,
+    });
+    const abertos = () => ctx.db.prepare("SELECT tipo FROM alertas WHERE equipamento_id = ? AND resolvido_em IS NULL ORDER BY id").all(camera) as { tipo: string }[];
+    expect(abertos()).toEqual([{ tipo: 'falha_provavel' }]);
+    new Simulador(ctx, { semente: 2 }).injetar('falha', camera);
+    expect(abertos().map((a) => a.tipo)).toEqual(['falha_equipamento']);
+    expect(ctx.db.prepare("SELECT resolucao FROM alertas WHERE tipo = 'falha_provavel'").get()).toEqual({ resolucao: 'automatica' });
+  });
+
   it("injetar('furto') tira um patinete de Marília: alerta crítico, situação furtada e ocorrência injetada", () => {
     const ctx = cidadezinha();
     const sim = new Simulador(ctx, { semente: 5 });

@@ -12,7 +12,7 @@ import type { Alerta, EventoFogo, Ocorrencia } from '../../shared/modelos';
 import { METRICAS_POR_TIPO } from '../../shared/telemetria';
 import type { TipoEquipamentoId } from '../../shared/tipos-equipamento';
 import { formatarNumero } from '../../shared/formato';
-import { inserirAlerta, resolverAlerta, type NovoAlerta } from '../repositorios/alertas';
+import { alertaPorId, inserirAlerta, resolverAlerta, type NovoAlerta } from '../repositorios/alertas';
 import { preverFalhas } from '../preditivo/falhas';
 import { dataLocal, inicioDaHora, partesLocais } from '../tempo';
 import { calcularBaseHoraria, detectarAnomalia, zPorMetrica, type Anomalia, type BaseHoraria } from './anomalias';
@@ -47,6 +47,15 @@ export const LIMITE_FALHA_PROVAVEL_FECHAR = 0.4;
 export const DIAS_SEM_ALERTA_APOS_MANUTENCAO = 3;
 /** A previsão muda devagar: recalcular uma vez por minuto basta. */
 const PERIODO_PREVENTIVO_MS = 60_000;
+
+/**
+ * Criticidade do alerta de acidente, em degraus que seguem a gravidade da ocorrência (1 a 4): 1 baixa, 2 média, 3 alta, 4 crítica.
+ * Antes, gravidade 1 a 3 viravam todas "alta" e só a 4 se distinguia: um "atropelamento sem gravidade" aparecia como o mesmo
+ * nível de uma colisão com vítima.
+ */
+export function criticidadeDoAcidente(gravidade: number): Criticidade {
+  return gravidade >= 4 ? 'critica' : gravidade === 3 ? 'alta' : gravidade === 2 ? 'media' : 'baixa';
+}
 
 const MIN = 60_000;
 const OPERANDO: readonly SituacaoEquipamento[] = ['operacional', 'mau_funcionamento'];
@@ -122,10 +131,22 @@ export class MotorAlertas {
     this.qAnomaliasDoEquipamento = ctx.db.prepare(
       "SELECT chave_dedup FROM alertas WHERE equipamento_id = ? AND tipo = 'anomalia_leitura' AND resolvido_em IS NULL AND chave_dedup IS NOT NULL",
     );
-    this.qAlagamentoAbertoNoBairro = ctx.db.prepare("SELECT 1 FROM alertas WHERE tipo = 'alagamento' AND bairro_id = ? AND resolvido_em IS NULL LIMIT 1");
+    this.qAlagamentoAbertoNoBairro = ctx.db.prepare("SELECT id FROM alertas WHERE tipo = 'alagamento' AND bairro_id = ? AND resolvido_em IS NULL LIMIT 1");
     // Reconstrói o que estava aberto antes do reinício.
     const abertos = ctx.db.prepare("SELECT tipo, equipamento_id AS e FROM alertas WHERE resolvido_em IS NULL AND equipamento_id IS NOT NULL AND tipo IN ('sem_sinal', 'anomalia_leitura')").all() as { tipo: string; e: number }[];
     for (const a of abertos) (a.tipo === 'sem_sinal' ? this.calados : this.comAnomalia).add(a.e);
+  }
+
+  /** O alerta de alagamento aberto no bairro (do sensor ou da ocorrência), se houver. */
+  alagamentoAbertoNoBairro(bairroId: number): Alerta | undefined {
+    const l = this.qAlagamentoAbertoNoBairro.get(bairroId) as { id: number } | undefined;
+    return l && alertaPorId(this.db, l.id);
+  }
+
+  /** Qualquer alagamento aberto (o mais recente); serve de resposta quando todo bairro candidato já alaga. */
+  algumAlagamentoAberto(): Alerta | undefined {
+    const l = this.db.prepare("SELECT id FROM alertas WHERE tipo = 'alagamento' AND resolvido_em IS NULL ORDER BY id DESC LIMIT 1").get() as { id: number } | undefined;
+    return l && alertaPorId(this.db, l.id);
   }
 
   private get db(): Database {
@@ -159,6 +180,14 @@ export class MotorAlertas {
     this.normais.delete(chave);
   }
 
+  /**
+   * O equipamento saiu de operação (falhou, entrou em manutenção, foi furtado ou desativado): "ainda opera, mas vai falhar" deixou
+   * de ser verdade, então o alerta preventivo fecha na hora, sem esperar a varredura de 1 min (que deixava os dois abertos juntos).
+   */
+  equipamentoSaiuDeOperacao(equipamentoId: number, quando: Date = this.ctx.relogio.agora()): void {
+    this.resolverPorChave(`falha_provavel:${equipamentoId}`, quando);
+  }
+
   /** Depois do reparo: some o que dizia respeito à falha (sem sinal, leitura fora do normal, falha). */
   resolverDoEquipamento(equipamentoId: number, quando: Date = this.ctx.relogio.agora()): void {
     const abertos = this.db.prepare(
@@ -183,7 +212,8 @@ export class MotorAlertas {
   //           (recuperado ou dado como perdido, ver mudarSituacao no serviço; fica como resolução manual);
   //           manutencao_atrasada só fecha quando a manutenção é registrada (`resolverPorManutencao`).
   //  Regra 10 falha_provavel (preventivo): fecha quando a manutenção é registrada, quando a chance de falha em 7 dias cai
-  //           abaixo de 40% ou quando o equipamento deixa de estar operacional (`varrerFalhasProvaveis`).
+  //           abaixo de 40% ou quando o equipamento deixa de estar operacional: na hora, se a saída passa por falha, furto ou
+  //           pelo simulador (`equipamentoSaiuDeOperacao`), e no máximo 1 min depois, na varredura, nos outros casos.
 
   /** Grava a resolução automática (sem avisar ninguém). */
   private fecharIds(ids: number[], quando: Date, resolucao: 'manual' | 'automatica' = 'automatica'): Alerta[] {
@@ -362,6 +392,7 @@ export class MotorAlertas {
 
   /** Furto de equipamento que não é patinete (não tem rastreio que saia da cidade): o alerta vem do relato. */
   alertarFurto(alvo: AlvoAlerta, em: Date, detalhe: string): Alerta | null {
+    this.equipamentoSaiuDeOperacao(alvo.id, em);
     return this.registrar({
       tipo: 'furto_suspeito', criticidade: 'critica', equipamentoId: alvo.id, bairroId: alvo.bairroId, lat: alvo.lat, lng: alvo.lng, criadoEm: em.toISOString(),
       chaveDedup: `furto:${alvo.id}`, titulo: `Possível furto: ${quem(alvo)}`, descricao: `${quem(alvo)} (${onde(alvo)}): ${detalhe}.`,
@@ -369,16 +400,17 @@ export class MotorAlertas {
   }
 
   alertarFalha(alvo: AlvoAlerta, em: Date, sintoma: string): Alerta | null {
+    this.equipamentoSaiuDeOperacao(alvo.id, em);
     return this.registrar({
       tipo: 'falha_equipamento', criticidade: 'alta', equipamentoId: alvo.id, bairroId: alvo.bairroId, lat: alvo.lat, lng: alvo.lng, criadoEm: em.toISOString(),
       chaveDedup: `falha:${alvo.id}`, titulo: `${quem(alvo)} em mau funcionamento`, descricao: `${quem(alvo)} (${onde(alvo)}) falhou: ${sintoma}.`,
     });
   }
 
-  /** Acidente (alta; crítica se gravidade 4), congestionamento (média) e alagamento (crítica) viram alerta; o resto não. */
+  /** Acidente (pela gravidade, ver `criticidadeDoAcidente`), congestionamento (média) e alagamento (crítica) viram alerta; o resto não. */
   alertarOcorrencia(o: Ocorrencia, bairroNome: string, em: Date): Alerta | null {
     const criticidade: Criticidade | undefined =
-      o.tipo === 'acidente' ? (o.gravidade === 4 ? 'critica' : 'alta') : o.tipo === 'congestionamento' ? 'media' : o.tipo === 'alagamento' ? 'critica' : undefined;
+      o.tipo === 'acidente' ? criticidadeDoAcidente(o.gravidade) : o.tipo === 'congestionamento' ? 'media' : o.tipo === 'alagamento' ? 'critica' : undefined;
     if (!criticidade) return null;
     // Alagamento já alertado no bairro (pelo sensor ou por outra ocorrência): é o mesmo fato, não abre um segundo crítico.
     if (o.tipo === 'alagamento' && this.qAlagamentoAbertoNoBairro.get(o.bairroId)) return null;
