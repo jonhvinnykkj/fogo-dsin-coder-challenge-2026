@@ -26,8 +26,19 @@ export function mensagemPortaOcupada(porta) {
   return `A porta ${porta} está em uso. Rode com PORT=${outra} npm start (Windows PowerShell: $env:PORT=${outra}; npm start · cmd: set PORT=${outra}&& npm start)`;
 }
 
-/** false só quando a porta está ocupada (EADDRINUSE) no endereço em que o servidor vai escutar; outros erros ficam para o servidor. */
-export function portaLivre(porta, host = '127.0.0.1') {
+/** Endereços de loopback: nesses, o navegador pode resolver "localhost" para ::1 ou 127.0.0.1, então a porta vale nos dois. */
+const LOOPBACK = new Set(['localhost', '127.0.0.1', '::1']);
+
+/**
+ * Endereços a testar para o servidor que vai escutar em `host`. Em loopback testa também `::1` e `::`: outro app (Vite, Next)
+ * escutando em `::` não impede o bind em 127.0.0.1, mas o navegador resolve `localhost` para `::1` primeiro e mostraria o OUTRO app.
+ * Sem IPv6 na máquina, o teste desses endereços falha com outro erro que não EADDRINUSE e é ignorado.
+ */
+export function enderecosParaTestar(host) {
+  return LOOPBACK.has(host) ? ['127.0.0.1', '::1', '::'] : [host];
+}
+
+function enderecoLivre(porta, host) {
   return new Promise((resolver) => {
     const teste = createServer();
     teste.once('error', (erro) => resolver(erro.code !== 'EADDRINUSE'));
@@ -36,11 +47,19 @@ export function portaLivre(porta, host = '127.0.0.1') {
   });
 }
 
+/** false só quando a porta está ocupada (EADDRINUSE) em algum endereço em que o servidor vai ser alcançado; outros erros ficam para o servidor. */
+export async function portaLivre(porta, host = 'localhost') {
+  for (const endereco of enderecosParaTestar(host)) {
+    if (!(await enderecoLivre(porta, endereco))) return false;
+  }
+  return true;
+}
+
 // Rodado direto (node scripts/checar-porta.mjs): sai com código 1 e a mensagem se a porta for inválida ou estiver ocupada.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
     const porta = lerPorta(process.env.PORT);
-    if (!(await portaLivre(porta, process.env.HOST ?? '127.0.0.1'))) {
+    if (!(await portaLivre(porta, process.env.HOST ?? 'localhost'))) {
       console.error(mensagemPortaOcupada(porta));
       process.exit(1);
     }
