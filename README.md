@@ -147,6 +147,18 @@ Nessa mesma medição, 3 minutos a 60× geraram 415 ocorrências e 68 falhas ao 
 
 **Por que o ganho de ~7% e não 30%?** Por bairro e hora quase sempre há 0 ou 1 ocorrência, então boa parte do erro é pura sorte. Mesmo conhecendo as taxas verdadeiras usadas para gerar os dados, o máximo de melhora possível seria cerca de 10% (cálculo com o próprio gerador); o modelo chega a cerca de 70% desse teto. Antes de trocarmos a chuva observada pela previsão guardada, a mesma tela mostrava ~8%: a diferença é o preço de não deixar o dia previsto vazar para a previsão. Preferimos mostrar o número honesto a escolher uma métrica que o inflasse.
 
+## Boletim do dia (para a reunião)
+
+Abra **http://localhost:3333/boletim** (ou "Boletim do dia" no menu): a cidade numa folha A4, pronta para **Imprimir / Salvar PDF** (o botão abre a impressão do navegador; na folha não sai o menu nem os botões).
+
+- Cabeçalho com data, hora de emissão e as ações do **resumo do dia** (Previsões).
+- Os **6 indicadores** da Central e a **situação das 5 regiões** (normal, atenção, crítico).
+- Os **5 bairros de maior risco** nas próximas 24 h, com a hora de pico e o porquê (os mesmos fatores da tela de Previsões).
+- **Alertas críticos abertos**, **manutenções vencidas ou dos próximos 7 dias**, os **10 equipamentos com maior chance de falha** e a **recomendação de reforço de agentes**.
+- **Exportar CSV**: inventário de equipamentos, agentes e manutenções pendentes. O arquivo é gerado no próprio navegador com `;` como separador, vírgula decimal, datas dd/mm/aaaa e BOM UTF-8, para abrir direto no Excel em português com os acentos certos.
+
+Tudo vem das rotas que as telas já usam (`/api/central/*`, `/api/alertas`, `/api/previsoes/*`, `/api/manutencao/painel`): o boletim não calcula número novo, só recorta e escreve.
+
 ## API
 
 Documentação interativa (Swagger): **http://localhost:3333/api/docs**. Principais rotas:

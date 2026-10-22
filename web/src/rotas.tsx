@@ -45,6 +45,7 @@ void carregarCentral();
 const Central = lazy(carregarCentral);
 const Alertas = lazy(() => import('./paginas/Alertas'));
 const Previsoes = lazy(() => import('./paginas/Previsoes'));
+const Boletim = lazy(() => import('./paginas/Boletim'));
 const Campo = lazy(() => import('./paginas/Campo'));
 
 function Carregando({ children }: { children: ReactNode }) {
@@ -73,6 +74,8 @@ const filhas: RouteObject[] = [
 
 export const rotas: RouteObject[] = [
   { path: '/', element: <Shell />, errorElement: <ErroDeRota />, children: filhas },
+  // Boletim do dia: folha para imprimir, fora da casca (na impressão sai só a folha, sem o menu).
+  { path: '/boletim', element: <Carregando><Boletim /></Carregando>, errorElement: <ErroDeRota /> },
   // Modo Campo: celular do agente na rua, fora da casca do gestor (sem menu lateral).
   { path: '/campo', element: <Carregando><Campo /></Carregando>, errorElement: <ErroDeRota /> },
 ];

@@ -1,7 +1,7 @@
-// Navegação principal: as telas na ordem do trabalho (operar, cadastrar, manter, reagir, prever) e o Modo Campo do agente.
+// Navegação principal: as telas na ordem do trabalho (operar, cadastrar, manter, reagir, prever), o Boletim do dia e o Modo Campo do agente.
 // Item ativo vira placa laranja. Recolhida, mostra só os ícones, com nome acessível e dica ao passar o mouse/focar.
 import {
-  BookOpenText, CaretDoubleLeft, CaretDoubleRight, ChartLineUp, DeviceMobile, IdentificationBadge, MapTrifold, TrafficCone, WarningDiamond,
+  BookOpenText, CaretDoubleLeft, CaretDoubleRight, ChartLineUp, DeviceMobile, IdentificationBadge, MapTrifold, Newspaper, TrafficCone, WarningDiamond,
   Wrench, type Icon,
 } from '@phosphor-icons/react';
 import { NavLink } from 'react-router-dom';
@@ -25,6 +25,7 @@ export const ITENS_NAVEGACAO: ItemNavegacao[] = [
   { para: '/manutencao', rotulo: 'Manutenção', Icone: Wrench },
   { para: '/alertas', rotulo: 'Alertas', Icone: WarningDiamond },
   { para: '/previsoes', rotulo: 'Previsões', Icone: ChartLineUp },
+  { para: '/boletim', rotulo: 'Boletim do dia', Icone: Newspaper },
   { para: '/campo', rotulo: 'Modo Campo', Icone: DeviceMobile },
 ];
 
