@@ -121,10 +121,10 @@ Código compartilhado entre servidor e interface fica em `shared/` (tipos, regra
 | **ocorrencias** | acidente, congestionamento, infração, furto/vandalismo, veículo quebrado, alagamento, segurança; gravidade, local, início/fim, origem (`historico`, `tempo_real`, `injetado`), agente e o peso no índice das regiões |
 | **telemetria_hora** | uma linha por equipamento e hora, com as métricas do tipo (fluxo, bateria, sinal…) |
 | **manutencoes** | ordens (preventiva/corretiva), previstas e concluídas |
-| **alertas** | criticidade (crítica, alta, média, baixa), tipo, explicação, reconhecido/resolvido (manual ou automático) |
+| **alertas** | criticidade (crítica, alta, média, baixa), tipo (inclui o preventivo `falha_provavel`: equipamento operacional com 50% ou mais de chance de falhar em 7 dias), explicação, reconhecido/resolvido (manual ou automático) |
 | **clima_dia** | chuva que caiu e a previsão do tempo da véspera (as previsões usam a previsão, nunca a chuva que caiu no dia previsto) |
 
-Datas no banco: texto ISO 8601 em UTC. Na tela: `dd/mm/aaaa HH:mm` no fuso de São Paulo. Toda coordenada cadastrada precisa cair dentro do limite do município.
+Datas no banco: texto ISO 8601 em UTC. Na tela: `dd/mm/aaaa HH:mm` no fuso de São Paulo. Toda coordenada cadastrada precisa cair dentro do limite do município. Cidade/UF é fixo em Marília/SP por decisão de escopo (o sistema atende um único município e as coordenadas precisam cair dentro dele), por isso o formulário não pede esses dois campos.
 
 ## Como cada previsão funciona
 
