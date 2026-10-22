@@ -1,6 +1,6 @@
 # Guia do time — como explicar o F.O.G.O.
 
-Este guia é para quem vai **apresentar e responder à comissão**. A regra do desafio é demonstrar que vocês entendem o que a IA construiu: leiam, abram os arquivos citados e rodem o sistema enquanto estudam. As fórmulas foram conferidas contra o código. Os números com data saíram de **uma só medição**, num banco novo criado em **17/10/2026 às 20h53** (sábado): no dia em que vocês rodarem, eles mudam um pouco, porque o histórico de 60 dias termina na hora em que o banco é criado. A força dos padrões plantados (seção 3) é a da calibração da semente, e os testes de `server/semente` exigem os limites.
+Este guia é para quem vai **apresentar e responder à comissão**. A regra do desafio é demonstrar que vocês entendem o que a IA construiu: leiam, abram os arquivos citados e rodem o sistema enquanto estudam. As fórmulas foram conferidas contra o código. Os números com data saíram de medições em bancos novos de **22/10/2026** (as previsões, de um banco criado às **17h27**; o roteiro e o 60×, de bancos criados às 17h53 e 18h02): no dia em que vocês rodarem, eles mudam um pouco, porque o histórico de 60 dias termina na hora em que o banco é criado. A força dos padrões plantados (seção 3) é a da calibração da semente, e os testes de `server/semente` exigem os limites.
 
 **Antes de qualquer coisa:** rodem `npm install && npm start`, abram http://localhost:3333 e façam o roteiro do README ("O que olhar primeiro"). Ver funcionando vale mais que decorar.
 
@@ -89,37 +89,40 @@ Os testes (`server/semente/*.test.ts`) exigem esses limites. Outros cuidados: re
 Todas estão em `server/preditivo/`, em TypeScript simples. A **base comum** (`base.ts`) usa as 8 últimas semanas, só ocorrências de origem `historico`, e **nada depois do fim do histórico** (`fimDosDados` = `meta.historico_ate` + 1 h). Falhas e tendências seguem a mesma regra; as mudanças de situação feitas ao vivo levam a marca `ao_vivo` e ficam de fora mesmo depois de reiniciar.
 
 ### 4.1 Risco por bairro e hora (`risco.ts`)
-`taxa = base do bairro × perfil da região no dia da semana e hora × chuva prevista do dia × tendência da cidade`. Exemplo da medição de 17/10/2026 (bairro Centro, região Centro, previsão das 20 h de sábado em diante):
-- **Base do bairro** (suavizada): `(ocorrências + 20 × média dos bairros) ÷ (horas + 20)`. O Centro teve 1.681 ocorrências em 1.344 h; bairro médio 0,187/h → (1.681 + 20 × 0,187) ÷ 1.364 = **1,235/h** (sem suavizar daria 1,251). A suavização evita que um bairro com poucos dados vire extremo.
-- **Perfil da região** (dia da semana × hora): `(ocorrências da região no horário ÷ média da região + 8 × perfil da cidade) ÷ (horas do horário + 8)`. Sábado às 22 h, região Centro: 74 ocorrências nessas 8 horas, média da região 4,05/h → 74 ÷ 4,05 = 18,3; perfil da cidade 1,50 → (18,3 + 8 × 1,50) ÷ 16 = **1,89**. Domingo às 3 h: 13 ÷ 4,05 = 3,2; cidade 0,36 → **0,38**.
-- **Chuva**: dias de chuva tiveram 15% mais ocorrências (11 dias de chuva, 44 secos → fator 1,15); vale só se a **previsão do tempo guardada** anuncia chuva para o dia. Neste sábado e domingo, nenhuma → ×1. **Tendência** da cidade (2 últimas semanas ÷ 6 anteriores): 0,98.
-- **Taxa**: sábado 22 h = 1,235 × 1,89 × 1 × 0,98 = **2,30** ocorrências; domingo 3 h = 1,235 × 0,38 × 1 × 0,98 = **0,46**.
-- **Índice 0–100** = `100 × taxa ÷ percentil 99 das taxas das próximas 24 h` (aqui 1,32). Sábado 22 h: 174 → **100 (crítico)**; domingo 3 h: 0,46 ÷ 1,32 = **35 (moderado)**.
-- Níveis: < 25 baixo, < 50 moderado, < 75 alto, ≥ 75 crítico. Os "fatores" mostram o que pesou: na tela, a célula do sábado 22 h diz "Bairro com histórico alto ×6,59" (1,235 ÷ 0,187) e "Região Centro no sábado à noite ×1,89".
+`taxa = base do bairro × perfil da região no dia da semana e hora × chuva prevista do dia × tendência da cidade`. Exemplo da medição de 22/10/2026 (bairro Centro, região Centro, previsão das 17 h de quinta em diante):
+- **Base do bairro** (suavizada): `(ocorrências + 20 × média dos bairros) ÷ (horas + 20)`. O Centro teve 1.677 ocorrências em 1.344 h; bairro médio 0,187/h → (1.677 + 20 × 0,187) ÷ 1.364 = **1,232/h** (sem suavizar daria 1,248). A suavização evita que um bairro com poucos dados vire extremo.
+- **Perfil da região** (dia da semana × hora): `(ocorrências da região no horário ÷ média da região + 8 × perfil da cidade) ÷ (horas do horário + 8)`. Sexta às 7 h, região Centro: 59 ocorrências nessas 8 horas, média da região 4,04/h → 59 ÷ 4,04 = 14,6; perfil da cidade 1,98 → (14,6 + 8 × 1,98) ÷ 16 = **1,90**. Sexta às 3 h: 10 ÷ 4,04 = 2,5; cidade 0,34 → **0,32**.
+- **Chuva**: dias de chuva tiveram 16% mais ocorrências (11 dias de chuva, 44 secos → fator 1,16); vale só se a **previsão do tempo guardada** anuncia chuva para o dia. Nesta medição a quinta tinha chuva prevista (×1,16 nas horas de quinta) e a sexta não (×1). **Tendência** da cidade (2 últimas semanas ÷ 6 anteriores): 0,99.
+- **Taxa**: sexta 7 h = 1,232 × 1,90 × 1 × 0,99 = **2,33** ocorrências; sexta 3 h = 1,232 × 0,32 × 1 × 0,99 = **0,40**.
+- **Índice 0–100** = `100 × taxa ÷ percentil 99 das taxas das próximas 24 h` (aqui 1,40), limitado a 100. Sexta 7 h: 167 → **100 (crítico)**; sexta 3 h: 0,40 ÷ 1,40 = **28 (moderado)**.
+- Níveis: < 25 baixo, < 50 moderado, < 75 alto, ≥ 75 crítico. Os "fatores" mostram o que pesou: na tela, a célula da sexta 7 h diz "Bairro com histórico alto ×6,58" (1,232 ÷ 0,187) e "Região Centro na sexta de manhã ×1,90".
 - A janela de 7 dias é em blocos de 3 h (a taxa do bloco é a soma das 3 horas; resposta menor).
 
 ### 4.2 Teste retroativo (`backtest.ts`): "como sabem que funciona?"
 Para cada um dos 14 dias completos anteriores, **corta o histórico na meia-noite**, recalcula tudo só com o que se sabia até ali, prevê as 24 h e compara com o que aconteceu. A chuva do dia avaliado entra pela **previsão do tempo guardada**, não pela chuva que caiu: nada do próprio dia entra na conta.
-- **Erro (MAE)** por bairro em blocos de 3 h, contra a "média simples do bairro". Em 17/10/2026 (dias 03/10 a 16/10): 0,54 × 0,58 → **7,0% melhor**.
-- **Top 5**: dos 5 bairros previstos como mais arriscados à noite (18h–2h), quantos de fato estiveram entre os 5 com mais ocorrências: **3,9 de 5**, empatado com a média simples (3,9). Digam isso sem rodeio: o ganho do modelo está no horário, não na escolha dos 5 bairros.
-- **Por que não mais?** Com 0 ou 1 ocorrência por bairro e hora, a sorte domina. Rodamos o próprio gerador 600 vezes para estimar as taxas verdadeiras: mesmo quem **sabe a resposta** só melhora ~10%. O modelo chega a ≈ 70% desse teto. Quando o teste usava a chuva observada, dava ~8%; trocamos pela previsão guardada para o dia avaliado não vazar, e mostramos o número novo.
+- **Erro (MAE)** por bairro em blocos de 3 h, contra a "média simples do bairro". Em 22/10/2026 (dias 08/10 a 21/10): 0,53 × 0,58 → **7,5% melhor** (a mesma tela dá 7,5% ou 7,6% conforme a hora em que o banco é criado).
+- **Top 5**: dos 5 bairros previstos como mais arriscados à noite (18h–2h), quantos de fato estiveram entre os 5 com mais ocorrências: **3,6 de 5**, contra 3,4 da média simples. Digam isso sem rodeio: o ganho na escolha dos 5 bairros é pequeno (0,2); o ganho maior do modelo está no horário.
+- **Por que não mais?** Com 0 ou 1 ocorrência por bairro e hora, a sorte domina. Rodamos o próprio gerador 600 vezes para estimar as taxas verdadeiras: mesmo quem **sabe a resposta** só melhora ~10%. O modelo chega a cerca de três quartos desse teto (7,5 de 10). Quando o teste usava a chuva observada, dava ~8%; trocamos pela previsão guardada para o dia avaliado não vazar, e mostramos o número novo.
 
 ### 4.3 Reforço de agentes (`reforco.ts`)
-`carga por agente = ocorrências esperadas na região no turno ÷ agentes escalados`. Guloso, 1 agente por vez, da região mais folgada para a mais carregada, **enquanto** a maior carga estiver ≥ 20% acima da média da cidade e a origem não fique pior que o destino; no máximo 3 mudanças por turno. Exemplo da medição de 17/10/2026 (noite de sábado, 22h às 6h): região Centro com 31,8 ocorrências esperadas para 5 agentes = 6,4 por agente, contra 2,0 na Zona Leste → mover 1 da Leste: Centro cai para 5,3; ainda acima do limite, vem 1 da Zona Norte (2,1 por agente): Centro 4,5. Por que sempre o Centro? Ele tem ~33% das ocorrências (4,05 por hora de 12,2 na cidade) com 25% dos agentes (20 de 80).
+`carga por agente = ocorrências esperadas na região no turno ÷ agentes escalados`. Guloso, 1 agente por vez, da região mais folgada para a mais carregada, **enquanto** a maior carga estiver ≥ 20% acima da média da cidade e a origem não fique pior que o destino; no máximo 3 mudanças por turno. Exemplo da medição de 22/10/2026 (tarde de quinta, 17h às 22h): região Centro com 37,0 ocorrências esperadas para 7 agentes = 5,3 por agente, contra 2,3 na Zona Leste → mover 1 da Leste: Centro cai para 4,6. A escala muda de turno para turno, por isso o exemplo cita o turno. Por que quase sempre o Centro? Ele concentra cerca de um terço das ocorrências (4,04 por hora de uma cidade de ~12) com 25% dos agentes (20 de 80).
 
 ### 4.4 Chance de falha em 7 dias (`falhas.ts`)
 `λ = λ_tipo × fator_modelo × (1 + anos/5) × min(3, 1 + dias_de_atraso/30) × (1 + quedas_72h/3)` e `chance = 1 − e^(−7λ)` (Poisson: chance de pelo menos 1 falha em 7 dias).
 - `λ_tipo` = falhas do tipo ÷ (frota × 60 dias), **dividido pelo equipamento típico** (mediana dos fatores). Sem isso, a fórmula contava duas vezes a idade e o atraso médios e previa 1,87× as falhas reais.
-- `fator_modelo` = (falhas do modelo + 3) ÷ (falhas esperadas + 3). Câmeras (17/10/2026): 79 falhas em 60 câmeras em 60 dias = 0,022/dia; Vigilux VX-200, 51 falhas em 21 câmeras, onde a média do tipo daria 0,022 × 21 × 60 = 27,7 → (51 + 3) ÷ (27,7 + 3) = **1,76**.
-- Exemplo: câmera com λ = 0,02/dia → 1 − e^(−0,14) = **13%**. A primeira da fila em 17/10/2026, FOGO-CAM-0059 (VX-200, 7,6 anos, 37 horas com sinal fraco nas últimas 72 h), aparece com 99%. A tela mostra "mais de 99%" em vez de "100%" quando passa disso, porque nunca é certeza.
-- **Só o histórico**: as falhas contadas, as quedas de sinal e a data de manutenção que entram no modelo são as do fim do histórico; a lista mostra quem está em operação **agora** (um equipamento que o simulador consertou volta para ela).
-- **Retroativo**: refaz a conta como se fosse 7 dias antes do fim do histórico. Em 17/10/2026: **32 previstas (31,6) × 40 ocorridas**; os 10% mais arriscados concentraram **28%** das falhas (acaso = 10%). Depois de 3 minutos a 60× (68 falhas ao vivo), os mesmos números.
+- `fator_modelo` = (falhas do modelo + 3) ÷ (falhas esperadas + 3). Câmeras (22/10/2026): 83 falhas em 62 câmeras em 60 dias = 0,022/dia; Vigilux VX-200, 51 falhas em 21 câmeras, onde a média do tipo daria 0,022 × 21 × 60 = 28,1 → (51 + 3) ÷ (28,1 + 3) = **1,74**.
+- **Sinal fraco**: só contam as horas com menos de 55 min conectado **depois da última manutenção ou recuperação** do equipamento; assim um equipamento já consertado não segue "pagando" por um sinal antigo, e a lista de falhas fica estável entre uma consulta e outra.
+- Exemplo: câmera com λ = 0,02/dia → 1 − e^(−0,14) = **13%**. A primeira da fila em 22/10/2026, FOGO-CAM-0026 (VX-200, 7,3 anos, 7 horas com sinal fraco nas últimas 72 h), aparece com cerca de 64% (a FOGO-CAM-0059, que liderava com 99%, saiu da frente). A tela mostra "mais de 99%" em vez de "100%" quando passa disso, porque nunca é certeza.
+- **Só o histórico**: as falhas contadas, as quedas de sinal e a data de manutenção que entram no modelo são as do fim do histórico; a lista mostra quem está em operação **agora** (um equipamento que o simulador consertou volta para ela, e um que falhou ao vivo sai).
+- **Retroativo**: refaz a conta como se fosse 7 dias antes do fim do histórico. Em 22/10/2026: **32 previstas (32,2) × 41 ocorridas**; os 10% mais arriscados concentraram **22%** das falhas (acaso = 10%; num banco criado às 16h50 do mesmo dia deu 19,5%). A lista tem 9 equipamentos com 30% ou mais de chance e cerca de 32 falhas esperadas na semana.
 
 ### 4.5 Anomalias (`tempo-real/anomalias.ts`)
 `z = (leitura − média) ÷ desvio`, da mesma hora e tipo de dia (sábado compara com sábado). Alerta com |z| ≥ 3; desvio moderado precisa de 2 leituras seguidas; há piso de desvio (20% da média) para não alarmar por contagens baixas. Na construção do detector, esses cuidados derrubaram os alarmes falsos em cerca de 10 vezes (medição daquela etapa, não refeita nesta).
 
 ### 4.6 Tendências (`tendencias.ts`) e resumo (`resumo.ts`)
-Disponibilidade diária por tipo = tempo operacional ÷ tempo que conta (sem desativado/não instalado), reconstruída do `historico_situacao` (só a parte do histórico); projeção = reta de mínimos quadrados de 30 pontos estendida por 7 dias. **Ela perde** para "repetir a média de 30 dias" numa cidade estável (17/10/2026: erro 4,9 × 4,1 p.p.; repetir o último valor, 4,4), e a tela avisa. Falhas por modelo: o Vigilux VX-200 teve 243 falhas por 100 câmeras, contra 66 do modelo mediano. O resumo escolhe as melhores recomendações de cada fonte (máx. 5) e calcula o índice dos bairros.
+Disponibilidade diária por tipo = tempo operacional ÷ tempo que conta (sem desativado/não instalado), reconstruída do `historico_situacao` (só a parte do histórico); projeção = reta de mínimos quadrados de 30 pontos estendida por 7 dias. **Ela não ganha** de repetir o último valor nem a média de 30 dias numa cidade estável (22/10/2026: erro da reta 4,4 p.p.; repetir o último valor, 3,9; repetir a média, 4,4), e a tela avisa; o cartão de tendência também avisa, e o Resumo do dia **não manda agir pela tendência** quando a projeção perde para a média. Falhas por modelo: o Vigilux VX-200 teve 243 falhas por 100 câmeras, contra 68 do modelo mediano. A taxa pode passar de 100 porque conta falhas, não equipamentos (o mesmo equipamento pode falhar mais de uma vez em 60 dias), e o texto da tela explica isso. O resumo escolhe as melhores recomendações de cada fonte (máx. 5) e calcula o índice dos bairros.
+
+**Anomalias** não têm medida de acerto: anomalia não é previsão, é um sinal para olhar, e uma instalação nova não tem alertas anteriores para conferir quantos viraram falha. O cartão da tela diz isso em vez de ficar vazio.
 
 ---
 
@@ -127,9 +130,12 @@ Disponibilidade diária por tipo = tempo operacional ÷ tempo que conta (sem des
 
 - cidade/UF é sempre Marília/SP (o sistema atende um município).
 - Número de série **único**; código legível gerado (`FOGO-RAD-0007`).
-- GPS **dentro do município** (polígono) e CEP na faixa 17500-000 a 17539-999.
+- GPS **dentro do município** (polígono) e CEP na faixa 17500-000 a 17539-999. Datas a partir de 2000; texto com caractere de controle é recusado; série e matrícula são normalizadas (NFKC).
+- Telefone de agente: número brasileiro validado, gravado num formato só e mostrado com máscara.
+- Viatura: o órgão responsável é o órgão da viatura. O veículo do agente confere com a categoria (trânsito leva moto de agente; guarda e PM levam viatura do mesmo órgão).
+- `POST /api/equipamentos` devolve o `tokenDispositivo` **uma única vez**; a tela mostra o token logo após o cadastro, e a ficha tem "Gerar token novo" (só gestor). `GET /api/equipamentos` aceita `ordem` e `direcao`, e a lista ordena pelo cabeçalho. "Registrar manutenção" só aparece para quem pode.
 - Manutenção "agendada" ou "periódica" exige a próxima data.
-- Equipamento **furtado** não volta a "operacional" sem registro de recuperação.
+- Equipamento **furtado** só sai dessa situação com um registro de recuperação, para qualquer situação menos Desativado.
 - **Excluir** equipamento com histórico (telemetria, alertas, agente vinculado) é **recusado**, com mensagem sugerindo **desativar**.
 - Editar um equipamento (PUT) **não apaga** posição atual, último sinal nem situação vinda da telemetria; trocar o tipo é recusado. Se a pessoa não mexeu no grupo de manutenção, o formulário nem manda essas datas e o servidor mantém as gravadas (um reparo concluído com o formulário aberto não é desfeito).
 - Editar um agente não muda a situação dele (em serviço, em ocorrência…): ela segue o turno e as ocorrências e só muda por "Mudar situação".
@@ -139,9 +145,9 @@ Disponibilidade diária por tipo = tempo operacional ÷ tempo que conta (sem des
 - Equipamentos "não instalados" e "desativados" não entram no cálculo de disponibilidade.
 - Posição de equipamento móvel vem da telemetria; fixos usam o cadastro. Patinete fora de Marília gera alerta.
 
-**Como os alertas abrem e fecham:** abrem por anomalia, sem sinal por mais de 15 min, falha, furto suspeito, alagamento (sensor), manutenção atrasada e ocorrência. Um alerta igual **não se repete** enquanto o anterior estiver aberto. Fecham sozinhos quando a causa termina (ver seção 2); **furto suspeito e manutenção atrasada precisam de gente** (o furto fecha quando alguém registra a recuperação ou resolve o alerta; a atrasada, ao registrar a manutenção). O **acidente injetado** usa sempre a gravidade máxima (4 de 4), então sempre abre alerta crítico.
+**Como os alertas abrem e fecham:** abrem por anomalia, sem sinal por mais de 15 min, falha, furto suspeito, alagamento (sensor), manutenção atrasada e ocorrência. Um alerta igual **não se repete** enquanto o anterior estiver aberto. Fecham sozinhos quando a causa termina (ver seção 2); **furto suspeito e manutenção atrasada precisam de gente** (o furto fecha quando alguém registra a recuperação ou resolve o alerta; a atrasada, ao registrar a manutenção). O **acidente injetado** usa sempre a gravidade máxima (4 de 4), então sempre abre alerta crítico; os acidentes gerados seguem a gravidade (1 baixa, 2 média, 3 alta, 4 crítica). Uma falha provável fecha na hora em que o equipamento sai de operação. "Injetar alagamento" escolhe um bairro sem alagamento aberto e, se todos já alagam, devolve o alerta existente (não duplica por bairro, sensor × ocorrência).
 
-**Índice das regiões no ritmo real:** cada ocorrência das últimas 3 h soma 4 pontos ao bairro, mas a gerada ao vivo pesa 1 ÷ (8 × velocidade em que começou), porque o simulador gera 8 vezes o ritmo real (vezes 10 ou 60); histórico e injetadas pesam 1. Assim 60× não pinta todas as regiões de vermelho (17/10/2026, depois de 3 min a 60×: só a região Centro crítica).
+**Índice das regiões no ritmo real:** cada ocorrência das últimas 3 h soma 4 pontos ao bairro, mas a gerada ao vivo pesa 1 ÷ (8 × velocidade em que começou), porque o simulador gera 8 vezes o ritmo real (vezes 10 ou 60); histórico e injetadas pesam 1. Assim 60× não pinta todas as regiões de vermelho (22/10/2026, depois de 3 min a 60× no banco das 17h53: só a região Centro crítica, com Sul em atenção e as outras normais; depois de cerca de 11 min, no banco das 18h02, nenhuma crítica). Na partida, a simulação é calma: chuva comum não alaga (só temporal, a partir de uns 20 mm no dia) e nenhum bairro começa com mais de 2 equipamentos indisponíveis. Com a simulação pausada, o relógio do estado também fica parado.
 
 ---
 
@@ -149,9 +155,9 @@ Disponibilidade diária por tipo = tempo operacional ÷ tempo que conta (sem des
 
 | Decisão | Por quê |
 |---|---|
-| Aprender só do histórico, não do simulador | O simulador acelera eventos (até 60×): em 17/10/2026, 3 min a 60× geraram 68 falhas, quase 1/4 das 286 do histórico inteiro de 60 dias. Aprender com ele deformaria a previsão. |
+| Aprender só do histórico, não do simulador | O simulador acelera eventos (até 60×): em 22/10/2026, cerca de 11 min a 60× geraram 44 falhas ao vivo e 319 ocorrências (o histórico de 60 dias tem 292 falhas e 17.637 ocorrências). Aprender com ele deformaria a previsão. |
 | Ocorrência ao vivo com peso no índice das regiões | Sem o peso, 3 min a 60× deixavam as 5 regiões críticas por 3 horas reais. Com 1 ÷ (8 × velocidade), o índice mede a cidade no ritmo real e o acidente injetado (peso 1) continua aparecendo. |
-| Teste retroativo com a previsão do tempo guardada | Usar a chuva que caiu no dia avaliado era deixar o futuro vazar. O ganho caiu de ~8% para 7,0% e mostramos o número novo. |
+| Teste retroativo com a previsão do tempo guardada | Usar a chuva que caiu no dia avaliado era deixar o futuro vazar. O ganho caiu de ~8% para ~7,5% e mostramos o número novo. |
 | Acidente injetado sempre na gravidade máxima | A demonstração fica previsível: o alerta crítico aparece toda vez. |
 | Relógio da simulação = relógio real | Nunca grava datas no futuro; "próximas 24 h" continua coerente. A velocidade só multiplica o ritmo dos eventos. |
 | Perfil por **região** e dia da semana | O perfil único da cidade escondia "sexta à noite no Centro"; por região o padrão aparece. |
@@ -166,7 +172,7 @@ Disponibilidade diária por tipo = tempo operacional ÷ tempo que conta (sem des
 ## 7. Como rodar os testes
 
 ```bash
-npm test             # mais de 450 testes (menos de 2 minutos na maioria das máquinas)
+npm test             # 664 testes em 83 arquivos (medido em 22/10/2026; leva alguns minutos)
 npx vitest run server/preditivo      # só as previsões
 npm run typecheck    # TypeScript estrito
 npm run e2e          # fumaça: Central (6 indicadores + mapa), Previsões, ≥ 10 equipamentos
@@ -182,7 +188,7 @@ Para mostrar a comissão: rodem `npm test` na tela e apontem os testes de `serve
 2. **Por que SQLite?** Zero instalação (um arquivo que o sistema cria sozinho), SQL puro e fácil de explicar, e rápido o bastante para 350 equipamentos e meio milhão de leituras. Para uma cidade de verdade com leituras a cada segundo, trocaríamos a telemetria por um banco de séries temporais.
 3. **Por que SSE e não WebSocket?** O fluxo é só do servidor para a tela, e SSE faz isso com HTTP simples, reconexão automática e menos código. WebSocket serve para conversa nos dois sentidos, que aqui não precisamos (as ações usam a API REST).
 4. **Como sabem que a previsão funciona?** Com teste retroativo: refazemos a previsão como se fosse ontem, 14 dias seguidos, e comparamos com o que aconteceu e com uma regra simples. Está na tela, com a data do cálculo.
-5. **Por que o ganho é de só ~7%?** Por bairro e hora há quase sempre 0 ou 1 ocorrência; a sorte domina. Mesmo conhecendo as taxas verdadeiras o limite seria ~10%. E o teste não deixa nem a chuva do dia avaliado entrar (usa a previsão do tempo guardada). Preferimos o número honesto.
+5. **Por que o ganho é de só ~7,5%?** Por bairro e hora há quase sempre 0 ou 1 ocorrência; a sorte domina. Mesmo conhecendo as taxas verdadeiras o limite seria ~10%. E o teste não deixa nem a chuva do dia avaliado entrar (usa a previsão do tempo guardada). Preferimos o número honesto.
 6. **Os dados são reais?** Bairros, ruas e limite são reais (OpenStreetMap). Equipamentos, agentes e ocorrências são sintéticos, com padrões plantados de propósito, declarados no README.
 7. **Então a previsão só acha o que vocês plantaram?** Sim, e isso é a prova do método: se ele não achasse, estaria errado. Numa cidade real, o ajuste seria com os dados reais; o código e o teste retroativo continuam valendo.
 8. **E se fosse uma cidade real?** Trocaríamos a semente pela ingestão real (a `POST /api/telemetria` já é a porta que um equipamento usaria), usaríamos autenticação por usuário, banco para séries temporais e o teste retroativo para validar antes de confiar.
@@ -193,7 +199,7 @@ Para mostrar a comissão: rodem `npm test` na tela e apontem os testes de `serve
 13. **O que acontece se o servidor reinicia?** Nada duplica; o histórico que faltou é completado até agora (inclusive a hora em que ele parou); o simulador retoma as ocorrências abertas; as falhas geradas ao vivo continuam fora das previsões (origem `ao_vivo`); e a tela reconecta sozinha ao SSE.
 14. **Como a manutenção preditiva decide?** Pela chance de falha em 7 dias: idade, atraso de manutenção, quedas de sinal recentes e confiabilidade do modelo. Cada item mostra os fatores que pesaram.
 15. **Como garantem que o GPS é de Marília?** Teste de ponto dentro do polígono do município (limite do OpenStreetMap + margem) no cadastro; patinete que sai gera alerta.
-16. **Segurança?** O token de dispositivo é comparado em tempo constante, nunca sai pela API, e o erro de autenticação não revela quais códigos existem. Entradas validadas com zod; SQL parametrizado. Não há login de usuário: é limitação declarada.
+16. **Segurança?** O token de dispositivo é comparado em tempo constante, nunca sai pela API, e o erro de autenticação não revela quais códigos existem. Entradas validadas com zod; SQL parametrizado. A telemetria tem faixa por métrica, posição só de equipamento móvel, hora com no máximo 6 h de atraso e limite de recusas por IP. Há login com quatro papéis (veja as perguntas 21 a 26); o que ficou de fora (HTTPS próprio, 2FA, tela de usuários) está em docs/SEGURANCA.md.
 17. **Desempenho?** Com a cidade povoada, os testes exigem mapa e indicadores em menos de 100 ms e regiões em menos de 200 ms (`server/servicos/central.test.ts`); marcadores agrupados; posições pelo SSE em lotes de 2 s; o simulador isola o erro de cada item para um problema não parar o tick.
 18. **Por que o modo escuro não é automático?** Decisão de produto: tema claro por padrão; a "Sala de controle" (escuro) é uma escolha de quem opera em ambiente com pouca luz.
 19. **Roda sem internet?** Sim, exceto o fundo do mapa (OpenStreetMap). O ViaCEP é opcional.
@@ -205,15 +211,15 @@ Para mostrar a comissão: rodem `npm test` na tela e apontem os testes de `serve
 
 21. **Como vocês protegem o sistema?** Toda rota de `/api` exige sessão, menos saúde, entrada e telemetria (que tem token por dispositivo). Quatro papéis com permissão explícita por rota em `server/seguranca/permissoes.ts`; rota nova sem regra é recusada a todos (falha fechado), e um teste garante que nenhuma rota fique sem regra.
 22. **Onde fica a senha?** Só o hash scrypt com sal (`server/seguranca/cripto.ts`). A sessão é um cookie `httpOnly` + `SameSite=Strict`, e o banco guarda só o SHA-256 dele. O token dos dispositivos também fica só como hash.
-23. **E a LGPD?** Telefone e matrícula dos agentes inteiros só para o gestor; a posição de policiais e guardas é aproximada (~500 m) para quem só consulta, inclusive no tempo real (`server/seguranca/protecao.ts`).
+23. **E a LGPD?** Telefone e matrícula dos agentes inteiros só para o gestor; a posição de policiais e guardas, e a do veículo vinculado a cada um, é aproximada (~500 m) para quem só consulta, na API e no tempo real (`server/seguranca/protecao.ts`). A busca de agentes por matrícula é só do gestor, e o relato do Modo Campo nunca leva a matrícula no texto.
 24. **Como sabem quem fez o quê?** Trilha de auditoria (tela **Auditoria**): cada escrita grava quem, papel, IP, resultado e o registro antes e depois; tentativas recusadas e senhas erradas também. Senhas e tokens nunca entram.
-25. **E força bruta, CSRF, XSS?** 10 tentativas de entrada por minuto por IP e a mesma resposta (e o mesmo tempo) para usuário inexistente e senha errada; `SameSite=Strict` + conferência do `Origin`; CSP que só roda scripts do próprio servidor (o script inline do tema entra pelo hash).
+25. **E força bruta, CSRF, XSS?** 10 tentativas de entrada por minuto por IP e a mesma resposta (e o mesmo tempo) para usuário inexistente e senha errada; `SameSite=Strict` + conferência do `Origin` em toda escrita (menos a telemetria); `X-Frame-Options: DENY`; o tempo real fecha a conexão ao sair ou quando a sessão vence; CSP que só roda scripts do próprio servidor (o script inline do tema entra pelo hash).
 26. **Mas o botão de demonstração entra sem senha!** De propósito, para a comissão avaliar com um clique. Aparece no terminal, está no README e se desliga com `FOGO_DEMO=0`; aí só usuário e senha valem.
 
 ## 9. Sugestão de divisão da apresentação (até 3 pessoas)
 
 - **Pessoa 1 — Inventário, dados e segurança** (≈ 3 min): cadastro, filtros, ficha, regras de negócio (seção 5), como a semente planta padrões (seção 3), API e Swagger; entrar como Somente consulta e mostrar o 403 e a Auditoria (perguntas 21 a 26).
 - **Pessoa 2 — Central em tempo real** (≈ 3 min): demonstração ao vivo (injetar acidente em 1×, depois 60×), o caminho do dado (seção 2), alertas que abrem e fecham, SSE × WebSocket, desempenho.
-- **Pessoa 3 — Previsões e IA** (≈ 3 min): "o que prevê / dados / como ajuda / quão certa foi", um exemplo numérico de cada (seção 4), o teste retroativo e a honestidade sobre o 7% (e o empate nos 5 bairros), declaração de uso de IA.
+- **Pessoa 3 — Previsões e IA** (≈ 3 min): "o que prevê / dados / como ajuda / quão certa foi", um exemplo numérico de cada (seção 4), o teste retroativo e a honestidade sobre o ~7,5% (e o ganho de só 0,2 nos 5 bairros), declaração de uso de IA.
 
 Todos: respondam as perguntas da seção 8 que tocam a sua parte, e abram o código no arquivo citado quando a comissão pedir "mostra onde".
