@@ -15,6 +15,7 @@ import { EtiquetaSituacao } from '../componentes/EtiquetaSituacao';
 import { IconeTipo } from '../componentes/IconeTipo';
 import { Notificacao, type DadosNotificacao } from '../componentes/Notificacao';
 import { corDoTexto } from '../estilo/contraste';
+import { usePode } from '../sessao/Sessao';
 import { formatarDia, hojeIso } from '../util/datas';
 import lista from './Lista.module.css';
 import estilos from './Manutencao.module.css';
@@ -52,6 +53,7 @@ function quando(e: Equipamento, coluna: Coluna, hoje: string): string {
 
 export default function Manutencao() {
   const painel = usePainelManutencao();
+  const podeOperar = usePode('operar'); // a API só aceita o registro de gestor e operador: quem não pode nem vê o botão
   const [registrando, setRegistrando] = useState<Equipamento | null>(null);
   const [aviso, setAviso] = useState<DadosNotificacao | null>(null);
   const fecharAviso = useCallback(() => setAviso(null), []);
@@ -115,9 +117,11 @@ export default function Manutencao() {
                           </span>
                         </div>
                         <p className={estilos.data}>{quando(e, chave, hoje)}</p>
-                        <Botao tamanho="pequeno" icone={<Wrench weight="fill" size={14} aria-hidden="true" />} onClick={() => setRegistrando(e)} className={estilos.registrar}>
-                          Registrar manutenção
-                        </Botao>
+                        {podeOperar && (
+                          <Botao tamanho="pequeno" icone={<Wrench weight="fill" size={14} aria-hidden="true" />} onClick={() => setRegistrando(e)} className={estilos.registrar}>
+                            Registrar manutenção
+                          </Botao>
+                        )}
                       </li>
                     ))}
                   </ul>
