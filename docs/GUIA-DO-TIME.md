@@ -172,7 +172,7 @@ Disponibilidade diária por tipo = tempo operacional ÷ tempo que conta (sem des
 ## 7. Como rodar os testes
 
 ```bash
-npm test             # mais de 450 testes (menos de 2 minutos na maioria das máquinas)
+npm test             # 664 testes em 83 arquivos (medido em 22/10/2026; leva alguns minutos)
 npx vitest run server/preditivo      # só as previsões
 npm run typecheck    # TypeScript estrito
 npm run e2e          # fumaça: Central (6 indicadores + mapa), Previsões, ≥ 10 equipamentos
