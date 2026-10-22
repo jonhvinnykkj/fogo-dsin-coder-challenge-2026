@@ -1,6 +1,6 @@
 # Revisão como avaliador — F.O.G.O.
 
-Revisão feita em **19/10/2026** sobre a `main` em `aa55a21`, simulando a comissão do DSIN Coder Challenge testando o sistema pela primeira vez. Este documento registra o que foi encontrado, como reproduzir e uma sugestão de correção. Os itens marcados **Corrigido** (I3, I5, I6, D8, D9, D12 e D13) foram resolvidos na branch `correcao/infra`; os demais estão tratados em outras branches ou seguem abertos.
+Revisão feita em **19/10/2026** (a rodada 2, de 22/10, está na seção 7) sobre a `main` em `aa55a21`, simulando a comissão do DSIN Coder Challenge testando o sistema pela primeira vez. Este documento registra o que foi encontrado, como reproduzir e uma sugestão de correção. Os itens marcados **Corrigido** (I3, I5, I6, D8, D9, D12 e D13) foram resolvidos na branch `correcao/infra`; os demais estão tratados em outras branches ou seguem abertos.
 
 Máquina: Windows 11, Node 22.23.2, npm 10.9.2, Docker Desktop 4.37.1 (engine 27.4.0). Navegador: Chromium do Playwright 1.64.1 e Chrome instalado (com janela).
 
@@ -93,7 +93,7 @@ Legenda: ✅ atendido e conferido · ⚠️ atendido em parte ou com ressalva ·
 | Informar qual IA foi usada e mostrar que o time entende o que foi construído | ✅ | README, seção "Uso de IA"; [GUIA-DO-TIME.md](GUIA-DO-TIME.md) (mapa de código, fórmulas, perguntas da comissão) |
 | Mandar tudo o que for preciso para rodar; "roda de primeira" | ✅ | `npm install && npm start` ou `docker compose up --build` (seção 1); README com Windows e macOS/Linux |
 | Limite de 50 MB no envio | ✅ | `npm run empacotar` gera o zip só com o código (cerca de 2 MB) |
-| Vídeo do sistema rodando vale ponto extra | ❌ | O projeto Remotion está em `video/`, mas o vídeo renderizado não vai no zip (`video/out` fica de fora) e o README não cita nenhum vídeo nem link |
+| Vídeo do sistema rodando vale ponto extra | ❌ | O projeto Remotion fica em `video/` no repositório, mas `video/` não vai no zip (o zip leva só o sistema); o README explica isso na seção "Vídeo de demonstração" |
 | Formato livre, front-end opcional | ✅ | Sistema web completo (Fastify + React) e API documentada em `/api/docs` |
 
 ### 1ª Parte — Inventário Inteligente da Cidade
@@ -274,3 +274,17 @@ A conferência da seção 3 foi feita contra a interpretação do documento de d
 - Telas: script Playwright que abre cada rota em cada largura, espera 4 s, guarda a captura, os erros de console, a diferença `scrollWidth − innerWidth` e o zoom dos blocos do mapa.
 - API: script com `fetch` para os 36 casos acima.
 - Carga: `PATCH /api/simulacao { velocidade: 60 }` por 5 minutos, com amostras a cada 30 s da memória do processo (Windows `WorkingSet64`), do tempo das rotas, dos alertas, do índice das regiões e dos quadros por segundo da página aberta.
+
+## 7. Rodada 2 (22/10)
+
+Cinco testadores independentes exploraram o sistema depois das correções da primeira revisão, cada um numa frente: **API e segurança**, **cadastro**, **Central**, **Previsões, Boletim, Modo Campo e Auditoria**, e **instalação**. Os achados principais, todos **corrigidos** nesta rodada:
+
+| Frente | Achados principais | Estado |
+|---|---|---|
+| API e segurança | Posição do veículo do agente exata para "somente consulta"; relato do Modo Campo com matrícula no texto e sem limite de distância; tempo real aberto depois da saída ou do vencimento da sessão; telemetria sem faixa por métrica, com posição de equipamento fixo e hora antiga; auditoria do Modo Campo sem antes/depois; `Origin` não conferido em toda escrita; busca de agentes alcançava a matrícula; sem `X-Frame-Options`; Swagger sem corpo, filtros e códigos | Corrigido |
+| Cadastro | Furtado saía sem recuperação; telefone sem validação; token do dispositivo invisível na tela; lista sem ordenação; órgão da viatura e veículo do agente incoerentes; datas antigas, caracteres de controle e série/matrícula sem normalização | Corrigido |
+| Central | Filtros escondidos sob o mapa; alertas e regiões ignorando região e bairro do filtro; selo de manutenção dos grupos misturando chave e relógio; alertas ilegíveis no celular e "Reconhecer" reordenando o feed; partida com chuva comum alagando e bairros com muitos indisponíveis; "Injetar alagamento" duplicando; acidente sempre crítico; falha provável que não fechava; relógio andando com a simulação pausada; bairros sem acento | Corrigido |
+| Previsões, Boletim, Campo e Auditoria | Sinal fraco contado antes da última manutenção e lista de falhas instável; ganho do teste retroativo com casas decimais diferentes entre textos; anomalias com bloco vazio no lugar da explicação; Resumo do dia mandando agir por uma tendência que perdia para a média; Boletim imprimindo rodapé órfão; auditoria sem filtros e com valores crus; "Registrar manutenção" visível a quem não pode; Modo Campo sem Sair e Central | Corrigido |
+| Instalação | Servidor sem escutar em IPv6 (`::1`); build ruidoso no `npm start`; zip com `docs/design/` e `video/`; projeto do Docker Compose sem nome fixo; `npm run dev` recusado com `dist/web` de um `npm start` anterior | Corrigido |
+
+Os números do README e do guia foram remedidos num banco novo no fim da rodada (22/10/2026).
