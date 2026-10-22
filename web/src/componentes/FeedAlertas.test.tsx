@@ -113,4 +113,18 @@ describe('FeedAlertas', () => {
     rerender(comConsultas(<FeedAlertas alertas={[novo, alta, ...TRES]} agora={AGORA} onNovoCritico={onNovoCritico} />, qc));
     expect(onNovoCritico).toHaveBeenCalledTimes(1);
   });
+
+  it('depois de reconhecer, o alerta continua no mesmo lugar (o clique seguinte não atinge outro)', () => {
+    const doisCriticos = [alerta(31, 'critica', 'Crítico A', 1), alerta(32, 'critica', 'Crítico B', 2)];
+    const qc = new QueryClient();
+    const { rerender } = render(comConsultas(<FeedAlertas alertas={doisCriticos} agora={AGORA} />, qc));
+    expect(screen.getAllByRole('listitem')[0]).toHaveTextContent('Crítico A');
+
+    const reconhecido = [{ ...doisCriticos[0]!, reconhecidoEm: AGORA.toISOString() }, doisCriticos[1]!];
+    rerender(comConsultas(<FeedAlertas alertas={reconhecido} agora={AGORA} />, qc));
+    const itens = screen.getAllByRole('listitem');
+    expect(itens[0]).toHaveTextContent('Crítico A');
+    expect(itens[0]).toHaveTextContent('Reconhecido');
+    expect(itens[1]).toHaveTextContent('Crítico B');
+  });
 });

@@ -27,6 +27,23 @@ export const pedeAtencaoDeManutencao = (m: SituacaoManutencao | undefined): m is
 /** Urgente = imediata ou atrasada (selo cheio); "próxima" = dentro de 7 dias (selo vazado). */
 export const manutencaoUrgente = (m: SituacaoManutencao | undefined) => m === 'imediata' || m === 'atrasada';
 
+export interface ContaManutencao {
+  /** Imediata ou atrasada (a chave inglesa). */
+  urgentes: number;
+  /** Nos próximos 7 dias (o relógio). */
+  proximas: number;
+}
+
+/** Conta separado o que é urgente e o que é só próximo: o selo do grupo não pode misturar as duas categorias da legenda. */
+export function contarManutencao(manutencoes: Iterable<SituacaoManutencao | undefined>): ContaManutencao {
+  const conta: ContaManutencao = { urgentes: 0, proximas: 0 };
+  for (const m of manutencoes) {
+    if (manutencaoUrgente(m)) conta.urgentes += 1;
+    else if (m === 'proxima') conta.proximas += 1;
+  }
+  return conta;
+}
+
 export const ROTULO_MANUTENCAO_NO_MAPA: Record<Exclude<SituacaoManutencao, 'ok'>, string> = {
   imediata: 'manutenção imediata',
   atrasada: 'manutenção atrasada',

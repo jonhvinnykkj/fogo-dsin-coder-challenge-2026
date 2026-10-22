@@ -16,7 +16,15 @@ export const ZOOM_PADRAO = 13;
 const LIMITES_NAVEGACAO: LatLngBoundsExpression = [[-22.36, -50.1], [-22.06, -49.8]];
 
 const ATRIBUICAO = '&copy; <a href="https://www.openstreetmap.org/copyright">colaboradores do OpenStreetMap</a>';
-const FALHAS_PARA_AVISAR = 2;
+/** Dois blocos que falham são ruído (um erro de rede passageiro); o aviso só sobe com uma sequência dentro de uma janela curta. */
+export const FALHAS_PARA_AVISAR = 6;
+export const JANELA_FALHAS_MS = 10_000;
+
+/** Acrescenta uma falha de bloco e descarta as que saíram da janela; `avisar` é verdadeiro quando já são o bastante. */
+export function registrarFalhaDeBloco(falhas: readonly number[], agora: number): { falhas: number[]; avisar: boolean } {
+  const recentes = [...falhas.filter((t) => agora - t <= JANELA_FALHAS_MS), agora];
+  return { falhas: recentes, avisar: recentes.length >= FALHAS_PARA_AVISAR };
+}
 
 export const MENSAGEM_MAPA_SEM_CONEXAO = 'Mapa sem conexão — os dados continuam atualizados';
 
@@ -50,13 +58,13 @@ export function fecharDicas(mapa: MapaLeaflet) {
 
 export function MapaBase({ children, centro = CENTRO_MARILIA, zoom = ZOOM_PADRAO, mostrarLimite = true, rotulo = 'Mapa de Marília', className, ref }: Props) {
   const [semConexao, setSemConexao] = useState(() => typeof navigator !== 'undefined' && navigator.onLine === false);
-  const falhas = useRef(0);
+  const falhas = useRef<number[]>([]);
   const camada = useRef<CamadaLeaflet>(null);
 
   useEffect(() => {
     const caiu = () => setSemConexao(true);
     const voltou = () => {
-      falhas.current = 0;
+      falhas.current = [];
       setSemConexao(false);
       camada.current?.redraw(); // o Leaflet não tenta de novo os blocos que falharam
     };
@@ -86,11 +94,12 @@ export function MapaBase({ children, centro = CENTRO_MARILIA, zoom = ZOOM_PADRAO
           maxZoom={19}
           eventHandlers={{
             tileerror: () => {
-              falhas.current += 1;
-              if (falhas.current >= FALHAS_PARA_AVISAR) setSemConexao(true);
+              const r = registrarFalhaDeBloco(falhas.current, Date.now());
+              falhas.current = r.falhas;
+              if (r.avisar) setSemConexao(true);
             },
             tileload: () => {
-              falhas.current = 0;
+              falhas.current = [];
               setSemConexao(false);
             },
           }}

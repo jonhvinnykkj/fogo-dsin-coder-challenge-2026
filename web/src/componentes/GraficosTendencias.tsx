@@ -1,6 +1,6 @@
 // Tendências: disponibilidade de cada tipo nos últimos 30 dias com a projeção de 7 (quadros pequenos na mesma escala,
 // linha cheia = medido, tracejada = projeção), uso de patinetes por bairro e falhas por 100 equipamentos de cada modelo.
-import { ArrowDownRight, ArrowRight, ArrowUpRight } from '@phosphor-icons/react';
+import { ArrowDownRight, ArrowRight, ArrowUpRight, WarningCircle } from '@phosphor-icons/react';
 import { useSyncExternalStore } from 'react';
 import { Bar, BarChart, LabelList, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { formatarNumero } from '../../../shared/formato';
@@ -30,10 +30,22 @@ const abreviar = (t: string, max: number) => (t.length > max ? `${t.slice(0, max
 /** Frota pequena: o próprio servidor avisa que a taxa varia muito (menos de 5 equipamentos). */
 const FROTA_PEQUENA = 5;
 
+type TesteProjecao = Tendencias['testeProjecao'];
+
+/**
+ * A projeção de 7 dias só merece confiança se, refeita no passado, errou menos que repetir o último valor e que repetir a
+ * média (mesmo critério do servidor para recomendar ação). Sem o teste (nenhuma projeção refeita), também não dá para confiar.
+ */
+export function projecaoConfiavel(t: TesteProjecao): boolean {
+  return t.projecoes > 0 && t.erroReta <= Math.min(t.erroUltimo, t.erroMedia);
+}
+
+const pontos = (n: number) => `${formatarNumero(n, 1)} p.p.`;
+
 export function GraficosTendencias({ tendencias }: { tendencias: Tendencias }) {
   return (
     <div className={estilos.tendencias}>
-      <Disponibilidade itens={tendencias.disponibilidadePorTipo} />
+      <Disponibilidade itens={tendencias.disponibilidadePorTipo} teste={tendencias.testeProjecao} />
       <div className={estilos.duas}>
         <Patinetes itens={tendencias.usoPatinetesPorBairro} />
         <FalhasPorModelo itens={tendencias.falhasPorModelo} />
@@ -46,7 +58,8 @@ export function GraficosTendencias({ tendencias }: { tendencias: Tendencias }) {
 
 type ItemDisponibilidade = Tendencias['disponibilidadePorTipo'][number];
 
-function Disponibilidade({ itens }: { itens: ItemDisponibilidade[] }) {
+function Disponibilidade({ itens, teste }: { itens: ItemDisponibilidade[]; teste: TesteProjecao }) {
+  const confiavel = projecaoConfiavel(teste);
   // Mesma escala em todos os quadros (comparar tipos de olho é o ponto dos quadros pequenos).
   const minimo = Math.min(...itens.flatMap((i) => [...i.serie.map((p) => p.pct), i.projecao7d]), 100);
   const piso = Math.max(0, Math.floor((minimo - 1) / 5) * 5);
@@ -65,7 +78,7 @@ function Disponibilidade({ itens }: { itens: ItemDisponibilidade[] }) {
         </span>
       </div>
       <ul className={estilos.quadros}>
-        {ordenados.map((i) => <QuadroTipo key={i.tipo} item={i} piso={piso} />)}
+        {ordenados.map((i) => <QuadroTipo key={i.tipo} item={i} piso={piso} aviso={confiavel ? undefined : teste} />)}
       </ul>
     </section>
   );
@@ -78,7 +91,7 @@ interface PontoSerie {
   proj?: number;
 }
 
-function QuadroTipo({ item, piso }: { item: ItemDisponibilidade; piso: number }) {
+function QuadroTipo({ item, piso, aviso }: { item: ItemDisponibilidade; piso: number; aviso?: TesteProjecao }) {
   const ultimo = item.serie.length - 1;
   const hoje = item.serie[ultimo]?.pct ?? 0;
   const dados: PontoSerie[] = item.serie.map((p, x) => ({ x, data: p.data, pct: p.pct, ...(x === ultimo ? { proj: p.pct } : {}) }));
@@ -100,6 +113,15 @@ function QuadroTipo({ item, piso }: { item: ItemDisponibilidade; piso: number })
           <strong className="numeros"><Seta weight="fill" size={14} aria-hidden="true" />{pct(item.projecao7d)}</strong>
         </span>
       </div>
+      {aviso && (
+        <p
+          className={estilos.pouco}
+          title={`No teste retroativo a reta errou ${pontos(aviso.erroReta)} em média; repetir a média dos 30 dias errou ${pontos(aviso.erroMedia)}.`}
+        >
+          <WarningCircle weight="fill" size={13} aria-hidden="true" />
+          Projeção pouco confiável: perdeu para a média no teste
+        </p>
+      )}
       <div className={estilos.mini} role="img" aria-label={`${nome}: ${pct(hoje)} hoje; a reta dos 30 dias aponta ${pct(item.projecao7d)} daqui a 7 dias`}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={dados} margin={{ top: 4, right: 4, bottom: 2, left: 4 }}>

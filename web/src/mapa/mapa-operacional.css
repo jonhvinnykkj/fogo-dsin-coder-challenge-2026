@@ -110,6 +110,12 @@
   font-size: 11px;
 }
 
+/* Relógio do grupo: no canto de baixo, para não cobrir a chave. */
+.fogo-grupo > .fogo-selo-man--grupo-proxima {
+  top: auto;
+  bottom: -8px;
+}
+
 .fogo-mk--tracejado > .fogo-selo-man {
   top: -9px;
   right: -9px;

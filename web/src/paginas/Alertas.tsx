@@ -1,6 +1,6 @@
 // Tela de Alertas: tabela filtrável (criticidade, tipo, status) que se atualiza sozinha pelo tempo real, com
 // Reconhecer, Resolver e "Ver no mapa" (abre a Central focada no alerta).
-import { Crosshair } from '@phosphor-icons/react';
+import { CaretLeft, CaretRight, Crosshair, MapPin } from '@phosphor-icons/react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -15,13 +15,17 @@ import { BarraFiltros, type DefinicaoFiltro, type ValorFiltro } from '../compone
 import { Botao } from '../componentes/Botao';
 import { EtiquetaCriticidade, ordenarAlertas, TipoAlerta } from '../componentes/EtiquetaAlerta';
 import { Tabela, type Coluna } from '../componentes/Tabela';
+import { useOrdemSemPular } from '../util/ordemEstavel';
 import { useAgora } from '../util/useAgora';
+import { useConsulta } from '../util/useConsulta';
 import { useFiltrosUrl } from '../util/useFiltrosUrl';
 import lista from './Lista.module.css';
 import estilos from './Alertas.module.css';
 import { usePode } from '../sessao/Sessao';
 
 const POR_PAGINA = 25;
+/** Mesmo corte do restante do app: no celular a tabela vira lista de cartões e as ações ficam à vista. */
+const CONSULTA_CELULAR = '(max-width: 720px)';
 
 const DEFINICOES: DefinicaoFiltro[] = [
   { tipo: 'pilulas', chave: 'criticidade', rotulo: 'Criticidade', opcoes: CRITICIDADES.map((c) => ({ valor: c, rotulo: ROTULO_CRITICIDADE[c], cor: COR_CRITICIDADE[c] })) },
@@ -43,6 +47,7 @@ export default function Alertas() {
   const reconhecer = useReconhecerAlerta();
   const resolver = useResolverAlerta();
   const podeOperar = usePode('operar');
+  const celular = useConsulta(CONSULTA_CELULAR);
 
   const criticidade = ler('criticidade') as Criticidade | undefined;
   const filtros: FiltrosAlertas = {
@@ -55,7 +60,8 @@ export default function Alertas() {
   const pagina = Math.max(1, Number(ler('pagina') ?? 1) || 1);
 
   const nomes = useMemo(() => new Map((bairros.data ?? []).map((b) => [b.id, b.nome])), [bairros.data]);
-  const ordenados = useMemo(() => (consulta.data ? ordenarAlertas(consulta.data) : undefined), [consulta.data]);
+  // Reconhecer não muda o lugar do alerta (o clique seguinte no mesmo ponto não pode atingir outro).
+  const ordenados = useOrdemSemPular(consulta.data, ordenarAlertas);
   const linhas = ordenados?.slice((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA);
   const criticos = consulta.data?.filter((a) => a.criticidade === 'critica' && !a.resolvidoEm).length ?? 0;
 
@@ -71,6 +77,27 @@ export default function Alertas() {
   };
 
   const ocupado = (id: number) => (reconhecer.isPending && reconhecer.variables === id) || (resolver.isPending && resolver.variables === id);
+
+  const botoesDeAcao = (a: Alerta) => (
+    <span className={estilos.acoes}>
+      {podeOperar && !a.resolvidoEm && !a.reconhecidoEm && (
+        <Botao tamanho="pequeno" disabled={ocupado(a.id)} onClick={() => reconhecer.mutate(a.id)}>Reconhecer</Botao>
+      )}
+      {podeOperar && !a.resolvidoEm && (
+        <Botao tamanho="pequeno" disabled={ocupado(a.id)} onClick={() => resolver.mutate(a.id)}>Resolver</Botao>
+      )}
+      {a.lat !== undefined && a.lng !== undefined && (
+        <Botao
+          tamanho="pequeno"
+          variante="fantasma"
+          icone={<Crosshair weight="fill" size={14} aria-hidden="true" />}
+          onClick={() => navegar('/', { state: { focoAlerta: a } })}
+        >
+          Ver no mapa
+        </Botao>
+      )}
+    </span>
+  );
 
   const colunas: Coluna<Alerta>[] = [
     { chave: 'criticidade', titulo: 'Criticidade', render: (a) => <EtiquetaCriticidade criticidade={a.criticidade} />, semQuebra: true, largura: '108px' },
@@ -103,30 +130,12 @@ export default function Alertas() {
     },
     {
       chave: 'acoes', titulo: 'Ações', alinhar: 'direita', semQuebra: true,
-      render: (a) => (
-        <span className={estilos.acoes}>
-          {podeOperar && !a.resolvidoEm && !a.reconhecidoEm && (
-            <Botao tamanho="pequeno" disabled={ocupado(a.id)} onClick={() => reconhecer.mutate(a.id)}>Reconhecer</Botao>
-          )}
-          {podeOperar && !a.resolvidoEm && (
-            <Botao tamanho="pequeno" disabled={ocupado(a.id)} onClick={() => resolver.mutate(a.id)}>Resolver</Botao>
-          )}
-          {a.lat !== undefined && a.lng !== undefined && (
-            <Botao
-              tamanho="pequeno"
-              variante="fantasma"
-              icone={<Crosshair weight="fill" size={14} aria-hidden="true" />}
-              onClick={() => navegar('/', { state: { focoAlerta: a } })}
-            >
-              Ver no mapa
-            </Botao>
-          )}
-        </span>
-      ),
+      render: botoesDeAcao,
     },
   ];
 
   const total = consulta.data?.length ?? 0;
+  const ultimaPagina = Math.max(1, Math.ceil(total / POR_PAGINA));
   const erroAcao = reconhecer.error ?? resolver.error;
 
   return (
@@ -147,6 +156,43 @@ export default function Alertas() {
       {erroAcao && <p className={estilos.erro} role="alert">Não foi possível atualizar o alerta: {mensagemDeErro(erroAcao)}</p>}
       {consulta.isError && !consulta.data ? (
         <AvisoErro erro={consulta.error} titulo="Não foi possível carregar os alertas" onTentarDeNovo={() => void consulta.refetch()} tentando={consulta.isFetching} />
+      ) : celular ? (
+        <>
+          <ul className={estilos.cartoes} aria-label="Alertas, críticos primeiro" aria-busy={consulta.isPending || undefined}>
+            {linhas?.map((a) => {
+              const sit = situacaoDoAlerta(a);
+              const bairro = a.bairroId !== undefined ? nomes.get(a.bairroId) : undefined;
+              return (
+                <li key={a.id} className={`${estilos.cartao} ${estilos[`cartao_${a.criticidade}`]}`} data-id={a.id}>
+                  <div className={estilos.cartaoTopo}>
+                    <EtiquetaCriticidade criticidade={a.criticidade} />
+                    <span className={estilos.tipo}><TipoAlerta tipo={a.tipo} tamanho={14} /></span>
+                    <span className={`${estilos.situacao} ${estilos[sit.classe]}`}>{sit.rotulo}</span>
+                  </div>
+                  <strong>{a.titulo}</strong>
+                  <p className={`${lista.secundaria} ${estilos.descricao}`}>{a.descricao}</p>
+                  <p className={`${lista.secundaria} ${estilos.cartaoLocal}`}>
+                    {bairro && <><MapPin weight="fill" size={13} aria-hidden="true" />{bairro} · </>}
+                    {formatarRelativo(a.criadoEm, agora)}
+                  </p>
+                  {botoesDeAcao(a)}
+                </li>
+              );
+            })}
+          </ul>
+          {!consulta.isPending && total === 0 && (
+            <p className={estilos.cartoesVazio}>{filtros.status === 'abertos' ? 'Nenhum alerta aberto com estes filtros.' : 'Nenhum alerta com estes filtros.'}</p>
+          )}
+          {total > POR_PAGINA && (
+            <nav className={estilos.paginas} aria-label="Paginação">
+              <Botao tamanho="pequeno" icone={<CaretLeft weight="fill" size={14} aria-hidden="true" />} disabled={pagina <= 1} onClick={() => mudar('pagina', String(pagina - 1))}>Anterior</Botao>
+              <span className="numeros" aria-current="page">{formatarNumero(pagina)} de {formatarNumero(ultimaPagina)}</span>
+              <Botao tamanho="pequeno" disabled={pagina >= ultimaPagina} onClick={() => mudar('pagina', String(pagina + 1))}>
+                Próxima <CaretRight weight="fill" size={14} aria-hidden="true" />
+              </Botao>
+            </nav>
+          )}
+        </>
       ) : (
         <Tabela
           colunas={colunas}

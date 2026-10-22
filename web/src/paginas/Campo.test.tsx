@@ -81,6 +81,7 @@ beforeEach(() => {
   EventSourceFalso.instancias = [];
   vi.stubGlobal('EventSource', EventSourceFalso);
   Object.defineProperty(navigator, 'vibrate', { value: vi.fn(() => true), configurable: true });
+  Object.defineProperty(navigator, 'userActivation', { value: { hasBeenActive: true, isActive: true }, configurable: true });
   despachoAtual = null;
   usuarioLogado = { id: 3, login: 'agente', nome: 'Ana Souza', papel: 'agente', agenteId: 7 };
   fetchFalso = vi.fn(async (url: string, init?: RequestInit) => {
@@ -216,6 +217,18 @@ describe('Modo Campo', () => {
     // O mesmo despacho repetido (ex.: reconexão) não vibra de novo.
     act(() => fonte!.emitir('ocorrencia', { tipo: 'ocorrencia', dados: OCORRENCIA }));
     expect(navigator.vibrate).toHaveBeenCalledTimes(1);
+  });
+
+  it('sem nenhum toque na página o navegador bloquearia a vibração: o despacho chega, mas não vibra', async () => {
+    Object.defineProperty(navigator, 'userActivation', { value: { hasBeenActive: false, isActive: false }, configurable: true });
+    localStorage.setItem(CHAVE_AGENTE_CAMPO, '7');
+    renderizar();
+    expect(await screen.findByText('Nenhum despacho agora')).toBeInTheDocument();
+    const fonte = EventSourceFalso.instancias.find((f) => f.url === '/api/stream')!;
+    despachoAtual = DESPACHO;
+    act(() => fonte.emitir('ocorrencia', { tipo: 'ocorrencia', dados: OCORRENCIA }));
+    expect(await screen.findByText('Novo despacho!')).toBeInTheDocument();
+    expect(navigator.vibrate).not.toHaveBeenCalled();
   });
 
   describe('topo: sair e voltar à Central', () => {

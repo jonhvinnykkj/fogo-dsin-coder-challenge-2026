@@ -2,7 +2,7 @@
 // entre duas listas de marcadores (o que mover, trocar ícone, incluir e tirar sem recriar a camada).
 import { describe, expect, it } from 'vitest';
 import type { EquipamentoMapa } from '../../../shared/modelos';
-import { compararMarcadores, manutencaoUrgente, pedeAtencaoDeManutencao, pesoDaOcorrencia, pinturaDoBairro, piorSituacao } from './regrasMapa';
+import { compararMarcadores, contarManutencao, manutencaoUrgente, pedeAtencaoDeManutencao, pesoDaOcorrencia, pinturaDoBairro, piorSituacao } from './regrasMapa';
 
 const eq = (id: number, extra: Partial<EquipamentoMapa> = {}): EquipamentoMapa => ({
   id, codigo: `FOGO-RAD-${id}`, tipo: 'radar', situacao: 'operacional', lat: -22.2, lng: -49.9, bairroId: 1,
@@ -86,5 +86,12 @@ describe('manutenção no mapa', () => {
     const r = compararMarcadores(new Map([[1, a]]), [{ ...a, manutencao: 'imediata' }]);
     expect(r.mudados.map((x) => x.id)).toEqual([1]);
     expect(r.movidos).toEqual([]);
+  });
+});
+
+describe('contarManutencao (selo do grupo)', () => {
+  it('separa imediata + atrasada dos próximos 7 dias e ignora ok e ausente', () => {
+    expect(contarManutencao(['imediata', 'atrasada', 'proxima', 'proxima', 'proxima', 'ok', undefined])).toEqual({ urgentes: 2, proximas: 3 });
+    expect(contarManutencao([])).toEqual({ urgentes: 0, proximas: 0 });
   });
 });

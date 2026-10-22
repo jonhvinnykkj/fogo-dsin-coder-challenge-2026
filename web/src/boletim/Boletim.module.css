@@ -443,12 +443,38 @@
     padding: 1mm 1.5mm;
   }
 
+  /* No papel o texto quebra de linha inteiro: reticências escondem justamente o bairro que o motivo cita. */
   .regiao .detalhe {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    overflow-wrap: anywhere;
     font-size: 7.5pt;
+  }
+
+  /*
+   * Em bloco (e não em flex) a folha pode quebrar de página sem deixar o rodapé sozinho: ele fica grudado na última
+   * seção, e as seções e linhas não se partem no meio.
+   */
+  .folha {
+    display: block;
+  }
+
+  .folha > * + * {
+    margin-top: 3mm;
+  }
+
+  .secao,
+  .duasColunas,
+  .regiao,
+  .tabela tr {
+    break-inside: avoid;
+  }
+
+  .tituloSecao {
+    break-after: avoid;
+  }
+
+  .rodape {
+    break-before: avoid;
+    margin-top: 3mm;
   }
 
   .tabela .detalhe,

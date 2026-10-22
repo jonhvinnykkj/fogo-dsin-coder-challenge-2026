@@ -4,6 +4,10 @@
   gap: var(--e-2);
 }
 
+.moldura {
+  position: relative;
+}
+
 /* Celular: uma fileira que se arrasta de lado; cada placa guarda a largura de leitura e o mapa fica com a tela. */
 @media (max-width: 720px) {
   .faixa {
@@ -21,5 +25,21 @@
   .faixa > * {
     flex: 0 0 112px;
     scroll-snap-align: start;
+  }
+
+  /* esmaece a borda direita para a cor da página enquanto há placas fora da tela: "tem mais por aqui" */
+  .moldura::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: 44px;
+    background: linear-gradient(90deg, transparent, var(--cor-fundo) 85%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duracao) var(--curva);
+  }
+
+  .moldura[data-ha-mais]::after {
+    opacity: 1;
   }
 }

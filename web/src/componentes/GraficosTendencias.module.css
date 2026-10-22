@@ -168,3 +168,20 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* aviso curto no cartão quando a reta perdeu para a média no teste retroativo */
+.pouco {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  color: var(--cor-texto-suave);
+  font-size: var(--t-12);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.pouco svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--cor-fogo-texto);
+}

@@ -11,7 +11,7 @@ import { estaIndisponivel, ROTULO_SITUACAO, type SituacaoEquipamento } from '../
 import type { EquipamentoMapa, SituacaoManutencao } from '../../../shared/modelos';
 import { rotuloCurtoDoTipo } from '../componentes/IconeTipo';
 import { iconeEquipamento, iconeGrupo, resumoDoGrupo } from './iconesMapa';
-import { compararMarcadores, pedeAtencaoDeManutencao, piorSituacao, ROTULO_MANUTENCAO_NO_MAPA } from './regrasMapa';
+import { compararMarcadores, contarManutencao, pedeAtencaoDeManutencao, piorSituacao, ROTULO_MANUTENCAO_NO_MAPA } from './regrasMapa';
 
 interface OpcoesMarcador extends L.MarkerOptions {
   situacao: SituacaoEquipamento;
@@ -51,9 +51,9 @@ export function CamadaEquipamentos({ equipamentos, visivel, selecionadoId, onSel
       chunkedLoading: true,
       iconCreateFunction: (cluster) => {
         const situacoes = cluster.getAllChildMarkers().map(situacaoDe);
-        const comManutencao = cluster.getAllChildMarkers().filter((m) => pedeAtencaoDeManutencao(manutencaoDe(m))).length;
-        cluster.options.title = resumoDoGrupo(situacoes, comManutencao); // dica nativa, também lida por leitores de tela
-        return iconeGrupo(situacoes.length, piorSituacao(situacoes), situacoes.filter(estaIndisponivel).length, comManutencao);
+        const manutencao = contarManutencao(cluster.getAllChildMarkers().map(manutencaoDe));
+        cluster.options.title = resumoDoGrupo(situacoes, manutencao); // dica nativa, também lida por leitores de tela
+        return iconeGrupo(situacoes.length, piorSituacao(situacoes), situacoes.filter(estaIndisponivel).length, manutencao);
       },
     });
     grupo.current = g;

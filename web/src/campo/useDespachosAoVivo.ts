@@ -13,6 +13,15 @@ import { URL_STREAM } from '../tempo-real/useStream';
 const FECHADA = 2; // EventSource.CLOSED
 const ESPERA_REABRIR_MS = 3000;
 
+/**
+ * Vibra só se a pessoa já tocou na página: o navegador bloqueia `vibrate` antes disso e deixa um erro no console
+ * ("Blocked call to navigator.vibrate because user hasn't tapped on the frame").
+ */
+export function vibrarSePermitido(padrao: number | number[]): void {
+  if (typeof navigator.vibrate !== 'function' || !navigator.userActivation?.hasBeenActive) return;
+  navigator.vibrate(padrao);
+}
+
 /** Cada `data` do /api/stream é o evento inteiro (`{ tipo, dados }`), como o useStream lê. */
 function ler(ev: Event): EventoFogo | undefined {
   try {
