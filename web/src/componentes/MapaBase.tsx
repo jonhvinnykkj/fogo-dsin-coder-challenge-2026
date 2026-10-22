@@ -3,8 +3,8 @@
 // Os blocos do mapa são a única coisa que depende de internet: se falharem, um aviso diz que os dados seguem ao vivo.
 import { WifiSlash } from '@phosphor-icons/react';
 import type { LatLngBoundsExpression, LatLngExpression, Map as MapaLeaflet, TileLayer as CamadaLeaflet } from 'leaflet';
-import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react';
-import { GeoJSON, MapContainer, TileLayer, useMapEvents } from 'react-leaflet';
+import { useCallback, useEffect, useRef, useState, type ReactNode, type Ref, type RefObject } from 'react';
+import { GeoJSON, MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import { LIMITE_MARILIA } from '../../../shared/geo';
 import '../mapa/configurarLeaflet';
 import estilos from './MapaBase.module.css';
@@ -56,24 +56,45 @@ export function fecharDicas(mapa: MapaLeaflet) {
   mapa.eachLayer((camada) => camada.closeTooltip());
 }
 
+/**
+ * Pede de novo os blocos (o Leaflet não tenta outra vez os que falharam). Não usa `redraw()`: no Leaflet 1.9 ele toma o zoom
+ * do mapa sem arredondar e, com o zoom de meio nível da Central (12,5), pede /12.5/x/y.png, que não existe, e o mapa fica
+ * sem fundo. Tirar e repor a camada passa pelo caminho normal, que arredonda.
+ */
+export function recarregarBlocos(mapa: MapaLeaflet, camada: CamadaLeaflet | null) {
+  if (!camada || !mapa.hasLayer(camada)) return;
+  mapa.removeLayer(camada);
+  mapa.addLayer(camada);
+}
+
+/** Quando a rede volta, recarrega os blocos (de dentro do mapa, para ter a instância por `useMap`). */
+function RecarregaAoVoltarRede({ camada, aoVoltar }: { camada: RefObject<CamadaLeaflet | null>; aoVoltar: () => void }) {
+  const mapa = useMap();
+  useEffect(() => {
+    const voltou = () => {
+      aoVoltar();
+      recarregarBlocos(mapa, camada.current);
+    };
+    window.addEventListener('online', voltou);
+    return () => window.removeEventListener('online', voltou);
+  }, [mapa, camada, aoVoltar]);
+  return null;
+}
+
 export function MapaBase({ children, centro = CENTRO_MARILIA, zoom = ZOOM_PADRAO, mostrarLimite = true, rotulo = 'Mapa de Marília', className, ref }: Props) {
   const [semConexao, setSemConexao] = useState(() => typeof navigator !== 'undefined' && navigator.onLine === false);
   const falhas = useRef<number[]>([]);
   const camada = useRef<CamadaLeaflet>(null);
 
+  const voltouARede = useCallback(() => {
+    falhas.current = [];
+    setSemConexao(false);
+  }, []);
+
   useEffect(() => {
     const caiu = () => setSemConexao(true);
-    const voltou = () => {
-      falhas.current = [];
-      setSemConexao(false);
-      camada.current?.redraw(); // o Leaflet não tenta de novo os blocos que falharam
-    };
     window.addEventListener('offline', caiu);
-    window.addEventListener('online', voltou);
-    return () => {
-      window.removeEventListener('offline', caiu);
-      window.removeEventListener('online', voltou);
-    };
+    return () => window.removeEventListener('offline', caiu);
   }, []);
 
   return (
@@ -105,6 +126,7 @@ export function MapaBase({ children, centro = CENTRO_MARILIA, zoom = ZOOM_PADRAO
           }}
         />
         <FechaDicasAoMover />
+        <RecarregaAoVoltarRede camada={camada} aoVoltar={voltouARede} />
         {mostrarLimite && <GeoJSON data={LIMITE_MARILIA} interactive={false} style={{ className: estilos.limite, fill: false, weight: 2, dashArray: '6 6' }} />}
         {children}
       </MapContainer>

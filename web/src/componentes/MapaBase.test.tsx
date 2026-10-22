@@ -24,6 +24,26 @@ describe('MapaBase', () => {
   });
 });
 
+describe('rede de volta', () => {
+  it('recarrega os blocos no zoom inteiro, mesmo com o mapa em meio nível (redraw do Leaflet pediria /12.5/…)', () => {
+    let mapa!: L.Map;
+    const { unmount } = render(<MapaBase mostrarLimite={false}><Preparar aoPronto={(m) => { mapa = m; }} /></MapaBase>);
+    // No jsdom o mapa tem tamanho zero e não aceita meio nível; a Central, na tela, fica em 12,5 (zoomSnap 0,5).
+    const getZoom = mapa.getZoom;
+    mapa.getZoom = () => 12.5;
+    try {
+      let blocos!: L.TileLayer;
+      mapa.eachLayer((c) => { if (c instanceof L.TileLayer) blocos = c; });
+      window.dispatchEvent(new Event('online'));
+      expect(mapa.hasLayer(blocos)).toBe(true);
+      expect((blocos as unknown as { _tileZoom: number })._tileZoom).toBe(13);
+    } finally {
+      mapa.getZoom = getZoom;
+      unmount();
+    }
+  });
+});
+
 describe('aviso de mapa sem conexão', () => {
   it('dois blocos que falham não bastam', () => {
     let falhas: number[] = [];
