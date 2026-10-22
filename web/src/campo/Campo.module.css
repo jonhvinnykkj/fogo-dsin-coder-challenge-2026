@@ -39,6 +39,41 @@
   font-weight: 800;
 }
 
+/* Celular estreito: a placa F.O.G.O. e os botões ocupam a faixa; o "Modo Campo" já está claro pela própria tela. */
+@media (max-width: 480px) {
+  .modo {
+    display: none;
+  }
+}
+
+.acoesTopo {
+  display: flex;
+  align-items: center;
+  gap: var(--e-2);
+  margin-left: auto;
+}
+
+/* Alvo de toque de 48 px, com texto: o agente precisa achar o "Sair" sem adivinhar um ícone. */
+.acaoTopo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-2);
+  min-height: 48px;
+  padding: 0 var(--e-3);
+  border: 0;
+  background: var(--cor-faixa-destaque);
+  color: var(--cor-sobre-faixa);
+  font-size: var(--t-14);
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.acaoTopo:hover {
+  background: var(--cor-sobre-faixa-suave);
+  color: var(--cor-faixa);
+}
+
 .conteudo {
   max-width: 560px;
   margin: 0 auto;
