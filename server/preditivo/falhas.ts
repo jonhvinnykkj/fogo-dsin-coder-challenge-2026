@@ -31,7 +31,7 @@ import type { ExplicacaoPrevisao, RespostaFalhas, RiscoFalha } from '../../share
 import { NOME_DO_TIPO, type TipoEquipamentoId } from '../../shared/tipos-equipamento';
 import { dataLocal } from '../tempo';
 import {
-  arred, DIA_MS, falhasPorEquipamento, fimDosDados, HORA_MS, inicioDaHoraMs, inicioDoHistorico, mediana, mudancasDeSituacao, quedasDeSinal, situacaoNoInstante, ultimaRecuperacao,
+  arred, contarQuedas, DIA_MS, falhasPorEquipamento, fimDosDados, HORA_MS, horasComSinalFraco, inicioDaHoraMs, inicioDoHistorico, mediana, mudancasDeSituacao, situacaoNoInstante, ultimaRecuperacao,
 } from './base';
 
 export const DIAS_TAXA = 60;
@@ -90,8 +90,9 @@ export function calcularRiscosDeFalha(db: Database, instanteMs: number, { atual 
   const diasJanela = Math.max(1, (fimMs - desde) / DIA_MS);
   const falhas = falhasPorEquipamento(db, desde, fimMs);
   // O modelo (equipamento típico) usa só o que o histórico sabe até o fim dos dados; a lista também enxerga o conserto de agora.
-  const quedasModelo = quedasDeSinal(db, fimMs - HORAS_QUEDAS * HORA_MS, inicioDaHoraMs(fimMs), ultimaRecuperacao(db, fimMs));
-  const quedas = quedasDeSinal(db, fimMs - HORAS_QUEDAS * HORA_MS, inicioDaHoraMs(fimMs), ultimaRecuperacao(db, instanteMs));
+  const horasFracas = horasComSinalFraco(db, fimMs - HORAS_QUEDAS * HORA_MS, inicioDaHoraMs(fimMs));
+  const quedasModelo = contarQuedas(horasFracas, ultimaRecuperacao(db, fimMs));
+  const quedas = contarQuedas(horasFracas, ultimaRecuperacao(db, instanteMs));
   const hoje = dataLocal(new Date(instanteMs));
 
   // Taxas por tipo e por modelo (frota = tudo que já estava instalado no fim dos dados).

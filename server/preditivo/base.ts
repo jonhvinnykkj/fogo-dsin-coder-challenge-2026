@@ -362,17 +362,32 @@ export function ultimaRecuperacao(db: Database, ateMs: number): Map<number, numb
   return mapa;
 }
 
+/** Início (ms) de cada hora com sinal fraco (online_min < 55) em [desde, ate), por equipamento. Usa a chave (equipamento, hora): sem varrer a tabela. */
+export function horasComSinalFraco(db: Database, desdeMs: number, ateMs: number): Map<number, number[]> {
+  const linhas = db
+    .prepare(
+      `SELECT e.id AS id, t.hora AS hora FROM equipamentos e
+       JOIN telemetria_hora t ON t.equipamento_id = e.id AND t.hora >= ? AND t.hora < ? AND t.online_min < ?`,
+    )
+    .all(iso(desdeMs), iso(ateMs), LIMIAR_QUEDA_MIN) as { id: number; hora: string }[];
+  const mapa = new Map<number, number[]>();
+  for (const l of linhas) mapa.set(l.id, [...(mapa.get(l.id) ?? []), Date.parse(l.hora)]);
+  return mapa;
+}
+
 /**
- * Horas com sinal fraco (online_min < 55) por equipamento em [desde, ate). Usa a chave (equipamento, hora): sem varrer a tabela.
- * Com `depoisDe` (ver `ultimaRecuperacao`), cada equipamento só conta as horas que começam depois da última manutenção ou
- * recuperação dele: o sinal fraco de antes do conserto era o próprio defeito, já resolvido, e não sinal de falha futura.
+ * Horas com sinal fraco por equipamento em [desde, ate). Com `depoisDe` (ver `ultimaRecuperacao`), cada equipamento só conta
+ * as horas que começam depois da última manutenção ou recuperação dele: o sinal fraco de antes do conserto era o próprio
+ * defeito, já resolvido, e não sinal de falha futura.
  */
 export function quedasDeSinal(db: Database, desdeMs: number, ateMs: number, depoisDe?: ReadonlyMap<number, number>): Map<number, number> {
-  const ids = (db.prepare('SELECT id FROM equipamentos').all() as { id: number }[]).map((l) => l.id);
-  const contar = db.prepare('SELECT COUNT(*) AS n FROM telemetria_hora WHERE equipamento_id = ? AND hora >= ? AND hora < ? AND online_min < ?');
+  return contarQuedas(horasComSinalFraco(db, desdeMs, ateMs), depoisDe);
+}
+
+export function contarQuedas(horas: ReadonlyMap<number, readonly number[]>, depoisDe?: ReadonlyMap<number, number>): Map<number, number> {
   const mapa = new Map<number, number>();
-  for (const id of ids) {
-    const n = (contar.get(id, iso(Math.max(desdeMs, depoisDe?.get(id) ?? 0)), iso(ateMs), LIMIAR_QUEDA_MIN) as { n: number }).n;
+  for (const [id, lista] of horas) {
+    const n = lista.filter((h) => h >= (depoisDe?.get(id) ?? 0)).length;
     if (n > 0) mapa.set(id, n);
   }
   return mapa;
