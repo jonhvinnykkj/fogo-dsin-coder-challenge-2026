@@ -148,6 +148,9 @@ export async function instalarSeguranca(app: FastifyInstance, opcoes: OpcoesSegu
     global: true,
     max: porMinuto,
     timeWindow: '1 minute',
+    // Só a API conta. Cada recarga da interface pede dezenas de arquivos (scripts, estilos, fontes): contá-los faria
+    // quem recarrega a página algumas vezes levar 429 e ver a tela sem estilo.
+    allowList: (req) => !req.url.startsWith('/api/'),
     errorResponseBuilder: (_req, contexto) => ({
       statusCode: 429,
       erro: `Muitas requisições: tente de novo em ${Math.ceil(contexto.ttl / 1000)} s`,

@@ -142,6 +142,15 @@ describe('entrada e sessão', () => {
     expect(barrada.json().erro).toMatch(/muitas requisições/i);
   });
 
+  it('o limite geral vale para a API, não para os arquivos da interface', async () => {
+    const { app } = await montar({ limitePorMinuto: 2 });
+    // No teste não há interface compilada: uma rota no lugar de um arquivo dela (o @fastify/static também registra rota).
+    app.get('/assets/index-teste.js', async () => 'console.log(1)');
+    for (let i = 0; i < 5; i += 1) expect((await app.inject({ method: 'GET', url: '/assets/index-teste.js' })).statusCode).toBe(200);
+    for (let i = 0; i < 2; i += 1) expect((await app.inject({ method: 'GET', url: '/api/saude' })).statusCode).toBe(200);
+    expect((await app.inject({ method: 'GET', url: '/api/saude' })).statusCode).toBe(429);
+  });
+
   it('entrada com um clique só existe no modo demonstração', async () => {
     const fora = await montar();
     garantirUsuariosDemo(fora.ctx.db);
