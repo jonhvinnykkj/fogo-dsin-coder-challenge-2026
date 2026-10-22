@@ -13,6 +13,7 @@ export const ENTIDADES_AUDITORIA = [
   { valor: 'equipamentos', rotulo: 'Equipamentos' },
   { valor: 'agentes', rotulo: 'Agentes' },
   { valor: 'alertas', rotulo: 'Alertas' },
+  { valor: 'ocorrencias', rotulo: 'Ocorrências (Modo Campo)' },
   { valor: 'simulacao', rotulo: 'Simulação' },
   { valor: 'auth', rotulo: 'Acesso (entrar e sair)' },
 ] as const;
@@ -49,6 +50,9 @@ const ROTULO_CAMPO: Record<string, string> = {
   telefone: 'Telefone',
   velocidade: 'Velocidade',
   pausado: 'Pausada',
+  chegou_em: 'Chegada ao local',
+  fim: 'Encerrada em',
+  agente_id: 'Agente despachado',
 };
 
 /** Campos que o sistema mexe sozinho (carimbos e posição ao vivo): não são decisão de ninguém. */
