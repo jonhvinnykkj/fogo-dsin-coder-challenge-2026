@@ -30,7 +30,8 @@ export interface OpcoesSeguranca {
   verificarSessaoMs?: number;
   /**
    * Aceita requisições de escrita com Origin do Vite (localhost:5173, que repassa /api). Padrão: só fora de produção
-   * (NODE_ENV) e enquanto este servidor NÃO serve a interface compilada; `FOGO_DEV=1` força o desenvolvimento mesmo com a pasta `dist/web` presente.
+   * (NODE_ENV) e enquanto este servidor NÃO serve a interface compilada. `npm run dev` (ou `FOGO_DEV=1`) força o desenvolvimento
+   * mesmo com a pasta `dist/web` presente, que sobra de qualquer `npm start` anterior.
    */
   origensDeDesenvolvimento?: boolean;
   /** Pasta da interface compilada, para liberar no CSP o script inline do index.html. */
@@ -194,7 +195,10 @@ export async function instalarSeguranca(app: FastifyInstance, opcoes: OpcoesSegu
   });
 
   const aceitaDesenvolvimento =
-    opcoes.origensDeDesenvolvimento ?? (process.env.FOGO_DEV === '1' || (process.env.NODE_ENV !== 'production' && !servindoInterface(opcoes.pastaWeb)));
+    opcoes.origensDeDesenvolvimento ??
+    (process.env.FOGO_DEV === '1' ||
+      process.env.npm_lifecycle_event === 'dev' || // o npm marca o script em execução; vale igual no Windows, sem variável no comando
+      (process.env.NODE_ENV !== 'production' && !servindoInterface(opcoes.pastaWeb)));
 
   // 1) Quem é. Sem sessão numa rota protegida: 401 já aqui, antes de ler o corpo de quem nem entrou.
   app.addHook('onRequest', async (req: FastifyRequest) => {

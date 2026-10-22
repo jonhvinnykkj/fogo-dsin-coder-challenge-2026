@@ -3,7 +3,7 @@ import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { FastifyInstance } from 'fastify';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { criarApp } from '../app';
 import { inserirOcorrencia } from '../repositorios/ocorrencias';
 import { entrarComo } from '../test/app';
@@ -137,6 +137,15 @@ describe('Origin em toda escrita', () => {
       const forcado = await montar({ pastaWeb: pasta, origensDeDesenvolvimento: true });
       expect((await forcado.app.inject({ method: 'POST', url: '/api/auth/sair', headers: dev })).statusCode).toBe(204);
       await forcado.app.close();
+      // `npm run dev` depois de um `npm start`: a pasta compilada sobrou, mas a interface vem do Vite.
+      vi.stubEnv('npm_lifecycle_event', 'dev');
+      try {
+        const npmDev = await montar({ pastaWeb: pasta });
+        expect((await npmDev.app.inject({ method: 'POST', url: '/api/auth/sair', headers: dev })).statusCode).toBe(204);
+        await npmDev.app.close();
+      } finally {
+        vi.unstubAllEnvs();
+      }
     } finally {
       rmSync(pasta, { recursive: true, force: true });
     }
