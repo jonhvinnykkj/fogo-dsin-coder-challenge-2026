@@ -23,3 +23,19 @@
   color: var(--cor-erro);
   font-weight: 800;
 }
+
+.semQuebra {
+  white-space: nowrap;
+}
+
+/* O resultado entra na coluna da ação no celular, onde a coluna própria foi escondida. */
+.soNoCelular {
+  display: none;
+  font-size: var(--t-13);
+}
+
+@media (max-width: 720px) {
+  .soNoCelular {
+    display: block;
+  }
+}
