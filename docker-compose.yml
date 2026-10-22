@@ -1,5 +1,8 @@
 # docker compose up --build  →  http://localhost:3333
 # O banco (data/fogo.db) fica no volume "fogo-dados": sobrevive a docker compose down. Para recomeçar do zero: docker compose down -v
+# Nome fixo do projeto: sem ele o compose usa o da pasta ("fogo-dsin-coder-challenge", ou o que a comissão der), que pode colidir com outro projeto.
+name: fogo-dsin
+
 services:
   fogo:
     build: .

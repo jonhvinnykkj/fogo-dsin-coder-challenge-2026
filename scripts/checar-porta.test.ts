@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { createServer, type Server } from 'node:net';
 import { afterEach, describe, expect, it } from 'vitest';
-import { mensagemPortaOcupada, portaLivre } from './checar-porta.mjs';
+import { enderecosParaTestar, mensagemPortaOcupada, portaLivre } from './checar-porta.mjs';
 
 let ocupante: Server | undefined;
 afterEach(() => new Promise<void>((ok) => (ocupante ? ocupante.close(() => ok()) : ok())).then(() => void (ocupante = undefined)));
@@ -19,6 +19,29 @@ describe('portaLivre', () => {
     expect(await portaLivre(porta)).toBe(false);
     await new Promise<void>((ok) => ocupante!.close(() => ok()));
     ocupante = undefined;
+    expect(await portaLivre(porta)).toBe(true);
+  });
+});
+
+describe('porta ocupada por outro app em IPv6 (Vite e Next no macOS escutam em ::)', () => {
+  it('enderecosParaTestar inclui ::1 e :: em loopback e só o próprio host fora dele', () => {
+    expect(enderecosParaTestar('localhost')).toEqual(['127.0.0.1', '::1', '::']);
+    expect(enderecosParaTestar('0.0.0.0')).toEqual(['0.0.0.0']);
+  });
+
+  it('não libera a porta que outro app segura em ::', async (contexto) => {
+    const outro = createServer();
+    const porta = await new Promise<number>((ok, falhou) => {
+      outro.once('error', falhou);
+      outro.listen({ port: 0, host: '::' }, () => ok((outro.address() as { port: number }).port));
+    }).catch(() => 0);
+    if (!porta) return contexto.skip(); // máquina sem IPv6
+    try {
+      expect(await portaLivre(porta)).toBe(false);
+      expect(await portaLivre(porta, '127.0.0.1')).toBe(false);
+    } finally {
+      await new Promise<void>((ok) => outro.close(() => ok()));
+    }
     expect(await portaLivre(porta)).toBe(true);
   });
 });

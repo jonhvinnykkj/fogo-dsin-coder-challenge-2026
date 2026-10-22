@@ -32,14 +32,25 @@ describe('mensagemPortaOcupada', () => {
 });
 
 describe('mensagemNoAr', () => {
-  it('fora do Docker, mostra a própria porta', () => {
-    expect(mensagemNoAr(3333, 'data/fogo.db')).toBe('F.O.G.O. no ar em http://localhost:3333 (banco: data/fogo.db)');
-    expect(mensagemNoAr(3333, 'data/fogo.db', '  ')).toBe('F.O.G.O. no ar em http://localhost:3333 (banco: data/fogo.db)');
+  it('fora do Docker, mostra a própria porta, o papel recomendado e como parar', () => {
+    const texto = mensagemNoAr(3333, 'data/fogo.db');
+    expect(texto).toContain('F.O.G.O. no ar em http://localhost:3333');
+    expect(texto).toContain('Banco: data/fogo.db');
+    expect(texto).toContain('clique em "Gestor"');
+    expect(texto).toContain('Para parar: Ctrl+C.');
+    expect(mensagemNoAr(3333, 'data/fogo.db', '  ')).toBe(texto);
   });
 
-  it('no Docker, mostra a porta publicada e explica que 3333 é a do contêiner', () => {
-    expect(mensagemNoAr(3333, '/app/data/fogo.db', '3341')).toBe(
-      'F.O.G.O. no ar. Abra http://localhost:3341 (porta 3333 dentro do contêiner; banco: /app/data/fogo.db)',
-    );
+  it('no Docker, mostra a porta publicada, explica que 3333 é a do contêiner e como parar', () => {
+    const texto = mensagemNoAr(3333, '/app/data/fogo.db', '3341');
+    expect(texto).toContain('F.O.G.O. no ar. Abra http://localhost:3341');
+    expect(texto).toContain('Porta 3333 dentro do contêiner; banco: /app/data/fogo.db');
+    expect(texto).toContain('docker compose down');
+  });
+
+  it('sem modo demonstração, manda entrar com usuário e senha', () => {
+    const texto = mensagemNoAr(3333, 'data/fogo.db', undefined, false);
+    expect(texto).toContain('entre com usuário e senha');
+    expect(texto).not.toContain('"Gestor"');
   });
 });

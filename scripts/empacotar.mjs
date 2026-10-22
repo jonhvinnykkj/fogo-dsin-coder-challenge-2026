@@ -1,9 +1,9 @@
-// Gera fogo-dsin-coder-challenge.zip na raiz: só o código-fonte, sem node_modules, dist, bancos, testes gerados e pastas de trabalho.
+// Gera fogo-dsin-coder-challenge.zip na raiz: só o sistema (código-fonte e documentação para quem avalia), sem node_modules, dist, bancos, testes gerados e pastas de trabalho.
 // Sem dependências nem programa externo (escreve o .zip direto). Falha se passar de 50 MB (limite da entrega).
 // Uso: npm run empacotar
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative, resolve, sep } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { deflateRawSync } from 'node:zlib'
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -12,14 +12,15 @@ const SAIDA = join(RAIZ, `${NOME}.zip`)
 const LIMITE_BYTES = 50 * 1024 * 1024
 
 // Pastas inteiras que ficam de fora (em qualquer nível).
-const PASTAS_FORA = new Set(['node_modules', 'dist', 'test-results', 'playwright-report', '.git', '.superpowers', '.impeccable', '.vscode', '.idea'])
-// Caminhos exatos de fora: do projeto do vídeo (video/) só vai o código; renders, gravações de tela, áudio gerado e cópias das telas não.
-const CAMINHOS_FORA = new Set([join('video', 'out'), join('video', 'public', 'gravacoes'), join('video', 'public', 'telas'), join('video', 'public', 'audio')])
+const PASTAS_FORA = new Set(['node_modules', 'dist', 'test-results', 'playwright-report', '.git', '.superpowers', '.impeccable', '.vscode', '.idea', '__pycache__'])
+// Caminhos exatos de fora. video/ é o projeto do vídeo de demonstração, não o sistema (o repositório guarda o código dele; o zip não).
+// docs/design/ é o registro de processo do time (plano e desenho), com ambiente e instruções internas: fica no repositório, não na entrega.
+const CAMINHOS_FORA = new Set(['video', join('docs', 'design')])
 // Arquivos de fora: lixo do sistema, zips, bancos e qualquer .env (.env, .env.local, .env.production…): o repositório vai ser público.
 const arquivoFora = (nome, rel) =>
-  nome === '.DS_Store' || nome.endsWith('.zip') || nome === '.env' || nome.startsWith('.env.') || (rel.startsWith(`data${sep}`) && /\.db(-wal|-shm)?$/.test(nome))
+  nome === '.DS_Store' || nome.endsWith('.pyc') || nome.endsWith('.zip') || nome === '.env' || nome.startsWith('.env.') || (rel.startsWith(`data${sep}`) && /\.db(-wal|-shm)?$/.test(nome))
 
-function listar(pasta) {
+export function listar(pasta = RAIZ) {
   const achados = []
   for (const item of readdirSync(pasta, { withFileTypes: true })) {
     const completo = join(pasta, item.name)
@@ -101,12 +102,15 @@ function montarZip(arquivos) {
   return Buffer.concat([...partes, ...central, fim])
 }
 
-const arquivos = listar(RAIZ).sort()
-const zip = montarZip(arquivos)
-writeFileSync(SAIDA, zip)
-const mb = (zip.length / 1024 / 1024).toFixed(2).replace('.', ',')
-console.log(`${NOME}.zip: ${arquivos.length} arquivos, ${mb} MB`)
-if (zip.length > LIMITE_BYTES) {
-  console.error('O pacote passou de 50 MB, o limite da entrega. Confira o que entrou com "unzip -l".')
-  process.exit(1)
+// Rodado direto (npm run empacotar); importado pelo teste, só expõe `listar`.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const arquivos = listar(RAIZ).sort()
+  const zip = montarZip(arquivos)
+  writeFileSync(SAIDA, zip)
+  const mb = (zip.length / 1024 / 1024).toFixed(2).replace('.', ',')
+  console.log(`${NOME}.zip: ${arquivos.length} arquivos, ${mb} MB`)
+  if (zip.length > LIMITE_BYTES) {
+    console.error('O pacote passou de 50 MB, o limite da entrega. Confira o que entrou com "unzip -l".')
+    process.exit(1)
+  }
 }

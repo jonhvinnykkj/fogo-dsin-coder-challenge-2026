@@ -14,7 +14,7 @@ Por cima das três partes, uma **camada de segurança**: login com quatro papéi
 
 ## Como rodar em 1 minuto
 
-**Com Node.js 22.14 ou mais novo** (recomendado: a LTS atual). Confira com `node -v`: numa versão mais velha, o `npm start` para logo no começo com uma mensagem em português que sugere instalar a LTS ou usar o Docker (o `better-sqlite3` 13 traz o binário pronto para a Node-API 10, que chegou no Node 22.14).
+**Com Node.js 22.14 ou mais novo** (recomendado: a LTS atual). Confira com `node -v`: numa versão mais velha, o `npm start` para logo no começo com uma mensagem em português que sugere instalar a LTS ou usar o Docker (o `better-sqlite3` 13 traz o binário pronto para a Node-API 10, que chegou no Node 22.14). Com Node 20, o `npm install` mostra avisos `EBADENGINE` (são só avisos) e o `npm start` explica o que fazer.
 
 ```bash
 npm install && npm start
@@ -30,7 +30,7 @@ Abra **http://localhost:3333**. Na primeira vez o sistema compila a interface e 
 docker compose up --build
 ```
 
-O banco fica num volume (`fogo-dados`): sobrevive a `docker compose down`; `docker compose down -v` recomeça do zero.
+O projeto do compose se chama `fogo-dsin` (não herda o nome da pasta, então não colide com outro da mesma máquina). O banco fica num volume: sobrevive a `docker compose down`; `docker compose down -v` recomeça do zero.
 
 Porta ocupada? O sistema avisa e sugere a próxima. Para escolher a porta ou outro arquivo de banco:
 
@@ -49,7 +49,7 @@ No PowerShell e no cmd a variável vale até fechar aquele terminal.
 0. **Entrada** (`/entrar`): clique em **Gestor**. Depois, para ver as permissões em ação, saia (ícone no canto superior direito) e entre como **Somente consulta**: os botões de ação somem, telefone e matrícula dos agentes aparecem mascarados e o servidor recusa qualquer escrita com 403.
 1. **Central** (`/`): seis placas de cor cheia, mapa com equipamentos agrupados por situação, agentes deslizando, bairros pintados pelo índice de atenção e o feed de alertas à direita.
 2. Barra no rodapé do mapa: com a velocidade em **1×**, clique em **Injetar evento → Acidente**. Na hora aparece o alerta **crítico** (o acidente injetado usa sempre a gravidade máxima), o agente mais próximo é despachado ao local e o índice do bairro sobe 29 pontos (alerta crítico + ocorrência; na medição de 17/10/2026 o bairro passou de normal (24) para atenção (53)). Em 1× a ocorrência dura alguns minutos; quando termina, o alerta se resolve sozinho (fica registrado como resolução automática).
-3. Agora clique em **60×**: agentes e patinetes andam mais depressa e chegam ocorrências e alertas sem parar. A 60× tudo dura segundos, inclusive um acidente injetado. Mesmo depois de 3 minutos assim, as regiões continuam distintas (17/10/2026: Centro 65, crítico; Sul 46, Oeste 38 e Norte 30, atenção; Leste 8, normal), porque o índice mede a cidade no ritmo real (veja "Decisões e limitações").
+3. Agora clique em **60×**: agentes e patinetes andam mais depressa e chegam ocorrências e alertas sem parar. A 60× tudo dura segundos, inclusive um acidente injetado. Mesmo depois de alguns minutos assim, as regiões continuam distintas (a simulação é aleatória: os números mudam a cada rodada, então não espere valores iguais aos de outra execução; o que se repete é a diferença entre as regiões), porque o índice mede a cidade no ritmo real (veja "Decisões e limitações").
 4. Clique num marcador: a **ficha lateral** abre com situação, manutenção e ações; "Abrir ficha completa" mostra a linha do tempo, o gráfico de telemetria e os alertas.
 5. **Previsões** (`/previsoes`): comece pelo "Resumo do dia" e role até **"Quanto acertou"**: é o teste retroativo, onde a previsão feita na véspera é comparada com o que de fato aconteceu.
 6. Interruptor **Sala de controle** (topo): modo escuro grafite, só por escolha do usuário.
@@ -231,6 +231,10 @@ O E2E usa `data/e2e.db`, apaga o banco velho antes de começar e o apaga de novo
 - **O modo demonstração entra sem senha, de propósito**: é o que permite à comissão avaliar com um clique. Ele aparece no terminal e se desliga com `FOGO_DEMO=0`; o que ficou fora da segurança (HTTPS próprio, 2FA, tela de usuários) está em [docs/SEGURANCA.md](docs/SEGURANCA.md).
 - O mapa precisa de internet para o fundo de ruas; o ViaCEP (preenchimento de CEP) é opcional e o cadastro funciona sem ele.
 - SQLite atende bem a um município simulado; para milhões de leituras por dia o caminho seria um banco de séries temporais (discutido no guia).
+
+## Vídeo de demonstração
+
+O código do vídeo (projeto Remotion, pasta `video/`) fica no repositório do projeto; ele não é o sistema, então não vai neste .zip.
 
 ## Uso de IA
 

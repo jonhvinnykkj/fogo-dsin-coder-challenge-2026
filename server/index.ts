@@ -24,7 +24,7 @@ try {
   process.exit(1);
 }
 const caminhoBanco = resolve(process.env.FOGO_DB ?? 'data/fogo.db');
-const host = process.env.HOST ?? '127.0.0.1';
+const host = process.env.HOST ?? 'localhost';
 
 mkdirSync(dirname(caminhoBanco), { recursive: true });
 
@@ -71,13 +71,15 @@ const demo = process.env.FOGO_DEMO !== '0';
 const criados = garantirUsuariosDemo(db);
 if (criados.length > 0) {
   console.log('\nUsuários criados (guarde as senhas: elas não aparecem de novo; troque com "npm run senha -- <usuário>"):');
+  console.log('Se o PowerShell engolir o "--", use: npx tsx scripts/senha.ts <usuário>');
   for (const u of criados) console.log(`  ${u.login.padEnd(9)} ${u.senha}   (${u.papel})`);
   console.log('');
 }
 
 const app = await criarApp(ctx, { demo, cookieSeguro: process.env.FOGO_COOKIE_SEGURO === '1' });
 try {
-  // Só a própria máquina, por padrão: sem isto qualquer um na mesma rede Wi-Fi chegava ao sistema. O Docker usa HOST=0.0.0.0.
+  // Só a própria máquina, por padrão: sem isto qualquer um na mesma rede Wi-Fi chegava ao sistema. "localhost" escuta em 127.0.0.1 E em ::1
+  // (o navegador tenta ::1 primeiro; só em 127.0.0.1 um outro app em IPv6 na mesma porta aparecia no lugar do F.O.G.O.). O Docker usa HOST=0.0.0.0.
   await app.listen({ port: porta, host: host });
 } catch (erro) {
   if ((erro as NodeJS.ErrnoException).code !== 'EADDRINUSE') throw erro;
@@ -85,10 +87,9 @@ try {
   db.close();
   process.exit(1);
 }
-console.log(mensagemNoAr(porta, caminhoBanco, process.env.FOGO_PORTA_PUBLICADA));
-console.log(demo ? 'Modo demonstração: a tela de entrada tem botões de entrada rápida por papel (FOGO_DEMO=0 desliga).' : 'Modo demonstração desligado: entre com usuário e senha.');
 barramento.iniciarAgrupamento();
 ctx.simulador.iniciar();
+console.log(mensagemNoAr(porta, caminhoBanco, process.env.FOGO_PORTA_PUBLICADA, demo));
 
 const encerrar = () => {
   ctx.simulador?.parar();
