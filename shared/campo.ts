@@ -62,6 +62,10 @@ export interface ResultadoReporte {
   equipamento: EquipamentoProximo;
   /** Nulo quando já havia um alerta igual aberto (o motor não duplica). */
   alerta: Alerta | null;
+  /** O que o agente relatou. "vandalizado" fica com a situação "mau funcionamento", mas o relato continua dizendo vandalismo. */
+  problema: ProblemaCampo;
+  /** Frase pronta para mostrar ao agente. */
+  mensagem: string;
 }
 
 /** "350 m" abaixo de 1 km; "1,2 km" a partir dele. */
