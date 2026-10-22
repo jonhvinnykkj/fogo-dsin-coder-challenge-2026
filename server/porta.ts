@@ -1,21 +1,3 @@
 // Porta do servidor: lida de PORT, com mensagens claras em português para o que mais atrapalha quem roda o projeto pela primeira vez.
-export const PORTA_PADRAO = 3333;
-
-export class ErroDePorta extends Error {}
-
-/** `PORT` ausente ou vazio vale 3333; texto que não seja um inteiro de 1 a 65535 é recusado com uma explicação. */
-export function lerPorta(valor: string | undefined): number {
-  if (valor === undefined || valor.trim() === '') return PORTA_PADRAO;
-  const texto = valor.trim();
-  const numero = Number(texto);
-  if (!/^\d+$/.test(texto) || numero < 1 || numero > 65535) {
-    throw new ErroDePorta(`PORT="${valor}" não é uma porta válida. Use um número de 1 a 65535, por exemplo: PORT=3334 npm start`);
-  }
-  return numero;
-}
-
-/** Sugere a próxima porta, com o comando do macOS/Linux e os do Windows (PowerShell e cmd). */
-export function mensagemPortaOcupada(porta: number): string {
-  const outra = porta === 65535 ? porta - 1 : porta + 1;
-  return `A porta ${porta} está em uso. Rode com PORT=${outra} npm start (Windows PowerShell: $env:PORT=${outra}; npm start · cmd: set PORT=${outra}&& npm start)`;
-}
+// O código mora em scripts/checar-porta.mjs (que o `npm start` roda antes do build); aqui só o reexportamos para o servidor.
+export { ErroDePorta, lerPorta, mensagemPortaOcupada, PORTA_PADRAO } from '../scripts/checar-porta.mjs';
