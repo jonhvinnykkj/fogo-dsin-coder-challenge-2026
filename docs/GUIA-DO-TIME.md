@@ -65,7 +65,7 @@ Quando o problema passa, o caminho inverso: três leituras normais seguidas fech
 
 ## 3. Como a semente planta os padrões
 
-`server/semente/` cria, **na primeira partida**, 65 bairros reais, 350 equipamentos, 80 agentes e 60 dias de histórico (17.643 ocorrências e 451.957 horas de telemetria em 3,6 s, medidos em 17/10/2026). Tudo sai de um gerador com **semente fixa (2026)**: mesma semente, mesma cidade. Não há `Math.random()`.
+`server/semente/` cria, **na primeira partida**, 65 bairros reais, 350 equipamentos, 80 agentes e 60 dias de histórico (cerca de 17,6 mil ocorrências e 452 mil horas de telemetria, em poucos segundos). Tudo sai de um gerador com **semente fixa (2026)**: mesma semente, mesma cidade. Não há `Math.random()`.
 
 Os padrões são colocados de propósito em `historico.ts` e `perfis.ts`; a previsão deve **redescobri-los**. Força medida na calibração da semente padrão:
 
@@ -166,7 +166,7 @@ Disponibilidade diária por tipo = tempo operacional ÷ tempo que conta (sem des
 ## 7. Como rodar os testes
 
 ```bash
-npm test             # 376 testes em 52 arquivos (~40 s numa máquina livre)
+npm test             # mais de 450 testes (menos de 2 minutos na maioria das máquinas)
 npx vitest run server/preditivo      # só as previsões
 npm run typecheck    # TypeScript estrito
 npm run e2e          # fumaça: Central (6 indicadores + mapa), Previsões, ≥ 10 equipamentos
