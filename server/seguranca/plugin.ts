@@ -10,9 +10,9 @@ import fastifyHelmet from '@fastify/helmet';
 import fastifyRateLimit from '@fastify/rate-limit';
 import { ROTULO_PAPEL, type UsuarioSessao } from '../../shared/seguranca';
 import { ErroApi } from '../erros';
-import { entidadeDaRota, fotografar, registrar } from './auditoria';
+import { dadosDaRequisicao, entidadeDaRota, fotografar, idDaEntidade, registrar } from './auditoria';
 import { chaveDaRota, foraDaTabela, REGRAS, SO_O_PROPRIO_AGENTE } from './permissoes';
-import { protegerResposta } from './protecao';
+import { protegerResposta, veiculosDeAgentes } from './protecao';
 import { DURACAO_SESSAO_MS, usuarioDaSessao } from './usuarios';
 
 export const COOKIE_SESSAO = 'fogo_sessao';
@@ -26,6 +26,13 @@ export interface OpcoesSeguranca {
   limitePorMinuto?: number;
   /** Tentativas de entrada por minuto por IP (padrão 10). */
   limiteEntradaPorMinuto?: number;
+  /** De quanto em quanto tempo o tempo real (SSE) confere se a sessão do cliente ainda vale (padrão 5 s). */
+  verificarSessaoMs?: number;
+  /**
+   * Aceita requisições de escrita com Origin do Vite (localhost:5173, que repassa /api). Padrão: só fora de produção
+   * (NODE_ENV) e enquanto este servidor NÃO serve a interface compilada; `FOGO_DEV=1` força o desenvolvimento mesmo com a pasta `dist/web` presente.
+   */
+  origensDeDesenvolvimento?: boolean;
   /** Pasta da interface compilada, para liberar no CSP o script inline do index.html. */
   pastaWeb?: string;
 }
@@ -36,13 +43,25 @@ declare module 'fastify' {
     auditoria?: { antes: unknown; idResposta?: number };
   }
   interface FastifyInstance {
-    seguranca: Required<Pick<OpcoesSeguranca, 'demo'>> & { cookieSeguro: boolean; /** "MÉTODO /rota" de tudo o que foi registrado (o teste confere a tabela). */ rotas: string[] };
+    seguranca: Required<Pick<OpcoesSeguranca, 'demo' | 'verificarSessaoMs'>> & {
+      cookieSeguro: boolean;
+      /** "MÉTODO /rota" de tudo o que foi registrado (o teste confere a tabela). */
+      rotas: string[];
+      /** Quem quer saber na hora que uma sessão acabou (o tempo real fecha a conexão dela). Devolve a função que cancela. */
+      aoEncerrarSessao: (ouvinte: (token: string) => void) => () => void;
+      /** Avisa que a sessão com este cookie foi encerrada (saída do sistema). */
+      avisarSessaoEncerrada: (token: string) => void;
+    };
   }
 }
 
 const METODOS_SEGUROS = new Set(['GET', 'HEAD', 'OPTIONS']);
 /** Em desenvolvimento a interface vem do Vite (5173), que repassa /api para cá. */
 const ORIGENS_DE_DESENVOLVIMENTO = new Set(['localhost:5173', '127.0.0.1:5173']);
+/** Telemetria vem de dispositivo (não de navegador) e se autentica pelo token: não há Origin a conferir. */
+const SEM_CONFERIR_ORIGEM = new Set(['/api/telemetria']);
+
+const servindoInterface = (pastaWeb?: string) => !!pastaWeb && existsSync(join(pastaWeb, 'index.html'));
 
 const rotaDe = (req: FastifyRequest) => req.routeOptions.url;
 /** HEAD é o GET sem corpo: segue a mesma regra. */
@@ -77,7 +96,7 @@ function hashesDeScriptsInline(pastaWeb?: string): string[] {
   );
 }
 
-function conferirOrigem(req: FastifyRequest): void {
+function conferirOrigem(req: FastifyRequest, aceitaDesenvolvimento: boolean): void {
   const origem = req.headers.origin;
   if (!origem) return; // sem Origin: não veio de uma página de outro site (curl, testes, mesmo site em navegadores antigos)
   let hostOrigem: string;
@@ -86,7 +105,7 @@ function conferirOrigem(req: FastifyRequest): void {
   } catch {
     throw new ErroApi(403, 'Origem da requisição inválida');
   }
-  if (hostOrigem !== req.headers.host && !ORIGENS_DE_DESENVOLVIMENTO.has(hostOrigem)) {
+  if (hostOrigem !== req.headers.host && !(aceitaDesenvolvimento && ORIGENS_DE_DESENVOLVIMENTO.has(hostOrigem))) {
     throw new ErroApi(403, 'Requisição recusada: veio de outro site');
   }
 }
@@ -94,7 +113,20 @@ function conferirOrigem(req: FastifyRequest): void {
 export async function instalarSeguranca(app: FastifyInstance, opcoes: OpcoesSeguranca = {}): Promise<void> {
   const db = app.ctx.db;
   const rotas: string[] = [];
-  app.decorate('seguranca', { demo: opcoes.demo ?? false, cookieSeguro: opcoes.cookieSeguro ?? false, rotas });
+  const ouvintesDeSessao = new Set<(token: string) => void>();
+  app.decorate('seguranca', {
+    demo: opcoes.demo ?? false,
+    cookieSeguro: opcoes.cookieSeguro ?? false,
+    verificarSessaoMs: opcoes.verificarSessaoMs ?? 5000,
+    rotas,
+    aoEncerrarSessao: (ouvinte: (token: string) => void) => {
+      ouvintesDeSessao.add(ouvinte);
+      return () => void ouvintesDeSessao.delete(ouvinte);
+    },
+    avisarSessaoEncerrada: (token: string) => {
+      for (const ouvinte of [...ouvintesDeSessao]) ouvinte(token);
+    },
+  });
   app.addHook('onRoute', (r) => {
     for (const metodo of [r.method].flat()) rotas.push(chaveDaRota(metodo, r.url));
   });
@@ -121,6 +153,7 @@ export async function instalarSeguranca(app: FastifyInstance, opcoes: OpcoesSegu
     hsts: false, // só faz sentido atrás de HTTPS; quem publicar com TLS liga no proxy
     // O padrão do helmet (no-referrer) faz o OpenStreetMap recusar os blocos do mapa ("Access blocked"): a política de uso
     // dele exige o Referer. Para outros sites vai só a origem (http://localhost:3333), nunca o caminho da página.
+    frameguard: { action: 'deny' }, // o mesmo que frame-ancestors 'none', para navegadores que só entendem o cabeçalho antigo
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
   });
 
@@ -160,32 +193,46 @@ export async function instalarSeguranca(app: FastifyInstance, opcoes: OpcoesSegu
     }),
   });
 
-  // 1) Quem é e se pode.
+  const aceitaDesenvolvimento =
+    opcoes.origensDeDesenvolvimento ?? (process.env.FOGO_DEV === '1' || (process.env.NODE_ENV !== 'production' && !servindoInterface(opcoes.pastaWeb)));
+
+  // 1) Quem é. Sem sessão numa rota protegida: 401 já aqui, antes de ler o corpo de quem nem entrou.
   app.addHook('onRequest', async (req: FastifyRequest) => {
     const token = req.cookies[COOKIE_SESSAO];
     if (token) req.usuario = usuarioDaSessao(db, token);
 
     const rota = rotaDe(req);
     if (!rota || foraDaTabela(rota)) return; // 404, interface e documentação
-    const chave = chaveDe(req, rota);
-    const regra = REGRAS[chave];
+    const regra = REGRAS[chaveDe(req, rota)];
     if (!regra) throw new ErroApi(403, 'Esta rota não tem permissão definida');
     if (regra === 'publico') return;
     if (!req.usuario) throw new ErroApi(401, 'Entre no sistema para continuar');
-    if (!regra.includes(req.usuario.papel)) {
-      throw new ErroApi(403, `Seu perfil (${ROTULO_PAPEL[req.usuario.papel]}) não tem permissão para esta ação`);
+  });
+
+  // 1b) O que o papel pode e de onde veio o pedido. Fica depois da leitura do corpo (preValidation) de propósito: o 403
+  // chega à auditoria COM o que se tentou enviar. O custo é ler um corpo de até 256 KB de quem já tem sessão.
+  app.addHook('preValidation', async (req: FastifyRequest) => {
+    const rota = rotaDe(req);
+    if (!rota || foraDaTabela(rota)) return;
+    const chave = chaveDe(req, rota);
+    const regra = REGRAS[chave];
+    if (regra && regra !== 'publico' && req.usuario) {
+      if (!regra.includes(req.usuario.papel)) {
+        throw new ErroApi(403, `Seu perfil (${ROTULO_PAPEL[req.usuario.papel]}) não tem permissão para esta ação`);
+      }
+      if (req.usuario.papel === 'agente' && SO_O_PROPRIO_AGENTE.has(chave) && idDaUrl(req) !== req.usuario.agenteId) {
+        throw new ErroApi(403, 'Como agente, você só pode mudar a sua própria situação e usar o seu próprio Modo Campo');
+      }
     }
-    if (req.usuario.papel === 'agente' && SO_O_PROPRIO_AGENTE.has(chave) && idDaUrl(req) !== req.usuario.agenteId) {
-      throw new ErroApi(403, 'Como agente, você só pode mudar a sua própria situação e usar o seu próprio Modo Campo');
-    }
-    if (!METODOS_SEGUROS.has(req.method)) conferirOrigem(req);
+    // Toda escrita, pública ou não (entrar, demo e sair também): um site de fora não dispara nada em nome do navegador.
+    if (!METODOS_SEGUROS.has(req.method) && !SEM_CONFERIR_ORIGEM.has(rota)) conferirOrigem(req, aceitaDesenvolvimento);
   });
 
   // 2) Fotografia de antes, para a auditoria (só chega aqui quem passou na autorização).
   app.addHook('preHandler', async (req: FastifyRequest) => {
     const rota = rotaDe(req);
     if (!rota || !auditavel(req, rota)) return;
-    req.auditoria = { antes: fotografar(db, entidadeDaRota(rota), idDaUrl(req)) };
+    req.auditoria = { antes: fotografar(db, entidadeDaRota(rota), idDaEntidade(rota, req.params, req.body)) };
   });
 
   // 3) Resposta ajustada ao papel (LGPD) e id do que foi criado (auditoria).
@@ -195,7 +242,7 @@ export async function instalarSeguranca(app: FastifyInstance, opcoes: OpcoesSegu
     if (req.auditoria && corpo && typeof corpo === 'object' && typeof (corpo as { id?: unknown }).id === 'number') {
       req.auditoria.idResposta = (corpo as { id: number }).id;
     }
-    return req.usuario ? protegerResposta(rota, req.usuario.papel, corpo, req.usuario.agenteId) : corpo;
+    return req.usuario ? protegerResposta(rota, req.usuario.papel, corpo, req.usuario.agenteId, () => veiculosDeAgentes(db)) : corpo;
   });
 
   // 4) Registro na trilha: toda escrita de quem está logado, inclusive as recusadas (um 403 também conta uma história).
@@ -203,7 +250,7 @@ export async function instalarSeguranca(app: FastifyInstance, opcoes: OpcoesSegu
   app.addHook('onResponse', async (req: FastifyRequest, reply: FastifyReply) => {
     const rota = rotaDe(req);
     if (!rota || !req.usuario || !auditavel(req, rota)) return;
-    const entidadeId = idDaUrl(req) ?? req.auditoria?.idResposta ?? null;
+    const entidadeId = idDaEntidade(rota, req.params, req.body) ?? req.auditoria?.idResposta ?? null;
     const deuCerto = reply.statusCode < 400;
     registrar(db, {
       em: app.ctx.relogio.agora().toISOString(),
@@ -216,7 +263,7 @@ export async function instalarSeguranca(app: FastifyInstance, opcoes: OpcoesSegu
       status: reply.statusCode,
       antes: req.auditoria?.antes,
       depois: deuCerto ? fotografar(db, entidadeDaRota(rota), entidadeId) : null,
-      dados: req.body,
+      dados: dadosDaRequisicao(rota, req.params, req.body),
       ip: req.ip,
     });
   });

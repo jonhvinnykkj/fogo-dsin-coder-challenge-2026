@@ -259,9 +259,9 @@ describe('auditoria', () => {
   it('entrada errada vira registro sem guardar a senha tentada', async () => {
     const { ctx, app } = await montar();
     await app.inject({ method: 'POST', url: '/api/auth/entrar', payload: { login: 'gestor', senha: 'segredo-tentado' } });
-    const linha = ctx.db.prepare('SELECT acao, status, dados FROM auditoria').get() as { acao: string; status: number; dados: string };
+    const linha = ctx.db.prepare('SELECT acao, status, dados, login FROM auditoria').get() as { acao: string; status: number; dados: string | null; login: string | null };
     expect(linha).toMatchObject({ acao: 'Entrada no sistema', status: 401 });
-    expect(linha.dados).not.toContain('segredo-tentado');
+    expect(JSON.stringify(linha)).not.toContain('segredo-tentado');
   });
 });
 

@@ -1,7 +1,7 @@
 // Regras do Modo Campo: o agente vê o próprio despacho, registra chegada e conclusão, vê os equipamentos perto dele e
 // relata problemas. O relato passa pelo mesmo caminho da tela do gestor (mudarSituacao + motor de alertas).
 import {
-  SITUACAO_DO_PROBLEMA, type Despacho, type EquipamentoProximo, type ReporteCampo, type ResultadoReporte,
+  formatarDistancia, SITUACAO_DO_PROBLEMA, type Despacho, type EquipamentoProximo, type ReporteCampo, type ResultadoReporte,
 } from '../../shared/campo';
 import { distanciaMetros, type Ponto } from '../../shared/geo';
 import type { Agente, Ocorrencia } from '../../shared/modelos';
@@ -17,6 +17,8 @@ import { mudarSituacao } from './equipamentos';
 
 /** Mais longe que isso da rua mais próxima, o local não ganha nome de rua. */
 const RUA_ATE_METROS = 300;
+/** O relato exige que o agente esteja perto do equipamento (a mesma ideia do "Perto de mim"): ninguém relata furto a 5 km. */
+export const RELATO_ATE_METROS = 500;
 
 function exigirAgente(ctx: ContextoApp, id: number): Agente {
   const a = agentePorId(ctx.db, id);
@@ -119,6 +121,12 @@ export function equipamentosProximos(ctx: ContextoApp, agenteId: number, limite:
     .slice(0, limite);
 }
 
+const MENSAGEM_DO_RELATO: Record<ReporteCampo['problema'], (codigo: string) => string> = {
+  mau_funcionamento: (c) => `Mau funcionamento de ${c} registrado.`,
+  furtado: (c) => `Furto de ${c} registrado.`,
+  vandalizado: (c) => `Vandalismo em ${c} registrado: o equipamento segue na rua, em mau funcionamento.`,
+};
+
 /**
  * Relato do agente na rua. A situação muda pelo mesmo serviço da tela do gestor (histórico com quem relatou) e o alerta
  * sai do motor (falha ou furto), que não duplica um alerta igual ainda aberto.
@@ -132,11 +140,21 @@ export function reportarProblema(ctx: ContextoApp, agenteId: number, r: ReporteC
     throw invalido('Este equipamento consta como furtado. Se ele foi encontrado, registre a recuperação na ficha do equipamento');
   }
 
-  const quem = `${agente.nome} (${agente.matricula})`;
+  const noLocal = repo.equipamentoNaRuaPorId(ctx.db, eq.id)!;
+  const distancia = Math.round(distanciaMetros(posicaoDoAgente(agente), { lat: noLocal.lat_atual, lng: noLocal.lng_atual }));
+  if (distancia > RELATO_ATE_METROS) {
+    throw invalido(
+      `Você está a ${formatarDistancia(distancia)} deste equipamento. Para relatar um problema, chegue a até ${RELATO_ATE_METROS} m dele`,
+      { equipamentoId: `Equipamento a ${formatarDistancia(distancia)} de você (máximo ${RELATO_ATE_METROS} m)` },
+    );
+  }
+
+  // Texto livre (histórico e alerta) leva só o nome: a matrícula é dado pessoal e ficaria visível a quem não pode vê-la.
   const observacao = r.observacao.replace(/[.\s]+$/, '');
-  const detalhe = `relatado em campo por ${quem}${observacao ? `: ${observacao}` : ''}`;
+  const detalhe = `relatado em campo por ${agente.nome}, a ${distancia} m do equipamento${observacao ? `: ${observacao}` : ''}`;
   const situacao = SITUACAO_DO_PROBLEMA[r.problema];
   if (eq.situacao !== situacao) {
+    // Vandalizado vira "mau funcionamento" na situação (o equipamento continua na rua), mas o histórico diz o que foi.
     const motivo = { mau_funcionamento: 'Mau funcionamento', furtado: 'Furto', vandalizado: 'Vandalismo' }[r.problema];
     mudarSituacao(ctx, eq.id, { situacao, motivo: `${motivo} ${detalhe}` });
   }
@@ -145,7 +163,10 @@ export function reportarProblema(ctx: ContextoApp, agenteId: number, r: ReporteC
   const alvo = alvoPorId(ctx.db, eq.id)!;
   const alerta = r.problema === 'furtado'
     ? ctx.motor.alertarFurto(alvo, agora, detalhe)
-    : ctx.motor.alertarFalha(alvo, agora, r.problema === 'vandalizado' ? `vandalismo ${detalhe}` : detalhe);
+    : ctx.motor.alertarFalha(alvo, agora, r.problema === 'vandalizado' ? `equipamento danificado por vandalismo, ${detalhe}` : detalhe);
 
-  return { equipamento: paraProximo(repo.equipamentoNaRuaPorId(ctx.db, eq.id)!, posicaoDoAgente(agente)), alerta };
+  return {
+    equipamento: paraProximo(repo.equipamentoNaRuaPorId(ctx.db, eq.id)!, posicaoDoAgente(agente)), alerta, problema: r.problema,
+    mensagem: MENSAGEM_DO_RELATO[r.problema](eq.codigo),
+  };
 }

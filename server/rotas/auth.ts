@@ -10,11 +10,11 @@ import { abrirSessao, credenciaisPorLogin, encerrarSessao, usuarioDemoDoPapel } 
 
 const tags = ['Acesso'];
 
-const entradaSchema = z.object({
+export const entradaSchema = z.object({
   login: z.string({ required_error: 'Informe o usuário' }).trim().min(1, 'Informe o usuário').max(60),
   senha: z.string({ required_error: 'Informe a senha' }).min(1, 'Informe a senha').max(200),
 });
-const demoSchema = z.object({
+export const demoSchema = z.object({
   papel: z.enum(PAPEIS, { errorMap: () => ({ message: `Papel: use ${PAPEIS.join(', ')}` }) }),
 });
 
@@ -53,7 +53,10 @@ export async function rotasAuth(app: FastifyInstance): Promise<void> {
     const credenciais = credenciaisPorLogin(db, login);
     const confere = await conferirSenha(senha, credenciais?.senhaHash ?? HASH_FALSO);
     if (!credenciais || !confere) {
-      anotar(req, 'POST /api/auth/entrar', 401, undefined, { login });
+      // Quem errou a senha de um usuário que existe fica na trilha com o login dele (ficou claro quem foi alvo). Um login que não
+      // existe NÃO é gravado: quem digita a senha no campo de usuário por engano deixaria a senha escrita na auditoria.
+      const { senhaHash: _hash, ...alvo } = credenciais ?? {};
+      anotar(req, 'POST /api/auth/entrar', 401, credenciais ? (alvo as UsuarioSessao) : undefined);
       throw new ErroApi(401, RECUSADA);
     }
     const { senhaHash: _omitida, ...usuario } = credenciais;
@@ -78,7 +81,10 @@ export async function rotasAuth(app: FastifyInstance): Promise<void> {
 
   app.post('/api/auth/sair', { schema: { tags, summary: 'Encerra a sessão' } }, async (req, reply) => {
     const token = req.cookies[COOKIE_SESSAO];
-    if (token) encerrarSessao(db, token);
+    if (token) {
+      encerrarSessao(db, token);
+      app.seguranca.avisarSessaoEncerrada(token); // o tempo real fecha a conexão desta sessão na hora
+    }
     if (req.usuario) anotar(req, 'POST /api/auth/sair', 204, req.usuario);
     reply.clearCookie(COOKIE_SESSAO, { path: '/' });
     return reply.code(204).send();

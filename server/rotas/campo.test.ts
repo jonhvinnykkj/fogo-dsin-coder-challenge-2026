@@ -186,9 +186,9 @@ describe('POST /api/campo/agentes/:id/reportes', () => {
     expect(r.json()).toMatchObject({ equipamento: { id: eq, codigo: 'FOGO-CAM-0009', situacao: 'mau_funcionamento' }, alerta: { tipo: 'falha_equipamento', criticidade: 'alta' } });
     expect(historico(eq)).toEqual([{
       de: 'operacional', para: 'mau_funcionamento', origem: 'ao_vivo',
-      motivo: 'Mau funcionamento relatado em campo por Carlos Henrique Souza (AT-1001): Tela apagada',
+      motivo: 'Mau funcionamento relatado em campo por Carlos Henrique Souza, a 111 m do equipamento: Tela apagada',
     }]);
-    expect(alertas(eq)).toEqual([expect.objectContaining({ tipo: 'falha_equipamento', descricao: expect.stringContaining('relatado em campo por Carlos Henrique Souza (AT-1001): Tela apagada') })]);
+    expect(alertas(eq)).toEqual([expect.objectContaining({ tipo: 'falha_equipamento', descricao: expect.stringContaining('relatado em campo por Carlos Henrique Souza, a 111 m do equipamento: Tela apagada') })]);
     expect(eventos.some((e) => e.tipo === 'equipamento' && e.dados.id === eq && e.dados.situacao === 'mau_funcionamento')).toBe(true);
     expect(eventos.some((e) => e.tipo === 'alerta' && e.dados.equipamentoId === eq)).toBe(true);
   });
@@ -198,7 +198,7 @@ describe('POST /api/campo/agentes/:id/reportes', () => {
     const r = await app.inject({ method: 'POST', url: url(id, '/reportes'), payload: { equipamentoId: eq, problema: 'furtado' } });
     expect(r.statusCode).toBe(201);
     expect(r.json()).toMatchObject({ equipamento: { situacao: 'furtado' }, alerta: { tipo: 'furto_suspeito', criticidade: 'critica' } });
-    expect(historico(eq)).toEqual([expect.objectContaining({ para: 'furtado', motivo: 'Furto relatado em campo por Carlos Henrique Souza (AT-1001)' })]);
+    expect(historico(eq)).toEqual([expect.objectContaining({ para: 'furtado', motivo: 'Furto relatado em campo por Carlos Henrique Souza, a 111 m do equipamento' })]);
   });
 
   it('vandalizado: fica em mau funcionamento, com "vandalismo" no histórico e no alerta', async () => {
@@ -206,8 +206,31 @@ describe('POST /api/campo/agentes/:id/reportes', () => {
     const r = await app.inject({ method: 'POST', url: url(id, '/reportes'), payload: { equipamentoId: eq, problema: 'vandalizado', observacao: 'pichada' } });
     expect(r.statusCode).toBe(201);
     expect(r.json()).toMatchObject({ equipamento: { situacao: 'mau_funcionamento' }, alerta: { tipo: 'falha_equipamento' } });
-    expect(historico(eq)).toEqual([expect.objectContaining({ motivo: 'Vandalismo relatado em campo por Carlos Henrique Souza (AT-1001): pichada' })]);
-    expect(alertas(eq)[0]).toMatchObject({ descricao: expect.stringContaining('vandalismo relatado em campo') });
+    expect(historico(eq)).toEqual([expect.objectContaining({ motivo: 'Vandalismo relatado em campo por Carlos Henrique Souza, a 111 m do equipamento: pichada' })]);
+    expect(alertas(eq)[0]).toMatchObject({ descricao: expect.stringContaining('danificado por vandalismo, relatado em campo') });
+    // A resposta ao agente também diz vandalismo (a situação fica em mau funcionamento).
+    expect(r.json()).toMatchObject({ problema: 'vandalizado', mensagem: expect.stringContaining('Vandalismo em FOGO-CAM-0009') });
+  });
+
+  it('a matrícula do agente não entra em texto livre (histórico e alerta): só o nome', async () => {
+    const { id, eq } = await cenario();
+    await app.inject({ method: 'POST', url: url(id, '/reportes'), payload: { equipamentoId: eq, problema: 'mau_funcionamento' } });
+    const textos = JSON.stringify([historico(eq), alertas(eq), ctx.db.prepare('SELECT titulo, descricao FROM alertas').all()]);
+    expect(textos).toContain('Carlos Henrique Souza');
+    expect(textos).not.toContain('AT-1001');
+  });
+
+  it('só relata equipamento a até 500 m do agente: mais longe é 400 e nada muda', async () => {
+    const id = await novoAgente();
+    const longe = inserirEquipamentoDeTeste(ctx, { tipo: 'camera', codigo: 'FOGO-CAM-0010', lat: bairro.lat + 0.045, lng: bairro.lng }); // ~5 km
+    const r = await app.inject({ method: 'POST', url: url(id, '/reportes'), payload: { equipamentoId: longe, problema: 'furtado' } });
+    expect(r.statusCode).toBe(400);
+    expect(r.json().erro).toMatch(/Você está a 5,0 km deste equipamento.*até 500 m/);
+    expect(historico(longe)).toEqual([]);
+    expect(alertas(longe)).toEqual([]);
+    // Logo abaixo do limite passa.
+    const perto = inserirEquipamentoDeTeste(ctx, { tipo: 'camera', codigo: 'FOGO-CAM-0011', lat: bairro.lat + 0.0044, lng: bairro.lng }); // ~489 m
+    expect((await app.inject({ method: 'POST', url: url(id, '/reportes'), payload: { equipamentoId: perto, problema: 'furtado' } })).statusCode).toBe(201);
   });
 
   it('equipamento já em mau funcionamento: não muda a situação de novo e não duplica o alerta aberto', async () => {

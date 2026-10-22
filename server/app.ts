@@ -15,6 +15,7 @@ import { rotasAlertas } from './rotas/alertas';
 import { rotasBairros } from './rotas/bairros';
 import { rotasCampo } from './rotas/campo';
 import { rotasCentral } from './rotas/central';
+import { documentarRotas } from './rotas/documentacao';
 import { rotasEquipamentos } from './rotas/equipamentos';
 import { rotasManutencao } from './rotas/manutencao';
 import { rotasPrevisoes } from './rotas/previsoes';
@@ -25,6 +26,8 @@ import { rotasTelemetria } from './rotas/telemetria';
 import { rotasTipos } from './rotas/tipos';
 import { instalarSeguranca, type OpcoesSeguranca } from './seguranca/plugin';
 
+/** Nenhum corpo legítimo da API passa de alguns KB; 256 KB corta abuso sem atrapalhar. */
+const LIMITE_CORPO_KB = 256;
 const PASTA_WEB = fileURLToPath(new URL('../dist/web', import.meta.url));
 
 /** Primeira mensagem de cada campo; o caminho vira "caracteristicas.velocidadeMaxima". */
@@ -39,10 +42,19 @@ function camposDoZod(erro: ZodError): Record<string, string> {
 
 export async function criarApp(ctx: ContextoApp, seguranca: OpcoesSeguranca = {}): Promise<FastifyInstance> {
   // bodyLimit: nenhum corpo legítimo da API passa de alguns KB; 256 KB corta abuso sem atrapalhar.
-  const app = Fastify({ logger: false, bodyLimit: 256 * 1024 });
+  const app = Fastify({ logger: false, bodyLimit: LIMITE_CORPO_KB * 1024 });
   app.decorate('ctx', ctx);
 
-  app.setErrorHandler((erro: FastifyError | ErroApi | ZodError, _req, reply) => {
+  // Content-Type: application/json com corpo vazio (DELETE, POST .../token, POST /auth/sair): o padrão do Fastify responde 400,
+  // mas isso é só "sem corpo". Mantém o resto do analisador padrão (inclusive a proteção contra __proto__).
+  app.removeContentTypeParser('application/json');
+  const lerJsonPadrao = app.getDefaultJsonParser('error', 'error');
+  app.addContentTypeParser('application/json', { parseAs: 'string' }, (req, corpo, feito) => {
+    if (typeof corpo === 'string' && corpo.trim() === '') return feito(null, undefined);
+    lerJsonPadrao(req, corpo as string, feito);
+  });
+
+  app.setErrorHandler((erro: FastifyError | ErroApi | ZodError, req, reply) => {
     if (erro instanceof ZodError) return reply.code(400).send({ erro: 'Dados inválidos', campos: camposDoZod(erro) });
     if (erro instanceof ErroApi) return reply.code(erro.status).send({ erro: erro.message, ...(erro.campos && { campos: erro.campos }) });
     const codigo = 'code' in erro ? erro.code : undefined;
@@ -50,6 +62,22 @@ export async function criarApp(ctx: ContextoApp, seguranca: OpcoesSeguranca = {}
       return reply.code(409).send({ erro: 'Operação recusada: conflita com dados já cadastrados' });
     }
     const status = 'statusCode' in erro && typeof erro.statusCode === 'number' ? erro.statusCode : 500;
+    if (status === 403) {
+      // Não vem das nossas regras (essas são ErroApi): é o servidor de arquivos recusando um caminho malformado, como "/api//x".
+      const caminho = req.url.split('?')[0]!;
+      return caminho.includes('//')
+        ? reply.code(404).send({ erro: 'Rota não encontrada' })
+        : reply.code(403).send({ erro: 'Acesso negado a este caminho' });
+    }
+    if (codigo === 'FST_ERR_CTP_BODY_TOO_LARGE') {
+      return reply.code(413).send({ erro: `Corpo grande demais: o limite é de ${LIMITE_CORPO_KB} KB` });
+    }
+    if (codigo === 'FST_ERR_CTP_INVALID_MEDIA_TYPE') {
+      return reply.code(415).send({ erro: 'Tipo de conteúdo não aceito: envie o corpo em JSON, com o cabeçalho Content-Type: application/json' });
+    }
+    if (status === 400 && typeof codigo === 'string' && codigo.startsWith('FST_ERR_CTP')) {
+      return reply.code(400).send({ erro: 'JSON inválido no corpo da requisição' });
+    }
     if (status === 429) {
       // O limite de requisições (@fastify/rate-limit) lança o objeto montado em seguranca/plugin.ts, com a mensagem em `erro`.
       const mensagem = (erro as { erro?: unknown }).erro;
@@ -75,6 +103,7 @@ export async function criarApp(ctx: ContextoApp, seguranca: OpcoesSeguranca = {}
       },
       security: [{ sessao: [] }],
       tags: [
+        { name: 'Sistema', description: 'Saúde do servidor' },
         { name: 'Catálogo', description: 'Tipos de equipamento e bairros' },
         { name: 'Equipamentos', description: 'Cadastro, situação e telemetria' },
         { name: 'Agentes', description: 'Cadastro de agentes' },
@@ -89,6 +118,12 @@ export async function criarApp(ctx: ContextoApp, seguranca: OpcoesSeguranca = {}
     },
   });
   await app.register(fastifySwaggerUi, { routePrefix: '/api/docs' });
+
+  // Os esquemas do Fastify existem só para o Swagger: quem valida é o zod de cada rota, e quem serializa é o JSON.stringify.
+  // Sem isto, um `body` ou um `response` documentado passaria a validar (e a coagir tipos) ou a podar campos da resposta.
+  app.setValidatorCompiler(() => (dados) => ({ value: dados }));
+  app.setSerializerCompiler(() => (dados) => JSON.stringify(dados));
+  documentarRotas(app);
 
   // Antes das rotas: os ganchos de sessão, permissão, LGPD e auditoria valem para todas.
   await instalarSeguranca(app, { pastaWeb: PASTA_WEB, ...seguranca });

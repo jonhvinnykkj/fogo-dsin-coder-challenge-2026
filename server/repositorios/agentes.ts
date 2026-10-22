@@ -106,10 +106,14 @@ export function removerAgente(db: Database, id: number): void {
   db.prepare('DELETE FROM agentes WHERE id = ?').run(id);
 }
 
-export function listarAgentes(db: Database, f: FiltrosAgente): Pagina<Agente> {
+/**
+ * `buscarMatricula: false` tira a matrícula da busca. Quem não vê dados pessoais (a matrícula sai mascarada) não pode achá-la por
+ * tentativa: "GM-2004" acharia o agente e cada prefixo afunilaria um dígito, desfazendo a máscara.
+ */
+export function listarAgentes(db: Database, f: FiltrosAgente, { buscarMatricula = true }: { buscarMatricula?: boolean } = {}): Pagina<Agente> {
   const cond: string[] = [];
   const params: unknown[] = [];
-  if (f.busca) cond.push(condicaoBusca(f.busca, ['a.nome', 'a.matricula', 'a.base_logradouro', 'b.nome'], params));
+  if (f.busca) cond.push(condicaoBusca(f.busca, ['a.nome', ...(buscarMatricula ? ['a.matricula'] : []), 'a.base_logradouro', 'b.nome'], params));
   if (f.categoria) { cond.push('a.categoria = ?'); params.push(f.categoria); }
   if (f.situacao) { cond.push('a.situacao = ?'); params.push(f.situacao); }
   if (f.turno) { cond.push('a.turno = ?'); params.push(f.turno); }

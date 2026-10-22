@@ -8,7 +8,7 @@ import { lerId } from './id';
 
 const vazioComoAusente = <T extends z.ZodTypeAny>(s: T) => z.preprocess((v) => (v === '' ? undefined : v), s.optional());
 
-const filtrosSchema = z.object({
+export const filtrosSchema = z.object({
   login: vazioComoAusente(z.string().trim().max(60)),
   entidade: vazioComoAusente(z.string().trim().max(40)),
   pagina: z.coerce.number().int().min(1).default(1),
@@ -22,7 +22,7 @@ export async function rotasAuditoria(app: FastifyInstance): Promise<void> {
     schema: {
       tags: ['Acesso'],
       summary: 'Trilha de auditoria: quem fez o quê, antes e depois (só gestor)',
-      description: 'Filtros: login, entidade (equipamentos, agentes, alertas, simulacao, auth), pagina, porPagina. Mais recentes primeiro.',
+      description: 'Filtros: login, entidade (equipamentos, agentes, alertas, ocorrencias, simulacao, auth), pagina, porPagina. Mais recentes primeiro.',
     },
   }, async (req) => listarAuditoria(db, filtrosSchema.parse(req.query)));
 

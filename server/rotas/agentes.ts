@@ -2,11 +2,13 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { SITUACOES_AGENTE } from '../../shared/dominio';
 import { agenteInputSchema, filtrosAgenteSchema } from '../../shared/schemas';
+import { pode } from '../../shared/seguranca';
+import { listarAgentes } from '../repositorios/agentes';
 import * as servico from '../servicos/agentes';
 import { lerId } from './id';
 
 const tags = ['Agentes'];
-const situacaoSchema = z.object({
+export const situacaoSchema = z.object({
   situacao: z.enum(SITUACOES_AGENTE, { errorMap: () => ({ message: 'Situação: valor inválido' }) }),
 });
 
@@ -15,8 +17,12 @@ export async function rotasAgentes(app: FastifyInstance): Promise<void> {
   const id = (req: { params: unknown }) => lerId((req.params as { id?: string }).id, 'Agente');
 
   app.get('/api/agentes', {
-    schema: { tags, summary: 'Lista agentes com busca, filtros e paginação', description: 'Filtros: busca, categoria, situacao, turno, bairroId, regiao, orgao, pagina, porPagina.' },
-  }, async (req) => servico.listar(ctx, filtrosAgenteSchema.parse(req.query)));
+    schema: { tags, summary: 'Lista agentes com busca, filtros e paginação', description: 'Filtros: busca (nome, base, bairro e, só para o gestor, matrícula), categoria, situacao, turno, bairroId, regiao, orgao, pagina, porPagina.' },
+  }, async (req) => {
+    // A busca só alcança a matrícula de quem pode vê-la inteira (gestor); para os demais ela vem mascarada.
+    const buscarMatricula = pode(req.usuario?.papel, 'verDadosPessoais');
+    return listarAgentes(ctx.db, filtrosAgenteSchema.parse(req.query), { buscarMatricula });
+  });
 
   app.get('/api/agentes/:id', {
     schema: { tags, summary: 'Ficha do agente com as últimas 20 ocorrências atendidas' },

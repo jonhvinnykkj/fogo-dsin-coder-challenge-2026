@@ -29,21 +29,56 @@ const ACOES: Record<string, string> = {
 export const nomeDaAcao = (chave: string) => ACOES[chave] ?? chave;
 
 /** Tabelas que dá para fotografar antes e depois (nome vem desta lista, nunca da requisição). */
-const TABELAS: Record<string, string> = { equipamentos: 'equipamentos', agentes: 'agentes', alertas: 'alertas' };
+const TABELAS: Record<string, string> = { equipamentos: 'equipamentos', agentes: 'agentes', alertas: 'alertas', ocorrencias: 'ocorrencias' };
 /** Segredos nunca entram na trilha. */
 const COLUNAS_SECRETAS = new Set(['token_dispositivo', 'senha_hash']);
 const CHAVE_SECRETA = /senha|token|segredo/i;
 const LIMITE_JSON = 4000;
 
-/** "/api/equipamentos/:id/situacao" → "equipamentos". */
+/**
+ * Sobre o que a rota age. "/api/equipamentos/:id/situacao" → "equipamentos". No Modo Campo o `:id` da URL é o AGENTE, mas
+ * quem muda é outra coisa: a chegada e a conclusão agem na ocorrência; o relato, no equipamento relatado.
+ */
 export function entidadeDaRota(rota: string): string | null {
+  if (/^\/api\/campo\/agentes\/:id\/despachos\/:ocorrenciaId\//.test(rota)) return 'ocorrencias';
+  if (rota === '/api/campo/agentes/:id/reportes') return 'equipamentos';
   return /^\/api\/([a-z-]+)/.exec(rota)?.[1] ?? null;
+}
+
+const inteiroPositivo = (v: unknown) => {
+  const n = typeof v === 'string' ? (/^\d+$/.test(v) ? Number(v) : NaN) : v;
+  return typeof n === 'number' && Number.isSafeInteger(n) && n > 0 ? n : null;
+};
+
+/** Id da entidade de `entidadeDaRota`: o `:id` da URL, o `:ocorrenciaId` (chegada, conclusão) ou o `equipamentoId` do corpo (relato). */
+export function idDaEntidade(rota: string, params: unknown, corpo: unknown): number | null {
+  const p = (params ?? {}) as { id?: unknown; ocorrenciaId?: unknown };
+  if (entidadeDaRota(rota) === 'ocorrencias' && rota.startsWith('/api/campo/')) return inteiroPositivo(p.ocorrenciaId);
+  if (rota === '/api/campo/agentes/:id/reportes') return inteiroPositivo((corpo as { equipamentoId?: unknown } | null | undefined)?.equipamentoId);
+  return inteiroPositivo(p.id);
+}
+
+/** O que a trilha guarda como "dados": o corpo e, no Modo Campo, o agente da URL (que não é a entidade fotografada). */
+export function dadosDaRequisicao(rota: string, params: unknown, corpo: unknown): unknown {
+  if (!rota.startsWith('/api/campo/')) return corpo;
+  const agenteId = inteiroPositivo((params as { id?: unknown } | undefined)?.id);
+  return { agenteId, ...(corpo && typeof corpo === 'object' ? (corpo as object) : {}) };
 }
 
 export function fotografar(db: Database, entidade: string | null, id: number | null): Record<string, unknown> | null {
   const tabela = entidade ? TABELAS[entidade] : undefined;
   if (!tabela || id === null) return null;
-  const linha = db.prepare(`SELECT * FROM ${tabela} WHERE id = ?`).get(id) as Record<string, unknown> | undefined;
+  let linha: Record<string, unknown> | undefined;
+  if (tabela === 'ocorrencias') {
+    // A chegada do agente não muda a linha da ocorrência (mora em outra tabela): entra na foto para o antes e o depois diferirem.
+    try {
+      linha = db.prepare('SELECT o.*, (SELECT chegou_em FROM chegadas_campo WHERE ocorrencia_id = o.id) AS chegou_em FROM ocorrencias o WHERE o.id = ?').get(id) as typeof linha;
+    } catch {
+      linha = db.prepare('SELECT * FROM ocorrencias WHERE id = ?').get(id) as typeof linha; // banco sem Modo Campo
+    }
+  } else {
+    linha = db.prepare(`SELECT * FROM ${tabela} WHERE id = ?`).get(id) as Record<string, unknown> | undefined;
+  }
   if (!linha) return null;
   for (const c of COLUNAS_SECRETAS) delete linha[c];
   return linha;
