@@ -2,7 +2,7 @@ import type { Database } from 'better-sqlite3';
 import { beforeAll, describe, expect, it } from 'vitest';
 import type { CelulaRisco, NivelRisco } from '../../shared/modelos';
 import { instanteLocal } from '../tempo';
-import { preverRisco } from './risco';
+import { confiabilidadeDoRisco, preverRisco } from './risco';
 import { AGORA_PREDITIVO, bairroPorNome, cidadeSemeada, copiaDaCidade } from './test-helpers';
 
 const HORA = 3_600_000;
@@ -132,6 +132,14 @@ describe('preverRisco', () => {
     expect(explicacao.dadosUsados.length).toBeGreaterThan(0);
     expect(explicacao.confiabilidade.length).toBeGreaterThanOrEqual(2);
     for (const c of explicacao.confiabilidade) expect(Number.isFinite(c.valor)).toBe(true);
+  });
+
+  it('o ganho do teste retroativo aparece com uma casa decimal, igual em todos os textos (7,5% e não 8%)', () => {
+    const base = { dias: 14, maeModelo: 0.5339, maeIngenuo: 0.5772, ganhoPct: 7.5, acertoTop5Medio: 3.6, acertoTop5IngenuoMedio: 3.1, porDia: [] };
+    const texto = confiabilidadeDoRisco(base).map((c) => c.descricao).join(' ');
+    expect(texto).toContain('7,5% menos que repetir a média');
+    expect(texto).not.toMatch(/\b8% menos/);
+    expect(confiabilidadeDoRisco({ ...base, ganhoPct: -2 }).map((c) => c.descricao).join(' ')).toContain('2,0% mais que repetir');
   });
 
   it('o "O que prevê" de 7 dias fala em blocos de 3 horas (as células são blocos, não horas)', () => {
