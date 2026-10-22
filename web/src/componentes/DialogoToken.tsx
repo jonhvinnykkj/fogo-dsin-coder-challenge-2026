@@ -1,6 +1,6 @@
 // Token do dispositivo: aparece UMA vez (o banco guarda só o hash). `DialogoTokenNovo` mostra o token com o aviso de copiar;
 // `DialogoGerarToken` é o caminho da ficha: confirma (o token atual deixa de valer), gera e mostra o novo no mesmo painel.
-import { Check, Copy, Key, WarningCircle } from '@phosphor-icons/react';
+import { Check, Copy, Key } from '@phosphor-icons/react';
 import { useRef, useState } from 'react';
 import { useGerarTokenDispositivo } from '../api/consultas';
 import { AvisoErro } from './AvisoErro';
@@ -59,7 +59,7 @@ function ConteudoToken({ token, origem }: { token: string; origem: PropsNovo['or
   return (
     <div className={estilos.form}>
       <p className={estilos.destaque} role="alert">
-        <WarningCircle weight="fill" size={18} aria-hidden="true" /> Copie agora: o token não aparece de novo.
+        Copie agora: o token não aparece de novo.
       </p>
       <p className={estilos.texto}>
         {origem === 'cadastro'
