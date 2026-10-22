@@ -8,17 +8,20 @@ import 'leaflet.markercluster';
 import { useEffect, useRef } from 'react';
 import { useMap } from 'react-leaflet';
 import { estaIndisponivel, ROTULO_SITUACAO, type SituacaoEquipamento } from '../../../shared/dominio';
-import type { EquipamentoMapa } from '../../../shared/modelos';
+import type { EquipamentoMapa, SituacaoManutencao } from '../../../shared/modelos';
 import { rotuloCurtoDoTipo } from '../componentes/IconeTipo';
 import { iconeEquipamento, iconeGrupo, resumoDoGrupo } from './iconesMapa';
-import { compararMarcadores, piorSituacao } from './regrasMapa';
+import { compararMarcadores, pedeAtencaoDeManutencao, piorSituacao, ROTULO_MANUTENCAO_NO_MAPA } from './regrasMapa';
 
 interface OpcoesMarcador extends L.MarkerOptions {
   situacao: SituacaoEquipamento;
+  manutencao: SituacaoManutencao;
 }
 
 const situacaoDe = (m: L.Marker) => (m.options as OpcoesMarcador).situacao;
-const tituloDe = (e: EquipamentoMapa) => `${e.codigo}, ${rotuloCurtoDoTipo(e.tipo).toLowerCase()}, ${ROTULO_SITUACAO[e.situacao].toLowerCase()}`;
+const manutencaoDe = (m: L.Marker) => (m.options as OpcoesMarcador).manutencao;
+const tituloDe = (e: EquipamentoMapa) =>
+  `${e.codigo}, ${rotuloCurtoDoTipo(e.tipo).toLowerCase()}, ${ROTULO_SITUACAO[e.situacao].toLowerCase()}${pedeAtencaoDeManutencao(e.manutencao) ? `, ${ROTULO_MANUTENCAO_NO_MAPA[e.manutencao]}` : ''}`;
 
 interface Props {
   equipamentos: EquipamentoMapa[];
@@ -48,8 +51,9 @@ export function CamadaEquipamentos({ equipamentos, visivel, selecionadoId, onSel
       chunkedLoading: true,
       iconCreateFunction: (cluster) => {
         const situacoes = cluster.getAllChildMarkers().map(situacaoDe);
-        cluster.options.title = resumoDoGrupo(situacoes); // dica nativa, também lida por leitores de tela
-        return iconeGrupo(situacoes.length, piorSituacao(situacoes), situacoes.filter(estaIndisponivel).length);
+        const comManutencao = cluster.getAllChildMarkers().filter((m) => pedeAtencaoDeManutencao(manutencaoDe(m))).length;
+        cluster.options.title = resumoDoGrupo(situacoes, comManutencao); // dica nativa, também lida por leitores de tela
+        return iconeGrupo(situacoes.length, piorSituacao(situacoes), situacoes.filter(estaIndisponivel).length, comManutencao);
       },
     });
     grupo.current = g;
@@ -99,8 +103,9 @@ export function CamadaEquipamentos({ equipamentos, visivel, selecionadoId, onSel
         const m = registro.get(e.id);
         if (!m) continue;
         (m.options as OpcoesMarcador).situacao = e.situacao;
+        (m.options as OpcoesMarcador).manutencao = e.manutencao;
         m.options.title = tituloDe(e);
-        m.setIcon(iconeEquipamento(e.tipo, e.situacao, selecionado.current === e.id));
+        m.setIcon(iconeEquipamento(e.tipo, e.situacao, selecionado.current === e.id, e.manutencao));
         mudados.push(m);
       }
       g.refreshClusters(mudados);
@@ -109,8 +114,9 @@ export function CamadaEquipamentos({ equipamentos, visivel, selecionadoId, onSel
     if (dif.incluidos.length) {
       const novos = dif.incluidos.map((e) => {
         const opcoes: OpcoesMarcador = {
-          icon: iconeEquipamento(e.tipo, e.situacao, selecionado.current === e.id),
+          icon: iconeEquipamento(e.tipo, e.situacao, selecionado.current === e.id, e.manutencao),
           situacao: e.situacao,
+          manutencao: e.manutencao,
           title: tituloDe(e),
           keyboard: true,
         };
@@ -134,7 +140,7 @@ export function CamadaEquipamentos({ equipamentos, visivel, selecionadoId, onSel
       const m = marcadores.current.get(id);
       const e = desenhados.current.get(id);
       if (m && e) {
-        m.setIcon(iconeEquipamento(e.tipo, e.situacao, id === selecionadoId));
+        m.setIcon(iconeEquipamento(e.tipo, e.situacao, id === selecionadoId, e.manutencao));
         m.setZIndexOffset(id === selecionadoId ? 1000 : 0);
       }
     }

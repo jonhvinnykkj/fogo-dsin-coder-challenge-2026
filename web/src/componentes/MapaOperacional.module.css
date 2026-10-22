@@ -95,6 +95,10 @@
   font-weight: 800;
 }
 
+.grupoLegenda p + h3 {
+  margin-top: var(--e-3);
+}
+
 .grupoLegenda ul {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -121,6 +125,10 @@
   height: 14px;
   border: 2px solid transparent;
   border-radius: 3px;
+}
+
+.selo {
+  flex-shrink: 0;
 }
 
 .tracejada {

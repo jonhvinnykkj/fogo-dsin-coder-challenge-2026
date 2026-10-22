@@ -3,7 +3,7 @@
 //
 // Cada camada recebe os dados prontos e mexe no Leaflet por conta própria (ver web/src/mapa/Camada*.tsx). Este
 // componente consulta o mapa por conta própria para que as posições ao vivo (a cada 2 s) só re-renderizem ele, não a Central.
-import { Info, X } from '@phosphor-icons/react';
+import { Clock, Info, Wrench, X } from '@phosphor-icons/react';
 import L, { type Map as MapaLeaflet } from 'leaflet';
 import { memo, useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react';
 import { useMap } from 'react-leaflet';
@@ -181,6 +181,12 @@ function Legenda({ camadas }: { camadas: CamadasVisiveis }) {
             ))}
           </ul>
           <p>Grupo: quantos equipamentos há ali, na cor do pior caso.</p>
+          <h3>Manutenção (selo no canto)</h3>
+          <ul>
+            <li><span className={`fogo-selo-man fogo-selo-man--urgente ${estilos.selo}`}><Wrench weight="fill" size={10} aria-hidden="true" /></span>Imediata ou atrasada</li>
+            <li><span className={`fogo-selo-man fogo-selo-man--proxima ${estilos.selo}`}><Clock weight="fill" size={10} aria-hidden="true" /></span>Nos próximos 7 dias</li>
+          </ul>
+          <p>No grupo, o selo à esquerda conta quantos dali precisam de manutenção.</p>
         </div>
       )}
       {camadas.agentes && (

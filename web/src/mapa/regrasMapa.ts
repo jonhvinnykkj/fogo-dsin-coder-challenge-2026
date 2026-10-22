@@ -1,6 +1,6 @@
 // Regras puras do mapa da Central (sem Leaflet): testáveis e iguais para todas as camadas.
 import { COR_CRITICIDADE, COR_NIVEL_ATENCAO, type Criticidade, type SituacaoEquipamento } from '../../../shared/dominio';
-import type { NivelAtencao } from '../../../shared/modelos';
+import type { NivelAtencao, SituacaoManutencao } from '../../../shared/modelos';
 
 /** Gravidade de cada situação para o agrupamento: o grupo ganha a cor da pior. Desativado e não instalado são escolhas, não problemas. */
 const GRAVIDADE_SITUACAO: Record<SituacaoEquipamento, number> = {
@@ -17,6 +17,21 @@ export function piorSituacao(situacoes: Iterable<SituacaoEquipamento>): Situacao
   for (const s of situacoes) if (pior === undefined || GRAVIDADE_SITUACAO[s] > GRAVIDADE_SITUACAO[pior]) pior = s;
   return pior ?? 'operacional';
 }
+
+/**
+ * Manutenção que merece destaque no mapa: imediata, atrasada ou nos próximos 7 dias. É o mesmo campo `manutencao` que a
+ * API calcula para o filtro e para o quadro de Manutenção (`situacaoDaManutencao` no servidor); nada de critério novo aqui.
+ */
+export const pedeAtencaoDeManutencao = (m: SituacaoManutencao | undefined): m is Exclude<SituacaoManutencao, 'ok'> => m !== undefined && m !== 'ok';
+
+/** Urgente = imediata ou atrasada (selo cheio); "próxima" = dentro de 7 dias (selo vazado). */
+export const manutencaoUrgente = (m: SituacaoManutencao | undefined) => m === 'imediata' || m === 'atrasada';
+
+export const ROTULO_MANUTENCAO_NO_MAPA: Record<Exclude<SituacaoManutencao, 'ok'>, string> = {
+  imediata: 'manutenção imediata',
+  atrasada: 'manutenção atrasada',
+  proxima: 'manutenção nos próximos 7 dias',
+};
 
 export interface PinturaBairro {
   fillColor: string;
@@ -56,13 +71,15 @@ export interface ComMarcador {
   lat: number;
   lng: number;
   situacao: string;
+  /** Só os equipamentos têm: mudou, o ícone troca (o selo de manutenção). */
+  manutencao?: string;
 }
 
 export interface DiferencaMarcadores<T extends ComMarcador> {
   incluidos: T[];
   removidos: number[];
   movidos: T[];
-  /** Situação mudou (trocar o ícone e recalcular a cor do grupo). */
+  /** Situação ou manutenção mudou (trocar o ícone e recalcular a cor e o selo do grupo). */
   mudados: T[];
 }
 
@@ -82,7 +99,7 @@ export function compararMarcadores<T extends ComMarcador>(anteriores: ReadonlyMa
     }
     if (antes === item) continue;
     if (antes.lat !== item.lat || antes.lng !== item.lng) r.movidos.push(item);
-    if (antes.situacao !== item.situacao) r.mudados.push(item);
+    if (antes.situacao !== item.situacao || antes.manutencao !== item.manutencao) r.mudados.push(item);
   }
   for (const id of anteriores.keys()) if (!vistos.has(id)) r.removidos.push(id);
   return r;

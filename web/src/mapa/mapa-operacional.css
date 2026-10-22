@@ -51,6 +51,70 @@
   box-shadow: none;
 }
 
+/*
+ * Selo de manutenção (destaque pedido no enunciado). Chave inglesa em disco grafite cheio = imediata ou atrasada;
+ * relógio em disco branco com borda grafite = nos próximos 7 dias. Ícone + forma, não só cor; borda branca para saltar
+ * sobre o bloco colorido. Nos marcadores fica no canto de cima à direita; no grupo, à esquerda (o selo de problema
+ * do grupo já ocupa a direita).
+ */
+.fogo-selo-man {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 2px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.45);
+  font-family: var(--fonte);
+  font-size: 10px;
+  font-weight: 800;
+  font-stretch: 100%;
+  line-height: 1;
+}
+
+.fogo-selo-man svg {
+  width: 10px;
+  height: 10px;
+}
+
+.fogo-selo-man--urgente {
+  border: 1.5px solid #fff;
+  background: #1e1e1f;
+  color: #fff;
+}
+
+.fogo-selo-man--proxima {
+  border: 1.5px solid #1e1e1f;
+  background: #fff;
+  color: #1e1e1f;
+}
+
+.fogo-mk > .fogo-selo-man,
+.fogo-grupo > .fogo-selo-man {
+  position: absolute;
+  top: -8px;
+}
+
+.fogo-mk > .fogo-selo-man {
+  right: -8px;
+}
+
+.fogo-grupo > .fogo-selo-man--grupo {
+  left: -8px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  font-size: 11px;
+}
+
+.fogo-mk--tracejado > .fogo-selo-man {
+  top: -9px;
+  right: -9px;
+}
+
 /* ---- agente: losango (placa de advertência) na cor de quem está ocupado ---- */
 .fogo-ag {
   position: relative;
