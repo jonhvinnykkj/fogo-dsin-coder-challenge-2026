@@ -39,6 +39,19 @@ describe('calcularTendencias', () => {
     expect(vx!.falhasPor100).toBeGreaterThan(mediana(t.falhasPorModelo.map((m) => m.falhasPor100)));
   });
 
+  it('cada falha entra uma vez só: falhas por 100 × frota ÷ 100 é o número de ordens de serviço distintas do modelo', () => {
+    const db = cidadeSemeada().db;
+    const vx = t.falhasPorModelo.find((m) => m.modelo === 'VX-200')!;
+    const linhas = db.prepare(`SELECT h.motivo FROM historico_situacao h JOIN equipamentos e ON e.id = h.equipamento_id
+      WHERE e.modelo = 'VX-200' AND h.para = 'mau_funcionamento' AND h.origem = 'historico' AND h.em >= ? AND h.em < ?`)
+      .all(somarDias('2026-10-15', -60), '2026-10-15T16:00:00.000Z') as { motivo: string }[];
+    const ordens = new Set(linhas.map((l) => /\(OS [\d-]+\)/.exec(l.motivo)?.[0]));
+    expect(ordens.size).toBe(linhas.length); // nenhuma OS contada duas vezes
+    expect(Math.round((vx.falhasPor100 * vx.frota) / 100)).toBe(linhas.length);
+    // E o texto avisa que a taxa pode passar de 100 (várias falhas do mesmo equipamento).
+    expect(t.explicacao.confiabilidade.map((c) => c.descricao).join(' ')).toMatch(/pode passar de 100/);
+  });
+
   it('uso de patinetes por bairro: média diária e variação semanal', () => {
     expect(t.usoPatinetesPorBairro.length).toBeGreaterThan(0);
     for (const u of t.usoPatinetesPorBairro) {
