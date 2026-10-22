@@ -107,6 +107,8 @@ export class Simulador {
   private readonly semente: number;
   private velocidade: EstadoSimulacao['velocidade'] = 1;
   private pausado = false;
+  /** O relógio da simulação no instante da pausa: enquanto pausada, `estado()` mostra este, não o relógio que anda. */
+  private congeladoEm: Date | undefined;
   private temporizador: NodeJS.Timeout | undefined;
   private temporizadorIndicadores: NodeJS.Timeout | undefined;
 
@@ -162,7 +164,7 @@ export class Simulador {
   }
 
   estado(): EstadoSimulacao {
-    return { velocidade: this.velocidade, pausado: this.pausado, relogio: this.ctx.relogio.agora().toISOString() };
+    return { velocidade: this.velocidade, pausado: this.pausado, relogio: (this.pausado && this.congeladoEm ? this.congeladoEm : this.ctx.relogio.agora()).toISOString() };
   }
 
   /**
@@ -182,6 +184,8 @@ export class Simulador {
     if (mudanca.pausado !== undefined) {
       // Ao retomar, todo mundo transmite de uma vez: depois de uma pausa ninguém pode parecer "sem sinal".
       if (this.pausado && !mudanca.pausado) this.sincronizar = true;
+      if (mudanca.pausado && !this.pausado) this.congeladoEm = this.ctx.relogio.agora();
+      if (!mudanca.pausado) this.congeladoEm = undefined;
       this.pausado = mudanca.pausado;
     }
     const estado = this.estado();

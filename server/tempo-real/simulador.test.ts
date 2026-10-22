@@ -106,6 +106,19 @@ describe('Simulador', () => {
     expect((ctx.db.prepare('SELECT COUNT(*) AS n FROM telemetria_hora').get() as { n: number }).n).toBeGreaterThan(5);
   });
 
+  it('com a simulação pausada o relógio do estado fica parado no instante da pausa; ao retomar, volta a andar', () => {
+    const ctx = cidadezinha();
+    const relogio = ctx.relogio as RelogioDeTeste;
+    const sim = new Simulador(ctx, { semente: 1 });
+    sim.definir({ pausado: true });
+    const congelado = sim.estado().relogio;
+    expect(congelado).toBe('2026-10-14T21:00:00.000Z');
+    relogio.definir('2026-10-14T21:05:00.000Z');
+    expect(sim.estado().relogio).toBe(congelado);
+    expect(sim.definir({ velocidade: 10 }).relogio).toBe(congelado); // mudar a velocidade pausado não solta o relógio
+    expect(sim.definir({ pausado: false }).relogio).toBe('2026-10-14T21:05:00.000Z');
+  });
+
   it("injetar('alagamento') gera alerta alagamento crítico e evento no barramento", () => {
     const ctx = cidadezinha();
     const sim = new Simulador(ctx, { semente: 5 });
