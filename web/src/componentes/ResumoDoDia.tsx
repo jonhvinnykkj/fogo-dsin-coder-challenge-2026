@@ -45,7 +45,11 @@ export function ResumoDoDia({ resumo, onIrPara }: Props) {
             return (
               <li key={r.titulo} className={estilos.recomendacao} style={{ ['--cor-prioridade' as string]: p.cor }}>
                 <div className={estilos.topo}>
-                  <span className={estilos.prioridade} style={{ background: p.cor, color: corDoTexto(p.cor) }}>{p.rotulo}</span>
+                  {r.natureza === 'informacao' ? (
+                    <span className={estilos.informacao}>Informação, sem ação recomendada</span>
+                  ) : (
+                    <span className={estilos.prioridade} style={{ background: p.cor, color: corDoTexto(p.cor) }}>{p.rotulo}</span>
+                  )}
                   <a
                     href={`#${f.ancora}`}
                     className={estilos.fonte}

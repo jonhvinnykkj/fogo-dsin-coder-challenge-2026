@@ -167,8 +167,9 @@ export function calcularTendencias(db: Database, { agora }: { agora: Date }): Te
     .sort((a, b) => b.falhasPor100 - a.falhasPor100 || b.frota - a.frota);
   const totalFalhas = [...porModelo.values()].reduce((s, m) => s + m.falhas, 0);
 
-  const resultado = { disponibilidadePorTipo, usoPatinetesPorBairro, falhasPorModelo };
-  return { ...resultado, explicacao: explicarTendencias(resultado, seriesLongas, totalFalhas, Math.round((agoraMs - desde) / DIA_MS)) };
+  const testeProjecao = testeRetroativoProjecao(seriesLongas);
+  const resultado = { disponibilidadePorTipo, testeProjecao, usoPatinetesPorBairro, falhasPorModelo };
+  return { ...resultado, explicacao: explicarTendencias(resultado, totalFalhas, Math.round((agoraMs - desde) / DIA_MS)) };
 }
 
 /**
@@ -176,6 +177,11 @@ export function calcularTendencias(db: Database, { agora }: { agora: Date }): Te
  * projeta 7 dias à frente e compara com o valor medido naquele dia. Erro médio em pontos percentuais, comparado com
  * duas regras simples: repetir o último valor e repetir a média dos 30 dias.
  */
+/** A reta só sustenta uma recomendação de ação se, no teste retroativo, errou menos que as duas regras simples. */
+export function retaSustentaAcao(t: Tendencias['testeProjecao']): boolean {
+  return t.projecoes > 0 && t.erroReta <= Math.min(t.erroUltimo, t.erroMedia);
+}
+
 export function testeRetroativoProjecao(series: Map<TipoEquipamentoId, number[]>): { erroReta: number; erroUltimo: number; erroMedia: number; projecoes: number } {
   let erroReta = 0;
   let erroUltimo = 0;
@@ -198,11 +204,10 @@ const pontos = (x: number) => `${formatarNumero(x, 1)} ${x >= 2 ? 'pontos percen
 
 function explicarTendencias(
   t: Omit<Tendencias, 'explicacao'>,
-  series: Map<TipoEquipamentoId, number[]>,
   totalFalhas: number,
   diasFalhas: number,
 ): ExplicacaoPrevisao {
-  const retro = testeRetroativoProjecao(series);
+  const retro = t.testeProjecao;
   const taxas = t.falhasPorModelo.map((m) => m.falhasPor100);
   const pior = t.falhasPorModelo[0];
   const med = mediana(taxas);
@@ -222,7 +227,7 @@ function explicarTendencias(
         valor: retro.erroReta,
         descricao: `Em ${formatarNumero(retro.projecoes)} projeções refeitas no passado (cada tipo, cada dia possível), a reta errou em média ${pontos(retro.erroReta)}; `
           + `repetir o último valor errou ${pontos(retro.erroUltimo)} e repetir a média dos 30 dias, ${pontos(retro.erroMedia)}. `
-          + (retro.erroReta <= Math.min(retro.erroUltimo, retro.erroMedia) ? 'A reta acerta melhor que as regras simples.' : 'Use a projeção para ver a direção, não o número exato.'),
+          + (retaSustentaAcao(retro) ? 'A reta acerta melhor que as regras simples.' : 'Use a projeção para ver a direção, não o número exato.'),
       },
       {
         metrica: 'Falhas analisadas por marca e modelo',

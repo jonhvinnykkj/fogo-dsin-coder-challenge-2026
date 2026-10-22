@@ -297,6 +297,8 @@ export interface Tendencias {
     serie: { data: string; pct: number }[];
     projecao7d: number;
   }[];
+  /** Teste retroativo da projeção de 7 dias (erro médio em pontos percentuais): a reta contra repetir o último valor e a média de 30 dias. */
+  testeProjecao: { erroReta: number; erroUltimo: number; erroMedia: number; projecoes: number };
   usoPatinetesPorBairro: { bairroId: number; nome: string; mediaDiaria: number; variacaoPct: number }[];
   falhasPorModelo: { marca: string; modelo: string; falhasPor100: number; frota: number }[];
   explicacao: ExplicacaoPrevisao;
@@ -307,6 +309,8 @@ export interface RecomendacaoDoDia {
   detalhe: string;
   fonte: 'risco' | 'reforco' | 'falhas' | 'tendencias';
   prioridade: 'alta' | 'media' | 'baixa';
+  /** 'informacao' = aviso sem ação recomendada (a evidência não sustenta mandar fazer algo). Ausente = 'acao'. */
+  natureza?: 'acao' | 'informacao';
 }
 
 export interface ResumoPreditivo {

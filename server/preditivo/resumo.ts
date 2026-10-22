@@ -16,7 +16,7 @@ import { executarBacktest } from './backtest';
 import { respostaFalhas } from './falhas';
 import { recomendarReforco } from './reforco';
 import { confiabilidadeDoRisco, nivelDoRisco, preverRisco } from './risco';
-import { calcularTendencias } from './tendencias';
+import { calcularTendencias, retaSustentaAcao } from './tendencias';
 
 const MAX_RECOMENDACOES = 5;
 const ORDEM_PRIORIDADE = { alta: 0, media: 1, baixa: 2 } as const;
@@ -155,12 +155,28 @@ function recomendacoesDeTendencias(t: Tendencias): RecomendacaoDoDia[] {
     .sort((a, b) => b.queda - a.queda);
   const pior = quedas[0];
   if (pior && pior.queda >= 2) {
-    saida.push({
-      titulo: `Disponibilidade de ${NOME_DO_TIPO[pior.tipo][1]} em queda: ${formatarNumero(pior.projecao7d, 0)}% em 7 dias`,
-      detalhe: `A média dos últimos 30 dias foi ${formatarNumero(pior.media, 1)}% e a tendência aponta ${formatarNumero(pior.projecao7d, 1)}% daqui a uma semana. Antecipe as preventivas desse tipo.`,
-      fonte: 'tendencias',
-      prioridade: pior.queda >= 5 ? 'media' : 'baixa',
-    });
+    const teste = t.testeProjecao;
+    const media = `A média dos últimos 30 dias foi ${formatarNumero(pior.media, 1)}% e a tendência aponta ${formatarNumero(pior.projecao7d, 1)}% daqui a uma semana.`;
+    const prioridade = pior.queda >= 5 ? 'media' : 'baixa';
+    if (retaSustentaAcao(teste)) {
+      saida.push({
+        titulo: `Disponibilidade de ${NOME_DO_TIPO[pior.tipo][1]} em queda: ${formatarNumero(pior.projecao7d, 0)}% em 7 dias`,
+        detalhe: `${media} No teste retroativo a projeção errou ${formatarNumero(teste.erroReta, 1)} p.p., menos que repetir a média (${formatarNumero(teste.erroMedia, 1)} p.p.). Antecipe as preventivas desse tipo.`,
+        fonte: 'tendencias',
+        prioridade,
+        natureza: 'acao',
+      });
+    } else {
+      // A mesma tela mostra que a reta erra mais que repetir a média: vira informação, sem mandar fazer nada.
+      saida.push({
+        titulo: `Informação: disponibilidade de ${NOME_DO_TIPO[pior.tipo][1]} pode estar em queda (${formatarNumero(pior.projecao7d, 0)}% em 7 dias)`,
+        detalhe: `${media} Confiabilidade baixa: no teste retroativo a projeção errou ${formatarNumero(teste.erroReta, 1)} p.p., mais que repetir a média dos 30 dias (${formatarNumero(teste.erroMedia, 1)} p.p.). `
+          + 'Por isso o resumo não recomenda ação a partir dela; veja a direção da série em Tendências.',
+        fonte: 'tendencias',
+        prioridade: 'baixa',
+        natureza: 'informacao',
+      });
+    }
   }
   const med = mediana(t.falhasPorModelo.map((m) => m.falhasPor100));
   const modelo = t.falhasPorModelo.find((m) => m.frota >= 5);

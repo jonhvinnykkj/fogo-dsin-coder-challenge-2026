@@ -8,7 +8,7 @@ import { respostaFalhas } from './falhas';
 import { recomendarReforco } from './reforco';
 import { montarResumo } from './resumo';
 import { preverRisco } from './risco';
-import { calcularTendencias } from './tendencias';
+import { calcularTendencias, retaSustentaAcao } from './tendencias';
 import { AGORA_PREDITIVO, cidadeSemeada } from './test-helpers';
 
 let db: Database;
@@ -49,5 +49,46 @@ describe('montarResumo — chance de falha no texto', () => {
 
   it('o texto "Como ajuda" das falhas também não diz 100%', () => {
     expect(falhas.explicacao.comoAjuda).not.toMatch(/\b100%/);
+  });
+});
+
+// Tendências no resumo: "Antecipe as preventivas" só quando o teste retroativo da própria tela mostra que a reta acerta mais
+// que repetir o último valor ou a média de 30 dias. Senão vira informação, com a confiabilidade no próprio cartão.
+describe('montarResumo — tendência de disponibilidade', () => {
+  const comQueda = (t: NonNullable<typeof partes>['tendencias'] & object, teste: { erroReta: number; erroUltimo: number; erroMedia: number }) => {
+    const base = t.disponibilidadePorTipo[0]!;
+    const serie = base.serie.map((p) => ({ ...p, pct: 90 }));
+    // Sem os outros dois cartões de tendência, o da disponibilidade é o único da fonte e não perde a vaga.
+    return { ...t, falhasPorModelo: [], usoPatinetesPorBairro: [], disponibilidadePorTipo: [{ ...base, serie, projecao7d: 80 }], testeProjecao: { ...teste, projecoes: 100 } };
+  };
+  const daTendencia = (tendencias: Parameters<typeof comQueda>[0]) =>
+    montarResumo(db, { agora: AGORA_PREDITIVO }, { ...partes, tendencias }).recomendacoes.filter((x) => x.fonte === 'tendencias' && /Disponibilidade|disponibilidade/.test(x.titulo));
+
+  it('reta pior que a média (como no teste retroativo real): informação, sem "Antecipe" e com a confiabilidade', () => {
+    const [cartao] = daTendencia(comQueda(partes!.tendencias!, { erroReta: 4.9, erroUltimo: 5.2, erroMedia: 4.1 }));
+    expect(cartao).toBeDefined();
+    expect(cartao!.natureza).toBe('informacao');
+    expect(cartao!.prioridade).toBe('baixa');
+    expect(cartao!.titulo).toMatch(/^Informação:/);
+    expect(cartao!.detalhe).not.toMatch(/Antecipe/);
+    expect(cartao!.detalhe).toMatch(/Confiabilidade baixa.*4,9 p\.p\..*4,1 p\.p\./);
+  });
+
+  it('reta melhor que as duas regras simples: continua recomendando a ação', () => {
+    const teste = { erroReta: 2.0, erroUltimo: 3.1, erroMedia: 4.1 };
+    expect(retaSustentaAcao({ ...teste, projecoes: 100 })).toBe(true);
+    const [cartao] = daTendencia(comQueda(partes!.tendencias!, teste));
+    expect(cartao!.natureza).toBe('acao');
+    expect(cartao!.detalhe).toMatch(/Antecipe as preventivas/);
+  });
+
+  it('sem projeções para testar, a reta não sustenta ação', () => {
+    expect(retaSustentaAcao({ erroReta: 0, erroUltimo: 0, erroMedia: 0, projecoes: 0 })).toBe(false);
+  });
+
+  it('com os dados reais da semente, nunca manda antecipar se a reta errou mais que a média', () => {
+    const r = montarResumo(db, { agora: AGORA_PREDITIVO }, partes);
+    const t = partes!.tendencias!.testeProjecao;
+    for (const x of r.recomendacoes.filter((y) => /Antecipe as preventivas/.test(y.detalhe))) expect(retaSustentaAcao(t)).toBe(true);
   });
 });
