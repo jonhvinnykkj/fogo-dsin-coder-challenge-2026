@@ -10,7 +10,7 @@ import { corDoTexto } from '../estilo/contraste';
 import estilos from './Campo.module.css';
 import { CartaoDespacho } from './CartaoDespacho';
 import { PertoDeMim } from './PertoDeMim';
-import { useDespachosAoVivo } from './useDespachosAoVivo';
+import { useDespachosAoVivo, vibrarSePermitido } from './useDespachosAoVivo';
 
 /** Padrão curto-pausa-curto: dá para sentir no bolso sem confundir com uma ligação. */
 const VIBRACAO_DESPACHO = [200, 100, 200];
@@ -29,7 +29,7 @@ export function PainelDoAgente({ agenteId, onTrocar }: Props) {
 
   const aoNovoDespacho = useCallback(() => {
     setDespachoNovo(true);
-    if (typeof navigator.vibrate === 'function') navigator.vibrate(VIBRACAO_DESPACHO);
+    vibrarSePermitido(VIBRACAO_DESPACHO);
   }, []);
   const { conectado } = useDespachosAoVivo(agenteId, aoNovoDespacho);
 
