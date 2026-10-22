@@ -1,18 +1,18 @@
 // Regras de negócio do cadastro de equipamentos (as rotas só traduzem HTTP).
 import { gerarTokenDispositivo, hashTokenDispositivo } from '../seguranca/cripto';
-import type { SituacaoEquipamento } from '../../shared/dominio';
+import { SITUACOES_INICIAIS, ROTULO_SITUACAO, type SituacaoEquipamento } from '../../shared/dominio';
 import type { Equipamento, EquipamentoDetalhe, PainelManutencao, PontoTelemetria } from '../../shared/modelos';
 import type { EquipamentoEdicao, EquipamentoInput, FiltrosEquipamento, ManutencaoInput, MudancaSituacao } from '../../shared/schemas';
 import { tipoPorId } from '../../shared/tipos-equipamento';
 import type { ContextoApp } from '../contexto';
 import { conflito, dadosInvalidos, invalido, naoEncontrado } from '../erros';
 import { alertasDoEquipamento } from '../repositorios/alertas';
-import { bairroExiste } from '../repositorios/bairros';
+import { bairroExiste, conferirPontoNoBairro } from '../repositorios/bairros';
 import * as repo from '../repositorios/equipamentos';
 import { concluirManutencao, inserirManutencao, manutencoesDoEquipamento, previstaEmAberto } from '../repositorios/manutencoes';
 import { dataLocal, somarDias } from '../tempo';
 
-type Base = Pick<ContextoApp, 'db' | 'relogio'> & Partial<Pick<ContextoApp, 'motor' | 'simulador' | 'barramento'>>;
+type Base = Pick<ContextoApp, 'db' | 'relogio' | 'geo'> & Partial<Pick<ContextoApp, 'motor' | 'simulador' | 'barramento'>>;
 
 const agoraIso = (ctx: Base) => ctx.relogio.agora().toISOString();
 
@@ -22,11 +22,39 @@ function exigirEquipamento(ctx: Base, id: number): Equipamento {
   return e;
 }
 
-function validarReferencias(ctx: Base, dados: Pick<EquipamentoInput, 'bairroId' | 'numeroSerie'>, ignorarId?: number): void {
+function validarReferencias(ctx: Base, dados: Pick<EquipamentoInput, 'bairroId' | 'numeroSerie' | 'lat' | 'lng'>, ignorarId?: number): void {
   if (!bairroExiste(ctx.db, dados.bairroId)) throw dadosInvalidos({ bairroId: 'Bairro não encontrado' });
+  // O bairro escolhido precisa conter o ponto: senão a ficha diz uma região e o marcador aparece em outra.
+  const foraDoBairro = conferirPontoNoBairro(ctx.db, ctx.geo, dados.bairroId, dados.lat, dados.lng);
+  if (foraDoBairro) throw invalido(foraDoBairro, { bairroId: foraDoBairro });
   if (repo.numeroSerieEmUso(ctx.db, dados.numeroSerie, ignorarId)) {
     throw conflito('Já existe equipamento com este número de série');
   }
+}
+
+/**
+ * Datas contra o relógio do contexto (a simulação pode acelerar o tempo, então nada de `new Date()` solto):
+ * instalar no futuro e "última manutenção" no futuro não existem. (Próxima antes da última é regra do schema.)
+ */
+function validarDatas(ctx: Base, dados: Pick<EquipamentoInput, 'instaladoEm' | 'ultimaManutencao'>): void {
+  const hoje = dataLocal(ctx.relogio.agora());
+  const campos: Record<string, string> = {};
+  if (dados.instaladoEm && dados.instaladoEm.slice(0, 10) > hoje) campos.instaladoEm = 'A data de instalação não pode estar no futuro';
+  if (dados.ultimaManutencao && dados.ultimaManutencao.slice(0, 10) > hoje) campos.ultimaManutencao = 'A última manutenção não pode estar no futuro';
+  if (Object.keys(campos).length) throw dadosInvalidos(campos);
+}
+
+/** "2 alertas e 1 manutenção" / "1 ocorrência, 2 alertas e 3 mudanças de situação". */
+function descreverVinculos(v: repo.VinculosDoEquipamento): string {
+  const partes: [number, string, string][] = [
+    [v.alertas, 'alerta', 'alertas'],
+    [v.ocorrencias, 'ocorrência', 'ocorrências'],
+    [v.manutencoes, 'manutenção', 'manutenções'],
+    [v.mudancasDeSituacao, 'mudança de situação', 'mudanças de situação'],
+    [v.agentes, 'agente vinculado', 'agentes vinculados'],
+  ];
+  const textos = partes.filter(([n]) => n > 0).map(([n, um, varios]) => `${n} ${n === 1 ? um : varios}`);
+  return textos.length > 1 ? `${textos.slice(0, -1).join(', ')} e ${textos[textos.length - 1]}` : (textos[0] ?? '');
 }
 
 export function detalheDoEquipamento(ctx: Base, id: number): EquipamentoDetalhe {
@@ -54,6 +82,11 @@ export function telemetria(ctx: Base, id: number, horas: number): PontoTelemetri
 }
 
 export function criarEquipamento(ctx: Base, dados: EquipamentoInput): EquipamentoDetalhe {
+  if (!(SITUACOES_INICIAIS as readonly SituacaoEquipamento[]).includes(dados.situacao)) {
+    const mensagem = `Situação inicial: escolha ${SITUACOES_INICIAIS.map((x) => ROTULO_SITUACAO[x]).join(', ')}. Furtado e desativado só depois, pela ficha, com motivo`;
+    throw invalido(mensagem, { situacao: mensagem });
+  }
+  validarDatas(ctx, dados);
   validarReferencias(ctx, dados);
   const agora = agoraIso(ctx);
   const id = ctx.db.transaction(() => {
@@ -77,6 +110,7 @@ export function atualizarEquipamento(ctx: Base, id: number, dados: EquipamentoEd
     const mensagem = 'O tipo do equipamento não pode ser alterado';
     throw invalido(mensagem, { tipo: mensagem });
   }
+  validarDatas(ctx, dados);
   validarReferencias(ctx, dados, id);
   repo.atualizarEquipamento(ctx.db, id, dados, agoraIso(ctx));
   ctx.simulador?.recarregar(); // bairro e ponto-base podem ter mudado
@@ -112,9 +146,8 @@ export function mudarSituacao(ctx: Base, id: number, m: MudancaSituacao): Equipa
 
 export function excluirEquipamento(ctx: Base, id: number): void {
   exigirEquipamento(ctx, id);
-  if (repo.contarVinculos(ctx.db, id) > 0) {
-    throw conflito("Este equipamento tem histórico. Use a situação 'Desativado' em vez de excluir.");
-  }
+  const vinculos = descreverVinculos(repo.vinculosDoEquipamento(ctx.db, id));
+  if (vinculos) throw conflito(`Este equipamento tem ${vinculos}. Use a situação 'Desativado' em vez de excluir.`);
   repo.removerEquipamento(ctx.db, id);
   ctx.simulador?.recarregar(); // sai da memória do simulador antes do próximo uso
 }

@@ -27,6 +27,7 @@ export function migrar(db: Database): void {
   if (!temColuna('equipamentos', 'cidade')) db.exec("ALTER TABLE equipamentos ADD COLUMN cidade TEXT NOT NULL DEFAULT 'Marília'");
   if (!temColuna('equipamentos', 'uf')) db.exec("ALTER TABLE equipamentos ADD COLUMN uf TEXT NOT NULL DEFAULT 'SP'");
   if (!temColuna('equipamentos', 'proxima_manutencao_historico')) db.exec('ALTER TABLE equipamentos ADD COLUMN proxima_manutencao_historico TEXT');
+  garantirSerieUnicaSemCaixa(db);
   converterTokensLegados(db);
 }
 
@@ -43,4 +44,25 @@ export function converterTokensLegados(db: Database): number {
     for (const l of legados) atualizar.run(hashTokenDispositivo(l.t), l.id);
   })();
   return legados.length;
+}
+
+/**
+ * Número de série único sem diferenciar maiúsculas de minúsculas ("REV-X" e "rev-x" são o mesmo). A restrição UNIQUE do
+ * schema é sensível à caixa e não dá para trocá-la num banco que já existe; então vai um índice único à parte. Bancos que
+ * já têm um par repetido (cadastrado antes da regra) não aceitariam o índice: o cadastro mais novo de cada par ganha o
+ * sufixo " (repetido <id>)" para o par deixar de colidir e ninguém perder registro. Seguro rodar a cada partida.
+ */
+export function garantirSerieUnicaSemCaixa(db: Database): number {
+  const repetidos = db
+    .prepare(
+      `SELECT id FROM equipamentos e WHERE EXISTS (
+         SELECT 1 FROM equipamentos o WHERE o.numero_serie = e.numero_serie COLLATE NOCASE AND o.id < e.id)`,
+    )
+    .all() as { id: number }[];
+  const renomear = db.prepare("UPDATE equipamentos SET numero_serie = numero_serie || ' (repetido ' || id || ')' WHERE id = ?");
+  db.transaction(() => {
+    for (const r of repetidos) renomear.run(r.id);
+    db.exec('CREATE UNIQUE INDEX IF NOT EXISTS ux_equipamentos_numero_serie_sem_caixa ON equipamentos(numero_serie COLLATE NOCASE)');
+  })();
+  return repetidos.length;
 }

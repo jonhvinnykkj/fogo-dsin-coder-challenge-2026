@@ -114,9 +114,9 @@ Código compartilhado entre servidor e interface fica em `shared/` (tipos, regra
 
 | Entidade | O que guarda |
 |---|---|
-| **equipamentos** | código legível (`FOGO-RAD-0007`), tipo (13), nº de série único, marca, modelo, órgão, **situação** (`operacional`, `mau_funcionamento`, `em_manutencao`, `desativado`, `furtado`, `nao_instalado`), endereço (CEP, logradouro, referência, bairro, cidade/UF), latitude/longitude, posição atual (móveis), último sinal, manutenção (necessidade, periodicidade, última e próxima data), características do tipo (JSON validado) |
+| **equipamentos** | código legível (`FOGO-RAD-0007`), tipo (13), nº de série único (sem diferenciar maiúsculas), marca, modelo, órgão, **situação** (`operacional`, `mau_funcionamento`, `em_manutencao`, `desativado`, `furtado`, `nao_instalado`; o cadastro só aceita nascer `nao_instalado`, `operacional` ou `em_manutencao`), endereço (CEP, logradouro, referência, bairro, cidade/UF), latitude/longitude (o ponto precisa cair no bairro escolhido, com 30 m de tolerância na divisa), posição atual (móveis), último sinal, manutenção (necessidade, periodicidade, última e próxima data), características do tipo (JSON validado) |
 | **historico_situacao** | cada mudança de situação, com motivo, data e origem (`historico` da semente ou `ao_vivo`, do simulador e da tela) |
-| **agentes** | nome, matrícula, categoria, órgão, situação (`em_servico`, `em_ocorrencia`, `pausa`, `fora_de_servico`), turno, base, posição, equipamento vinculado |
+| **agentes** | nome, matrícula, categoria, órgão, situação (`em_servico`, `em_ocorrencia`, `pausa`, `fora_de_servico`), turno, base (o ponto também precisa cair no bairro), posição, equipamento vinculado (só moto de agente ou viatura, e de um agente só) |
 | **bairros** | 65 bairros reais de Marília (OpenStreetMap): região (Centro/Norte/Sul/Leste/Oeste), centro e polígono |
 | **ocorrencias** | acidente, congestionamento, infração, furto/vandalismo, veículo quebrado, alagamento, segurança; gravidade, local, início/fim, origem (`historico`, `tempo_real`, `injetado`), agente e o peso no índice das regiões |
 | **telemetria_hora** | uma linha por equipamento e hora, com as métricas do tipo (fluxo, bateria, sinal…) |

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { equipamentoInputSchema, filtrosEquipamentoSchema, mudancaSituacaoSchema } from './schemas';
+import { dataExiste, equipamentoInputSchema, filtrosEquipamentoSchema, mudancaSituacaoSchema } from './schemas';
 
 const valido = {
   tipo: 'radar',
@@ -67,5 +67,32 @@ describe('outros schemas', () => {
     expect(f.porPagina).toBe(25);
     expect(filtrosEquipamentoSchema.safeParse({ porPagina: 101 }).success).toBe(false);
     expect(filtrosEquipamentoSchema.parse({ pagina: '2' }).pagina).toBe(2);
+  });
+});
+
+describe('datas e campos vazios', () => {
+  it('dataExiste: 30/02 e 31/04 não existem, 29/02 só em ano bissexto, e aceita hora depois da data', () => {
+    expect(dataExiste('2026-02-30')).toBe(false);
+    expect(dataExiste('2026-04-31')).toBe(false);
+    expect(dataExiste('2026-02-29')).toBe(false);
+    expect(dataExiste('2028-02-29')).toBe(true);
+    expect(dataExiste('2026-10-17T12:00:00.000Z')).toBe(true);
+    expect(dataExiste('2026-13-01')).toBe(false);
+  });
+  it('instalação impossível é recusada pelo schema', () => {
+    const r = equipamentoInputSchema.safeParse({ ...valido, instaladoEm: '2026-02-30' });
+    expect(erros(r)).toContain('Data de instalação: data inválida');
+  });
+  it('próxima manutenção antes da última é recusada', () => {
+    const r = equipamentoInputSchema.safeParse({ ...valido, manutencaoNecessidade: 'agendada', ultimaManutencao: '2026-10-10', proximaManutencao: '2026-10-09' });
+    expect(erros(r)).toContain('A próxima manutenção não pode ser anterior à última');
+  });
+  it('tipo, órgão e CEP vazios têm mensagem própria; valor errado continua "valor inválido"', () => {
+    const vazio = equipamentoInputSchema.safeParse({ ...valido, tipo: undefined, orgao: undefined, cep: '' });
+    expect(erros(vazio)).toEqual(expect.arrayContaining(['Escolha o tipo', 'Escolha o órgão', 'Informe o CEP']));
+    // As telas mostram a primeira mensagem de cada campo: a do CEP vazio é "Informe o CEP", não a do formato.
+    expect(vazio.success ? undefined : vazio.error.issues.find((i) => i.path[0] === 'cep')?.message).toBe('Informe o CEP');
+    const errado = equipamentoInputSchema.safeParse({ ...valido, tipo: 'x', orgao: 'y' });
+    expect(erros(errado)).toEqual(expect.arrayContaining(['Tipo: valor inválido', 'Órgão responsável: valor inválido']));
   });
 });

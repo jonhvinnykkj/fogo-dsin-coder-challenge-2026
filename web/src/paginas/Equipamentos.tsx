@@ -104,7 +104,7 @@ export default function Equipamentos() {
         <>
           {e.proximaManutencao ? formatarDia(e.proximaManutencao) : <span className={estilos.fraco}>Sem data</span>}
           {e.manutencaoNecessidade === 'imediata' && <span className={estilos.imediata}>Imediata</span>}
-          {e.proximaManutencao && e.proximaManutencao.slice(0, 10) < hoje && e.situacao !== 'desativado' && e.situacao !== 'nao_instalado' && <span className={estilos.atrasada}>Atrasada</span>}
+          {e.proximaManutencao && e.proximaManutencao.slice(0, 10) < hoje && e.situacao !== 'desativado' && e.situacao !== 'nao_instalado' && e.situacao !== 'furtado' && <span className={estilos.atrasada}>Atrasada</span>}
         </>
       ),
     },

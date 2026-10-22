@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import type { Database } from 'better-sqlite3';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { REGIOES, TURNOS } from '../../shared/dominio';
-import { dentroDeMarilia } from '../../shared/geo';
+import { dentroDeMarilia, pontoNoPoligonoComTolerancia, type Poligono } from '../../shared/geo';
 import { schemaCaracteristicas, type TipoEquipamentoId } from '../../shared/tipos-equipamento';
 import { AGORA_PADRAO, criarCtxDeTeste, type CtxDeTeste } from '../test/ctx';
 import { quedasDeSinal } from '../preditivo/base';
@@ -37,6 +37,28 @@ beforeAll(() => {
   b = criarCtxDeTeste();
   semear(b.db, { agora: AGORA, semente: SEMENTE_PADRAO, geo: b.geo });
 }, 120_000);
+
+describe('semear: a semente cumpre as regras de cadastro', () => {
+  it('todo equipamento e toda base de agente ficam dentro do bairro gravado (I4)', () => {
+    const poligonos = new Map((a.db.prepare('SELECT id, poligono FROM bairros').all() as { id: number; poligono: string }[]).map((b) => [b.id, JSON.parse(b.poligono) as Poligono]));
+    const fora = [
+      ...(a.db.prepare('SELECT codigo AS ref, bairro_id AS bairro, lat, lng FROM equipamentos').all() as { ref: string; bairro: number; lat: number; lng: number }[]),
+      ...(a.db.prepare('SELECT matricula AS ref, base_bairro_id AS bairro, lat, lng FROM agentes').all() as { ref: string; bairro: number; lat: number; lng: number }[]),
+    ].filter((l) => !pontoNoPoligonoComTolerancia(l.lat, l.lng, poligonos.get(l.bairro)!));
+    expect(fora).toEqual([]);
+  });
+
+  it('número de série único sem diferenciar caixa, veículos de agente só moto/viatura e um agente por veículo (D3, D4)', () => {
+    expect(n(a.db, 'SELECT COUNT(*) - COUNT(DISTINCT lower(numero_serie)) AS n FROM equipamentos')).toBe(0);
+    expect(n(a.db, "SELECT COUNT(*) AS n FROM agentes a JOIN equipamentos e ON e.id = a.equipamento_id WHERE e.tipo NOT IN ('moto_agente', 'viatura')")).toBe(0);
+    expect(n(a.db, 'SELECT COUNT(*) AS n FROM (SELECT equipamento_id FROM agentes WHERE equipamento_id IS NOT NULL GROUP BY equipamento_id HAVING COUNT(*) > 1)')).toBe(0);
+  });
+
+  it('nenhum equipamento tem instalação no futuro nem próxima manutenção anterior à última (D2)', () => {
+    expect(n(a.db, "SELECT COUNT(*) AS n FROM equipamentos WHERE instalado_em > ?", AGORA_PADRAO.slice(0, 10))).toBe(0);
+    expect(n(a.db, 'SELECT COUNT(*) AS n FROM equipamentos WHERE proxima_manutencao < ultima_manutencao')).toBe(0);
+  });
+});
 
 describe('semear', () => {
   it('cria a cidade num banco vazio: 300 a 400 equipamentos e 60 a 100 agentes', () => {

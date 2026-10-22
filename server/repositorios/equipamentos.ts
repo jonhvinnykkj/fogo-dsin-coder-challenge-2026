@@ -87,7 +87,8 @@ export function equipamentoPorId(db: Database, id: number): Equipamento | undefi
 }
 
 export function numeroSerieEmUso(db: Database, numeroSerie: string, ignorarId?: number): boolean {
-  return db.prepare('SELECT 1 FROM equipamentos WHERE numero_serie = ? AND id IS NOT ?').get(numeroSerie, ignorarId ?? null) !== undefined;
+  // Sem diferenciar maiúsculas de minúsculas: "REV-X" e "rev-x" são o mesmo número de série.
+  return db.prepare('SELECT 1 FROM equipamentos WHERE numero_serie = ? COLLATE NOCASE AND id IS NOT ?').get(numeroSerie, ignorarId ?? null) !== undefined;
 }
 
 /** Próximo número da sequência do código do tipo (FOGO-<sigla>-0001, 0002...). */
@@ -183,23 +184,36 @@ export function historicoDoEquipamento(db: Database, id: number): HistoricoSitua
   return linhas.map((l) => ({ id: l.id, equipamentoId: l.equipamento_id, de: l.de, para: l.para, motivo: l.motivo, em: l.em }));
 }
 
-/** Linhas de histórico (telemetria, alertas, agentes, ocorrências, manutenções, situação) ligadas ao equipamento. */
-export function contarVinculos(db: Database, id: number): number {
-  const linha = db
-    .prepare(
-      `SELECT (SELECT COUNT(*) FROM telemetria_hora WHERE equipamento_id = @id)
-            + (SELECT COUNT(*) FROM alertas WHERE equipamento_id = @id)
-            + (SELECT COUNT(*) FROM agentes WHERE equipamento_id = @id)
-            + (SELECT COUNT(*) FROM ocorrencias WHERE equipamento_id = @id)
-            + (SELECT COUNT(*) FROM manutencoes WHERE equipamento_id = @id)
-            + (SELECT COUNT(*) FROM historico_situacao WHERE equipamento_id = @id) AS n`,
-    )
-    .get({ id }) as { n: number };
-  return linha.n;
+export interface VinculosDoEquipamento {
+  alertas: number;
+  agentes: number;
+  ocorrencias: number;
+  manutencoes: number;
+  mudancasDeSituacao: number;
 }
 
+/**
+ * O que impede a exclusão: registros que pessoas ou o fluxo de trabalho criaram. A telemetria fica de fora de propósito:
+ * é dado de máquina, chega sozinha 2 s depois do cadastro e sai junto com o equipamento (`removerEquipamento`).
+ */
+export function vinculosDoEquipamento(db: Database, id: number): VinculosDoEquipamento {
+  return db
+    .prepare(
+      `SELECT (SELECT COUNT(*) FROM alertas WHERE equipamento_id = @id) AS alertas,
+              (SELECT COUNT(*) FROM agentes WHERE equipamento_id = @id) AS agentes,
+              (SELECT COUNT(*) FROM ocorrencias WHERE equipamento_id = @id) AS ocorrencias,
+              (SELECT COUNT(*) FROM manutencoes WHERE equipamento_id = @id) AS manutencoes,
+              (SELECT COUNT(*) FROM historico_situacao WHERE equipamento_id = @id) AS mudancasDeSituacao`,
+    )
+    .get({ id }) as VinculosDoEquipamento;
+}
+
+/** Apaga o equipamento e a telemetria dele (a chave estrangeira não deixaria apagar só o equipamento). */
 export function removerEquipamento(db: Database, id: number): void {
-  db.prepare('DELETE FROM equipamentos WHERE id = ?').run(id);
+  db.transaction(() => {
+    db.prepare('DELETE FROM telemetria_hora WHERE equipamento_id = ?').run(id);
+    db.prepare('DELETE FROM equipamentos WHERE id = ?').run(id);
+  })();
 }
 
 export function telemetriaDoEquipamento(db: Database, id: number, desdeIso: string): PontoTelemetria[] {
@@ -211,7 +225,8 @@ export function telemetriaDoEquipamento(db: Database, id: number, desdeIso: stri
 
 // ---- Listagem e filtros ----
 
-const ATIVO = "e.situacao NOT IN ('desativado', 'nao_instalado')";
+// Furtado também fica de fora: não há manutenção preventiva de um equipamento que não está com o órgão.
+const ATIVO = "e.situacao NOT IN ('desativado', 'nao_instalado', 'furtado')";
 
 type CriterioManutencao = 'imediata' | 'atrasada' | 'proxima' | 'proxima30';
 
@@ -268,7 +283,7 @@ export function painelManutencao(db: Database, hoje: string) {
 
 /** Situação de manutenção exibida no mapa. `hoje` = data local YYYY-MM-DD. Só equipamento ativo tem pendência. */
 export function situacaoDaManutencao(situacao: SituacaoEquipamento, necessidade: NecessidadeManutencao, proxima: string | null, hoje: string): SituacaoManutencao {
-  if (situacao === 'desativado' || situacao === 'nao_instalado') return 'ok';
+  if (situacao === 'desativado' || situacao === 'nao_instalado' || situacao === 'furtado') return 'ok';
   if (necessidade === 'imediata') return 'imediata';
   if (proxima !== null && proxima < hoje) return 'atrasada';
   if (proxima !== null && proxima <= somarDias(hoje, 7)) return 'proxima';

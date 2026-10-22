@@ -4,7 +4,7 @@ import { CaretLeft, FloppyDisk, Plus } from '@phosphor-icons/react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  NECESSIDADES_MANUTENCAO, ORGAOS, ROTULO_NECESSIDADE_MANUTENCAO, ROTULO_SITUACAO, SITUACOES_EQUIPAMENTO,
+  NECESSIDADES_MANUTENCAO, ORGAOS, ROTULO_NECESSIDADE_MANUTENCAO, ROTULO_SITUACAO, SITUACOES_EQUIPAMENTO, SITUACOES_INICIAIS,
 } from '../../../shared/dominio';
 import { CIDADE, UF, formatarCidadeUf } from '../../../shared/formato';
 import type { Equipamento } from '../../../shared/modelos';
@@ -320,11 +320,11 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
             <Campo
               rotulo="Situação"
               erro={erros.situacao}
-              ajuda={editando ? 'Para mudar a situação, use "Mudar situação" na ficha: ela fica registrada no histórico.' : undefined}
+              ajuda={editando ? 'Para mudar a situação, use "Mudar situação" na ficha: ela fica registrada no histórico.' : 'Furtado e desativado só depois, pela ficha, com motivo.'}
             >
               {(p) => (
                 <select {...p} value={estado.situacao} disabled={editando} onChange={(e) => definir('situacao', e.target.value)}>
-                  {SITUACOES_EQUIPAMENTO.map((s) => <option key={s} value={s}>{ROTULO_SITUACAO[s]}</option>)}
+                  {(editando ? SITUACOES_EQUIPAMENTO : SITUACOES_INICIAIS).map((s) => <option key={s} value={s}>{ROTULO_SITUACAO[s]}</option>)}
                 </select>
               )}
             </Campo>
