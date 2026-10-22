@@ -12,3 +12,5 @@ test-results
 video/node_modules/
 video/out/
 video/public/gravacoes/
+__pycache__/
+*.pyc
