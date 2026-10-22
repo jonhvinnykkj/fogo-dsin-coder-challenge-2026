@@ -161,6 +161,13 @@ describe('POST /api/campo/agentes/:id/reportes', () => {
   const historico = (eq: number) => ctx.db.prepare('SELECT de, para, motivo, origem FROM historico_situacao WHERE equipamento_id = ? ORDER BY id').all(eq);
   const alertas = (eq: number) => ctx.db.prepare('SELECT tipo, criticidade, descricao FROM alertas WHERE equipamento_id = ? AND resolvido_em IS NULL').all(eq);
 
+  it('o relato de mau funcionamento põe a manutenção em imediata', async () => {
+    const { id, eq } = await cenario();
+    expect(ctx.db.prepare('SELECT manutencao_necessidade AS m FROM equipamentos WHERE id = ?').get(eq)).not.toEqual({ m: 'imediata' });
+    await app.inject({ method: 'POST', url: url(id, '/reportes'), payload: { equipamentoId: eq, problema: 'mau_funcionamento' } });
+    expect(ctx.db.prepare('SELECT manutencao_necessidade AS m FROM equipamentos WHERE id = ?').get(eq)).toEqual({ m: 'imediata' });
+  });
+
   it('mau funcionamento: muda a situação (histórico com quem relatou e a observação) e abre o alerta de falha', async () => {
     const { id, eq } = await cenario();
     const r = await app.inject({ method: 'POST', url: url(id, '/reportes'), payload: { equipamentoId: eq, problema: 'mau_funcionamento', observacao: 'Tela apagada.' } });

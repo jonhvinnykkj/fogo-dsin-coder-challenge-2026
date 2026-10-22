@@ -28,6 +28,7 @@ export function migrar(db: Database): void {
   if (!temColuna('equipamentos', 'uf')) db.exec("ALTER TABLE equipamentos ADD COLUMN uf TEXT NOT NULL DEFAULT 'SP'");
   if (!temColuna('equipamentos', 'proxima_manutencao_historico')) db.exec('ALTER TABLE equipamentos ADD COLUMN proxima_manutencao_historico TEXT');
   garantirSerieUnicaSemCaixa(db);
+  garantirImediataNoMauFuncionamento(db);
   converterTokensLegados(db);
 }
 
@@ -65,4 +66,19 @@ export function garantirSerieUnicaSemCaixa(db: Database): number {
     db.exec('CREATE UNIQUE INDEX IF NOT EXISTS ux_equipamentos_numero_serie_sem_caixa ON equipamentos(numero_serie COLLATE NOCASE)');
   })();
   return repetidos.length;
+}
+
+/**
+ * Equipamento em mau funcionamento precisa de manutenção imediata (o exemplo do enunciado). A regra vale daqui para a frente
+ * em `gravarSituacao`; esta passada única corrige o banco que já existia (cadastrado ou semeado antes dela). Roda uma só vez
+ * (marca em `meta`), para não desfazer, a cada partida, uma escolha que o gestor fez depois pelo formulário.
+ */
+export function garantirImediataNoMauFuncionamento(db: Database): number {
+  const feito = db.prepare("SELECT 1 FROM meta WHERE chave = 'mau_funcionamento_imediata'").get();
+  if (feito) return 0;
+  return db.transaction(() => {
+    const n = db.prepare("UPDATE equipamentos SET manutencao_necessidade = 'imediata' WHERE situacao = 'mau_funcionamento' AND manutencao_necessidade <> 'imediata'").run().changes;
+    db.prepare("INSERT INTO meta (chave, valor) VALUES ('mau_funcionamento_imediata', '1')").run();
+    return n;
+  })();
 }

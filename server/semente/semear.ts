@@ -82,13 +82,15 @@ export function semear(db: Database, { agora, semente, geo }: OpcoesSemente): Re
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
     const ids = cidade.equipamentos.map((e, i) => {
       const l = linhas[i]!;
+      // Mau funcionamento sempre pede manutenção imediata (mesma regra de `gravarSituacao`), seja qual for o plano da linha do tempo.
+      const necessidade = e.situacao === 'mau_funcionamento' ? 'imediata' : l.necessidade;
       const periodicidade = l.necessidade === 'nenhuma' || l.necessidade === 'agendada' ? null : e.periodicidadeDias;
       const criado = e.criadoEm;
       const atualizado = l.atualizadoEm && l.atualizadoEm > criado ? l.atualizadoEm : criado;
       const proxima = l.necessidade === 'nenhuma' ? null : l.proximaManutencao;
       return Number(insEquipamento.run(
         e.codigo, e.tipo, e.numeroSerie, e.marca, e.modelo, e.orgao, e.situacao, e.cep, e.logradouro, e.referencia, e.bairro.id,
-        e.lat, e.lng, e.latAtual, e.lngAtual, l.necessidade, periodicidade, l.ultimaManutencao, proxima, JSON.stringify(e.caracteristicas),
+        e.lat, e.lng, e.latAtual, e.lngAtual, necessidade, periodicidade, l.ultimaManutencao, proxima, JSON.stringify(e.caracteristicas),
         e.instaladoEm ? dataLocal(e.instaladoEm) : null, iso(l.ultimoSinalEm), hashTokenDispositivo(e.token), criado.toISOString(), atualizado.toISOString(), proxima,
       ).lastInsertRowid);
     });

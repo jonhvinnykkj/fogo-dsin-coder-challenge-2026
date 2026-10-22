@@ -54,6 +54,11 @@ describe('semear: a semente cumpre as regras de cadastro', () => {
     expect(n(a.db, 'SELECT COUNT(*) AS n FROM (SELECT equipamento_id FROM agentes WHERE equipamento_id IS NOT NULL GROUP BY equipamento_id HAVING COUNT(*) > 1)')).toBe(0);
   });
 
+  it('todo equipamento em mau funcionamento tem manutenção imediata', () => {
+    expect(n(a.db, "SELECT COUNT(*) AS n FROM equipamentos WHERE situacao = 'mau_funcionamento'")).toBeGreaterThan(0);
+    expect(n(a.db, "SELECT COUNT(*) AS n FROM equipamentos WHERE situacao = 'mau_funcionamento' AND manutencao_necessidade <> 'imediata'")).toBe(0);
+  });
+
   it('nenhum equipamento tem instalação no futuro nem próxima manutenção anterior à última (D2)', () => {
     expect(n(a.db, "SELECT COUNT(*) AS n FROM equipamentos WHERE instalado_em > ?", AGORA_PADRAO.slice(0, 10))).toBe(0);
     expect(n(a.db, 'SELECT COUNT(*) AS n FROM equipamentos WHERE proxima_manutencao < ultima_manutencao')).toBe(0);

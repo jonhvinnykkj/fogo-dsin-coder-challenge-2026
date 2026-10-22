@@ -151,6 +151,9 @@ export function gravarSituacao(
   agora: string,
 ): void {
   db.prepare('UPDATE equipamentos SET situacao = ?, atualizado_em = ? WHERE id = ?').run(para, agora, id);
+  // Mau funcionamento pede manutenção imediata (o exemplo do enunciado): vale para a tela, a API, o relato do Modo Campo e a simulação.
+  // Só a necessidade muda; datas e periodicidade ficam, para o registro da manutenção reagendar a periódica.
+  if (para === 'mau_funcionamento') db.prepare("UPDATE equipamentos SET manutencao_necessidade = 'imediata' WHERE id = ?").run(id);
   // Toda mudança gravada por aqui é ao vivo (simulador ou tela): a semente grava as do histórico direto, com origem 'historico'.
   db.prepare("INSERT INTO historico_situacao (equipamento_id, de, para, motivo, em, origem) VALUES (?, ?, ?, ?, ?, 'ao_vivo')").run(id, de, para, motivo, agora);
 }
