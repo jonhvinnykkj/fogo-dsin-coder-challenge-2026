@@ -1,4 +1,4 @@
-// Quem está usando o Modo Campo neste aparelho. Sem login, como o resto do sistema: a escolha fica no localStorage.
+// Agente escolhido no Modo Campo por gestor ou operador (quem entra como agente usa o próprio): fica no localStorage.
 // Aba anônima ou armazenamento bloqueado: a escolha vale só enquanto a tela estiver aberta.
 
 export const CHAVE_AGENTE_CAMPO = 'fogo:campo:agente';

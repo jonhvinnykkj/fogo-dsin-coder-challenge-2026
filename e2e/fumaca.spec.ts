@@ -42,6 +42,22 @@ test('Equipamentos: a lista traz ao menos 10 linhas', async ({ page }) => {
   await expect.poll(() => page.locator('tbody tr').count()).toBeGreaterThanOrEqual(10);
 });
 
+test('Agente em campo: entra direto no próprio Modo Campo; somente consulta não o vê', async ({ page }) => {
+  await page.goto('/entrar');
+  await page.getByRole('button', { name: /^Agente em campo/ }).click();
+  await expect(page).toHaveURL(/\/campo$/);
+  await expect(page.getByRole('group', { name: 'Minha situação' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Quem é você?' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Trocar agente' })).toHaveCount(0);
+
+  await page.context().clearCookies();
+  await page.goto('/entrar');
+  await page.getByRole('button', { name: /^Somente consulta/ }).click();
+  await expect(page).not.toHaveURL(/\/entrar/);
+  await expect(page.getByRole('link', { name: 'Modo Campo' })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Boletim do dia' })).toBeVisible();
+});
+
 test('API: saúde responde', async ({ request }) => {
   const resposta = await request.get('/api/saude');
   expect(resposta.ok()).toBe(true);

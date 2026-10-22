@@ -2,7 +2,7 @@
 import { LockKey, SignIn, WarningCircle } from '@phosphor-icons/react';
 import { useState, type FormEvent } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { DESCRICAO_PAPEL, PAPEIS, ROTULO_PAPEL, type Papel } from '../../../shared/seguranca';
+import { DESCRICAO_PAPEL, PAPEIS, ROTULO_PAPEL, type Papel, type UsuarioSessao } from '../../../shared/seguranca';
 import { mensagemDeErro } from '../api/cliente';
 import { Botao } from '../componentes/Botao';
 import { Campo } from '../componentes/Campo';
@@ -13,20 +13,22 @@ export default function Entrar() {
   const { usuario, entrar, entrarDemo } = useSessao();
   const modo = useModoAcesso();
   const navegar = useNavigate();
-  const destino = (useLocation().state as { de?: string } | null)?.de ?? '/';
+  const de = (useLocation().state as { de?: string } | null)?.de;
+  /** Sem destino pedido, o agente vai para o Modo Campo (a tela dele); os demais, para a Central. */
+  const destinoDe = (papel: Papel) => de ?? (papel === 'agente' ? '/campo' : '/');
   const [login, setLogin] = useState('');
   const [senha, setSenha] = useState('');
   const [erro, setErro] = useState<string>();
   const [enviando, setEnviando] = useState<'senha' | Papel>();
 
-  if (usuario) return <Navigate to={destino} replace />;
+  if (usuario) return <Navigate to={destinoDe(usuario.papel)} replace />;
 
-  const executar = async (qual: 'senha' | Papel, acao: () => Promise<unknown>) => {
+  const executar = async (qual: 'senha' | Papel, acao: () => Promise<UsuarioSessao>) => {
     setErro(undefined);
     setEnviando(qual);
     try {
-      await acao();
-      navegar(destino, { replace: true });
+      const entrou = await acao();
+      navegar(destinoDe(entrou.papel), { replace: true });
     } catch (e) {
       setErro(mensagemDeErro(e));
       setEnviando(undefined);

@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CHAVE_AGENTE_CAMPO } from '../campo/agenteSalvo';
+import { SessaoProvider } from '../sessao/Sessao';
 import Campo from './Campo';
 
 /** EventSource falso: o teste decide quando chega um evento. Como no /api/stream, `data` é o evento inteiro (`{ tipo, dados }`). */
@@ -59,15 +60,10 @@ const chamadas = (metodo: string, trecho = '') =>
   fetchFalso.mock.calls.filter(([url, init]) => ((init as RequestInit | undefined)?.method ?? 'GET') === metodo && String(url).includes(trecho));
 const corpo = (c: unknown[]) => JSON.parse(String((c[1] as RequestInit).body)) as unknown;
 
-function renderizar() {
+function renderizar({ comSessao = false } = {}) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(
-    <QueryClientProvider client={qc}>
-      <MemoryRouter initialEntries={['/campo']}>
-        <Campo />
-      </MemoryRouter>
-    </QueryClientProvider>,
-  );
+  const tela = <MemoryRouter initialEntries={['/campo']}><Campo /></MemoryRouter>;
+  return render(<QueryClientProvider client={qc}>{comSessao ? <SessaoProvider>{tela}</SessaoProvider> : tela}</QueryClientProvider>);
 }
 
 beforeEach(() => {
@@ -79,6 +75,7 @@ beforeEach(() => {
   fetchFalso = vi.fn(async (url: string, init?: RequestInit) => {
     const u = String(url);
     const metodo = init?.method ?? 'GET';
+    if (metodo === 'GET' && u === '/api/auth/eu') return json({ usuario: { id: 3, login: 'agente', nome: 'Ana Souza', papel: 'agente', agenteId: 7 } });
     if (metodo === 'GET' && u.startsWith('/api/agentes?')) return json({ itens: [ANA, BRUNO], total: 2, pagina: 1, porPagina: 100 });
     if (metodo === 'GET' && u === '/api/agentes/7') return json(ANA);
     if (metodo === 'PATCH' && u === '/api/agentes/7/situacao') return json({ ...ANA, situacao: 'pausa' });
@@ -110,6 +107,14 @@ describe('Modo Campo', () => {
     await u.click(await screen.findByRole('button', { name: /Ana Souza/ }));
     expect(localStorage.getItem(CHAVE_AGENTE_CAMPO)).toBe('7');
     expect(await screen.findByRole('heading', { name: 'Ana Souza' })).toBeInTheDocument();
+  });
+
+  it('quem entrou como agente vê direto o próprio painel, sem escolher nem trocar', async () => {
+    localStorage.setItem(CHAVE_AGENTE_CAMPO, '8'); // escolha antiga de outra pessoa no aparelho: não vale para o agente logado
+    renderizar({ comSessao: true });
+    expect(await screen.findByRole('heading', { name: 'Ana Souza' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Quem é você?' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Trocar agente' })).not.toBeInTheDocument();
   });
 
   it('"Trocar agente" esquece a escolha e volta para a lista', async () => {

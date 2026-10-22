@@ -69,7 +69,7 @@ Tela de Previsões completa: [docs/telas/previsoes-topo.png](docs/telas/previsoe
 
 Abra **http://localhost:3333/campo** no celular (ou no navegador em 390 px), ou use "Modo Campo" no menu. É a outra ponta da Central: o gestor vê o agente no mapa, e o agente conta daqui o que acontece na rua.
 
-- **Quem sou eu**: o agente escolhe o próprio nome uma vez (sem login, como o resto do sistema); a escolha fica guardada no aparelho.
+- **Quem sou eu**: quem entra como **Agente em campo** cai direto no próprio painel (e só enxerga o próprio despacho: a API recusa o de outro agente). Gestor e operador também abrem o Modo Campo e escolhem um agente, para acompanhar ou demonstrar; essa escolha fica guardada no aparelho.
 - **Minha situação** em quatro botões grandes (em serviço, em ocorrência, pausa, fora de serviço), pela mesma rota da tela de Agentes.
 - **Despacho**: a ocorrência para a qual a Central o mandou, com rua, bairro e distância; **"Cheguei ao local"** e depois **"Concluir ocorrência"**, que encerra a ocorrência, fecha o alerta dela e o devolve para "em serviço".
 - **Perto de mim**: os 5 equipamentos mais próximos, com a situação de cada um; **"Relatar problema"** (mau funcionamento, furtado ou vandalizado, com observação) muda a situação e abre o alerta na Central pelo mesmo caminho da tela do gestor.

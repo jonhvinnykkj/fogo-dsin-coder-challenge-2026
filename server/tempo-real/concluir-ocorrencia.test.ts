@@ -3,7 +3,7 @@
 import type { FastifyInstance } from 'fastify';
 import { afterEach, describe, expect, it } from 'vitest';
 import type { EventoFogo } from '../../shared/modelos';
-import { criarApp } from '../app';
+import { criarAppDeTeste } from '../test/app';
 import { criarCtxDeTeste, type CtxDeTeste, type RelogioDeTeste } from '../test/ctx';
 import { inserirEquipamentoDeTeste } from '../test/fabricas';
 import { Simulador } from './simulador';
@@ -34,7 +34,7 @@ const ocorrenciaDaAna = (ctx: CtxDeTeste, ana: number) =>
 describe('Modo Campo × simulador', () => {
   it('depois de "concluída", o agente volta aos despachos na hora e o fim sorteado da ocorrência não acontece de novo', async () => {
     const { ctx, sim, ana } = cenario();
-    app = await criarApp(ctx);
+    app = await criarAppDeTeste(ctx);
     sim.passo();
     sim.injetar('congestionamento');
     const primeira = ocorrenciaDaAna(ctx, ana);

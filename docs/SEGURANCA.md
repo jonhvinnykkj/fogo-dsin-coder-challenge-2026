@@ -8,7 +8,7 @@ O F.O.G.O. mostra onde estão guardas e policiais, deixa marcar um equipamento c
 |---|---|---|
 | Qualquer pessoa usar a API | Toda rota de `/api` exige sessão, menos saúde, entrada e telemetria (que tem token próprio) | `server/seguranca/plugin.ts` (gancho `onRequest`), `server/seguranca/permissoes.ts` |
 | Pessoa logada fazer mais do que deve | Quatro papéis com permissão explícita por rota; rota nova sem regra é recusada a todos (falha fechado) | `server/seguranca/permissoes.ts` e o teste "toda rota de /api registrada tem regra" |
-| Agente mudar a situação de outro agente | O papel `agente` só altera o `:id` vinculado ao seu usuário | `SO_O_PROPRIO_AGENTE` em `permissoes.ts` |
+| Agente mudar a situação de outro agente ou mexer no despacho dele | O papel `agente` só altera a situação e usa o Modo Campo do `:id` vinculado ao seu usuário | `SO_O_PROPRIO_AGENTE` em `permissoes.ts` |
 | Senha vazar do banco | Só o hash **scrypt** (N=2^14, r=8, p=1) com sal aleatório de 16 bytes; comparação em tempo constante | `server/seguranca/cripto.ts` |
 | Adivinhar senha por força bruta | 10 tentativas por minuto por IP na entrada; mensagem igual para usuário inexistente e senha errada, e o mesmo custo de scrypt nos dois casos (o tempo de resposta não revela quem existe) | `plugin.ts` (`onRoute`), `server/rotas/auth.ts` (`HASH_FALSO`) |
 | Roubo de sessão por XSS | Cookie `httpOnly` (o JavaScript da página não o lê) + CSP que só executa scripts do próprio servidor | `opcoesDoCookie` e `helmet` em `plugin.ts` |
@@ -31,9 +31,9 @@ O F.O.G.O. mostra onde estão guardas e policiais, deixa marcar um equipamento c
 | Papel | Pode | Não pode |
 |---|---|---|
 | **Gestor** | Tudo: cadastrar, editar e excluir equipamentos e agentes, controlar a simulação, gerar token de dispositivo, ver a auditoria e os dados pessoais completos | — |
-| **Operador da central** | Ver tudo, reconhecer e resolver alertas, mudar a situação de equipamentos e agentes, registrar manutenção | Cadastrar, excluir, mexer na simulação, ver telefone e matrícula completos |
-| **Agente em campo** | Ver tudo e mudar a **própria** situação | O resto das escritas |
-| **Somente consulta** | Ver painéis, previsões e cadastros | Qualquer escrita; vê a posição dos agentes só de forma aproximada |
+| **Operador da central** | Ver tudo, reconhecer e resolver alertas, mudar a situação de equipamentos e agentes, registrar manutenção, abrir o Modo Campo de qualquer agente | Cadastrar, excluir, mexer na simulação, ver telefone e matrícula completos |
+| **Agente em campo** | Ver tudo, mudar a **própria** situação e usar o **próprio** Modo Campo (despacho, chegada, conclusão e relato de problema); ao entrar, vai direto para ele | O resto das escritas; o Modo Campo de outro agente |
+| **Somente consulta** | Ver painéis, previsões, cadastros e o Boletim do dia | Qualquer escrita e o Modo Campo; vê a posição dos agentes só de forma aproximada |
 
 A interface esconde o que o papel não pode usar, mas isso é só conforto: **quem decide é o servidor**, rota por rota. Um teste chama cada rota sensível com cada papel e confere o 403.
 

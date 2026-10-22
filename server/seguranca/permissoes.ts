@@ -52,6 +52,13 @@ export const REGRAS: Record<string, Regra> = {
   'POST /api/equipamentos/:id/manutencoes': OPERACAO,
   'PATCH /api/agentes/:id/situacao': OPERACAO_OU_PROPRIO_AGENTE,
 
+  // Modo Campo: o próprio agente, ou a operação (que escolhe um agente na tela)
+  'GET /api/campo/agentes/:id/despacho': OPERACAO_OU_PROPRIO_AGENTE,
+  'GET /api/campo/agentes/:id/equipamentos-proximos': OPERACAO_OU_PROPRIO_AGENTE,
+  'POST /api/campo/agentes/:id/despachos/:ocorrenciaId/chegada': OPERACAO_OU_PROPRIO_AGENTE,
+  'POST /api/campo/agentes/:id/despachos/:ocorrenciaId/conclusao': OPERACAO_OU_PROPRIO_AGENTE,
+  'POST /api/campo/agentes/:id/reportes': OPERACAO_OU_PROPRIO_AGENTE,
+
   // Gestão: cadastro, exclusão, simulação, segredos e auditoria
   'POST /api/equipamentos': GESTAO,
   'PUT /api/equipamentos/:id': GESTAO,
@@ -66,7 +73,14 @@ export const REGRAS: Record<string, Regra> = {
 };
 
 /** Rotas que o papel "agente" só pode chamar sobre si mesmo (`:id` = agente vinculado). */
-export const SO_O_PROPRIO_AGENTE = new Set(['PATCH /api/agentes/:id/situacao']);
+export const SO_O_PROPRIO_AGENTE = new Set([
+  'PATCH /api/agentes/:id/situacao',
+  'GET /api/campo/agentes/:id/despacho',
+  'GET /api/campo/agentes/:id/equipamentos-proximos',
+  'POST /api/campo/agentes/:id/despachos/:ocorrenciaId/chegada',
+  'POST /api/campo/agentes/:id/despachos/:ocorrenciaId/conclusao',
+  'POST /api/campo/agentes/:id/reportes',
+]);
 
 export const chaveDaRota = (metodo: string, rota: string) => `${metodo.toUpperCase()} ${rota}`;
 

@@ -170,7 +170,7 @@ export async function instalarSeguranca(app: FastifyInstance, opcoes: OpcoesSegu
       throw new ErroApi(403, `Seu perfil (${ROTULO_PAPEL[req.usuario.papel]}) não tem permissão para esta ação`);
     }
     if (req.usuario.papel === 'agente' && SO_O_PROPRIO_AGENTE.has(chave) && idDaUrl(req) !== req.usuario.agenteId) {
-      throw new ErroApi(403, 'Como agente, você só pode mudar a sua própria situação');
+      throw new ErroApi(403, 'Como agente, você só pode mudar a sua própria situação e usar o seu próprio Modo Campo');
     }
     if (!METODOS_SEGUROS.has(req.method)) conferirOrigem(req);
   });

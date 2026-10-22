@@ -31,7 +31,7 @@ export const ITENS_NAVEGACAO: ItemNavegacao[] = [
   { para: '/alertas', rotulo: 'Alertas', Icone: WarningDiamond },
   { para: '/previsoes', rotulo: 'Previsões', Icone: ChartLineUp },
   { para: '/boletim', rotulo: 'Boletim do dia', Icone: Newspaper },
-  { para: '/campo', rotulo: 'Modo Campo', Icone: DeviceMobile },
+  { para: '/campo', rotulo: 'Modo Campo', Icone: DeviceMobile, acao: 'usarCampo' },
   { para: '/auditoria', rotulo: 'Auditoria', Icone: ClockCounterClockwise, acao: 'auditar' },
 ];
 

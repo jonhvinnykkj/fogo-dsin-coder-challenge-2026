@@ -17,7 +17,8 @@ const VIBRACAO_DESPACHO = [200, 100, 200];
 
 interface Props {
   agenteId: number;
-  onTrocar: () => void;
+  /** Sem ele (quem entrou como o próprio agente), não há "Trocar agente". */
+  onTrocar?: () => void;
 }
 
 export function PainelDoAgente({ agenteId, onTrocar }: Props) {
@@ -36,7 +37,7 @@ export function PainelDoAgente({ agenteId, onTrocar }: Props) {
     return (
       <div className={estilos.coluna}>
         <AvisoErro erro={consulta.error} titulo="Não foi possível carregar seus dados" onTentarDeNovo={() => void consulta.refetch()} />
-        <Botao variante="secundario" icone={<UserSwitch weight="fill" size={20} aria-hidden="true" />} onClick={onTrocar}>Trocar agente</Botao>
+        {onTrocar && <Botao variante="secundario" icone={<UserSwitch weight="fill" size={20} aria-hidden="true" />} onClick={onTrocar}>Trocar agente</Botao>}
       </div>
     );
   }
@@ -55,9 +56,11 @@ export function PainelDoAgente({ agenteId, onTrocar }: Props) {
           </span>
         </div>
         <p className={estilos.suave}>{agente.matricula} · {ROTULO_CATEGORIA_AGENTE[agente.categoria]} · base {agente.baseBairroNome}</p>
-        <Botao variante="fantasma" tamanho="pequeno" icone={<UserSwitch weight="fill" size={18} aria-hidden="true" />} onClick={onTrocar}>
-          Trocar agente
-        </Botao>
+        {onTrocar && (
+          <Botao variante="fantasma" tamanho="pequeno" icone={<UserSwitch weight="fill" size={18} aria-hidden="true" />} onClick={onTrocar}>
+            Trocar agente
+          </Botao>
+        )}
       </section>
 
       <section aria-labelledby={idSituacao} className={estilos.secao}>

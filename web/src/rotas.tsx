@@ -87,9 +87,13 @@ export const rotas: RouteObject[] = [
     children: filhas,
   },
   // Boletim do dia: folha para imprimir, fora da casca (na impressão sai só a folha, sem o menu).
-  { path: '/boletim', element: <Carregando><Boletim /></Carregando>, errorElement: <ErroDeRota /> },
-  // Modo Campo: celular do agente na rua, fora da casca do gestor (sem menu lateral).
-  { path: '/campo', element: <Carregando><Campo /></Carregando>, errorElement: <ErroDeRota /> },
+  { path: '/boletim', element: <ExigeSessao><Carregando><Boletim /></Carregando></ExigeSessao>, errorElement: <ErroDeRota /> },
+  // Modo Campo: celular do agente na rua, fora da casca do gestor (sem menu lateral). Tem o próprio ouvinte do tempo real.
+  {
+    path: '/campo',
+    element: <ExigeSessao><ExigePermissao acao="usarCampo"><Carregando><Campo /></Carregando></ExigePermissao></ExigeSessao>,
+    errorElement: <ErroDeRota />,
+  },
 ];
 
 export function criarRoteador() {

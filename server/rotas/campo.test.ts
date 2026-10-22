@@ -2,8 +2,8 @@
 import type { FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { EventoFogo, Ocorrencia } from '../../shared/modelos';
-import { criarApp } from '../app';
 import { inserirOcorrencia } from '../repositorios/ocorrencias';
+import { criarAppDeTeste, entrarComo } from '../test/app';
 import { criarCtxDeTeste, type CtxDeTeste } from '../test/ctx';
 import { corpoAgente, inserirEquipamentoDeTeste } from '../test/fabricas';
 
@@ -14,7 +14,7 @@ let bairro: { id: number; nome: string; lat: number; lng: number };
 
 beforeEach(async () => {
   ctx = criarCtxDeTeste();
-  app = await criarApp(ctx);
+  app = await criarAppDeTeste(ctx);
   eventos = [];
   ctx.barramento.assinar((e) => eventos.push(e));
   bairro = ctx.db.prepare('SELECT id, nome, lat, lng FROM bairros ORDER BY id LIMIT 1').get() as typeof bairro;
@@ -221,6 +221,34 @@ describe('POST /api/campo/agentes/:id/reportes', () => {
     const r2 = await app.inject({ method: 'POST', url: url(id, '/reportes'), payload: { equipamentoId: furtado, problema: 'vandalizado' } });
     expect(r2.statusCode).toBe(400);
     expect(r2.json()).toEqual({ erro: 'Este equipamento consta como furtado. Se ele foi encontrado, registre a recuperação na ficha do equipamento' });
+  });
+});
+
+describe('permissões do Modo Campo', () => {
+  it('o agente usa só o próprio Modo Campo; somente consulta e quem não entrou ficam de fora', async () => {
+    const meu = await novoAgente({ matricula: 'AT-0001' });
+    const outro = await novoAgente({ matricula: 'AT-0002' });
+    const o = despachar(outro);
+    const equipamentoId = inserirEquipamentoDeTeste(ctx, { tipo: 'radar', codigo: 'FOGO-RAD-0100' });
+    const comCookie = (cookie: string, method: 'GET' | 'POST', caminho: string, payload?: object) =>
+      app.inject({ method, url: caminho, headers: { cookie }, ...(payload && { payload }) });
+
+    const agente = entrarComo(ctx, 'agente', meu);
+    expect((await comCookie(agente, 'GET', url(meu, '/despacho'))).statusCode).toBe(200);
+    expect((await comCookie(agente, 'GET', url(meu, '/equipamentos-proximos'))).statusCode).toBe(200);
+    const alheio = await comCookie(agente, 'GET', url(outro, '/despacho'));
+    expect(alheio.statusCode).toBe(403);
+    expect(alheio.json().erro).toMatch(/próprio Modo Campo/);
+    expect((await comCookie(agente, 'POST', url(outro, `/despachos/${o.id}/chegada`))).statusCode).toBe(403);
+    expect((await comCookie(agente, 'POST', url(outro, '/reportes'), { equipamentoId, problema: 'furtado' })).statusCode).toBe(403);
+
+    // A operação acompanha qualquer agente (a tela deixa escolher um).
+    expect((await comCookie(entrarComo(ctx, 'operador'), 'GET', url(outro, '/despacho'))).statusCode).toBe(200);
+
+    const consulta = entrarComo(ctx, 'leitura');
+    expect((await comCookie(consulta, 'GET', url(meu, '/despacho'))).statusCode).toBe(403);
+    expect((await comCookie(consulta, 'POST', url(meu, '/reportes'), { equipamentoId, problema: 'furtado' })).statusCode).toBe(403);
+    expect((await comCookie('', 'GET', url(meu, '/despacho'))).statusCode).toBe(401);
   });
 });
 
