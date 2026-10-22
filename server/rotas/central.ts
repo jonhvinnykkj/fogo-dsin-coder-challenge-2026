@@ -6,7 +6,8 @@ const tags = ['Central'];
 
 const FILTROS =
   'Filtros: `tipo` e `situacao` (repetidos ou separados por vírgula), `bairroId`, `regiao`, `orgao`, `manutencao` (ok|proxima|imediata|atrasada). ' +
-  'Agentes respondem só a `bairroId`, `regiao` e `orgao`.';
+  'Só de agente: `categoriaAgente` (agente_transito|guarda_municipal|policial_militar) e `situacaoAgente` (em_servico|em_ocorrencia|pausa|fora_de_servico), também repetidos ou separados por vírgula. ' +
+  'Agentes respondem a `bairroId` (a base do agente), `regiao`, `orgao`, `categoriaAgente` e `situacaoAgente`; `tipo`, `situacao` e `manutencao` valem só para equipamentos.';
 
 export async function rotasCentral(app: FastifyInstance): Promise<void> {
   const ctx = app.ctx;

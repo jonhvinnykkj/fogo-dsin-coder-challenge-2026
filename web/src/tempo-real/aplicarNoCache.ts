@@ -33,8 +33,10 @@ export function equipamentoAtende(e: EquipamentoMapa, f: Partial<FiltrosCentral>
   return true;
 }
 
-/** Agentes só respondem a bairro, região e órgão. O órgão não vem no evento: nesse caso só atualiza quem já está na lista. */
-function agenteAtende(a: AgenteMapa, f: Partial<FiltrosCentral>, regiao: (id: number) => Regiao | undefined): boolean | 'so-atualizar' {
+/** Agentes respondem a bairro, região, órgão, categoria e situação do agente. O órgão não vem no evento: nesse caso só atualiza quem já está na lista. */
+export function agenteAtende(a: AgenteMapa, f: Partial<FiltrosCentral>, regiao: (id: number) => Regiao | undefined): boolean | 'so-atualizar' {
+  if (f.categoriaAgente?.length && !f.categoriaAgente.includes(a.categoria)) return false;
+  if (f.situacaoAgente?.length && !f.situacaoAgente.includes(a.situacao)) return false;
   if (f.bairroId && a.bairroId !== f.bairroId) return false;
   if (f.regiao) {
     const r = regiao(a.bairroId);

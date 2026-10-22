@@ -10,7 +10,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  COR_CRITICIDADE, COR_SITUACAO, ORGAOS, REGIOES, ROTULO_SITUACAO, SITUACOES_EQUIPAMENTO,
+  CATEGORIAS_AGENTE, COR_CRITICIDADE, COR_SITUACAO, ORGAOS, REGIOES, ROTULO_CATEGORIA_AGENTE, ROTULO_SITUACAO, ROTULO_SITUACAO_AGENTE,
+  SITUACOES_AGENTE, SITUACOES_EQUIPAMENTO,
 } from '../../../shared/dominio';
 import { formatarNumero } from '../../../shared/formato';
 import type { Alerta } from '../../../shared/modelos';
@@ -33,6 +34,12 @@ import estilos from './Central.module.css';
 const LIMITE_ALERTAS = 200;
 
 // ------------------------------------------------------------------------------------------------ filtros na URL
+
+const GRUPO_AMBOS = 'Equipamentos e agentes';
+const GRUPO_EQUIPAMENTOS = 'Só equipamentos';
+const GRUPO_AGENTES = 'Só agentes';
+/** Fora de serviço não aparece no mapa, então não vira opção de filtro (a API aceita). */
+const SITUACOES_AGENTE_NO_MAPA = SITUACOES_AGENTE.filter((s) => s !== 'fora_de_servico');
 
 const ROTULO_MANUTENCAO: Record<string, string> = { imediata: 'Manutenção imediata', proxima: 'Manutenção nos próximos 7 dias', atrasada: 'Manutenção atrasada' };
 
@@ -208,20 +215,25 @@ export default function Central() {
       .filter((b) => !filtros.regiao || b.regiao === filtros.regiao)
       .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
     return [
-      { tipo: 'pilulas', chave: 'situacao', rotulo: 'Situação', opcoes: SITUACOES_EQUIPAMENTO.map((s) => ({ valor: s, rotulo: ROTULO_SITUACAO[s], cor: COR_SITUACAO[s] })) },
-      { tipo: 'selecao', chave: 'tipo', rotulo: 'Tipo', rotuloTodos: 'Todos', opcoes: TIPOS_EQUIPAMENTO.map((t) => ({ valor: t.id, rotulo: rotuloCurtoDoTipo(t.id) })) },
-      { tipo: 'selecao', chave: 'regiao', rotulo: 'Região', rotuloTodos: 'Todas', opcoes: REGIOES.map((r) => ({ valor: r, rotulo: r })) },
-      { tipo: 'selecao', chave: 'bairroId', rotulo: 'Bairro', rotuloTodos: 'Todos', opcoes: listaBairros.map((b) => ({ valor: String(b.id), rotulo: b.nome })) },
-      { tipo: 'selecao', chave: 'orgao', rotulo: 'Órgão', rotuloTodos: 'Todos', opcoes: ORGAOS.map((o) => ({ valor: o, rotulo: o })) },
+      // Cada grupo diz o que afeta: o recorte do lugar vale para os dois; o resto, só para o que o nome diz.
+      { grupo: GRUPO_AMBOS, tipo: 'selecao', chave: 'regiao', rotulo: 'Região', rotuloTodos: 'Todas', opcoes: REGIOES.map((r) => ({ valor: r, rotulo: r })) },
+      { grupo: GRUPO_AMBOS, tipo: 'selecao', chave: 'bairroId', rotulo: 'Bairro', rotuloTodos: 'Todos', opcoes: listaBairros.map((b) => ({ valor: String(b.id), rotulo: b.nome })) },
+      { grupo: GRUPO_AMBOS, tipo: 'selecao', chave: 'orgao', rotulo: 'Órgão', rotuloTodos: 'Todos', opcoes: ORGAOS.map((o) => ({ valor: o, rotulo: o })) },
+      { grupo: GRUPO_EQUIPAMENTOS, tipo: 'pilulas', chave: 'situacao', rotulo: 'Situação do equipamento', opcoes: SITUACOES_EQUIPAMENTO.map((s) => ({ valor: s, rotulo: ROTULO_SITUACAO[s], cor: COR_SITUACAO[s] })) },
+      { grupo: GRUPO_EQUIPAMENTOS, tipo: 'selecao', chave: 'tipo', rotulo: 'Tipo', rotuloTodos: 'Todos', opcoes: TIPOS_EQUIPAMENTO.map((t) => ({ valor: t.id, rotulo: rotuloCurtoDoTipo(t.id) })) },
       {
-        tipo: 'selecao', chave: 'manutencao', rotulo: 'Manutenção', rotuloTodos: 'Qualquer',
+        grupo: GRUPO_EQUIPAMENTOS, tipo: 'selecao', chave: 'manutencao', rotulo: 'Manutenção', rotuloTodos: 'Qualquer',
         opcoes: [{ valor: 'imediata', rotulo: 'Imediata' }, { valor: 'proxima', rotulo: 'Próximos 7 dias' }, { valor: 'atrasada', rotulo: 'Atrasada' }],
       },
+      { grupo: GRUPO_AGENTES, tipo: 'pilulas', chave: 'categoriaAgente', rotulo: 'Categoria do agente', opcoes: CATEGORIAS_AGENTE.map((c) => ({ valor: c, rotulo: ROTULO_CATEGORIA_AGENTE[c] })) },
+      { grupo: GRUPO_AGENTES, tipo: 'pilulas', chave: 'situacaoAgente', rotulo: 'Situação do agente', opcoes: SITUACOES_AGENTE_NO_MAPA.map((s) => ({ valor: s, rotulo: ROTULO_SITUACAO_AGENTE[s] })) },
     ];
   }, [bairros.data, filtros.regiao]);
 
   const valores: Record<string, ValorFiltro> = {
     situacao: filtros.situacao,
+    categoriaAgente: filtros.categoriaAgente,
+    situacaoAgente: filtros.situacaoAgente,
     tipo: filtros.tipo?.[0],
     regiao: filtros.regiao,
     bairroId: filtros.bairroId ? String(filtros.bairroId) : undefined,
@@ -233,6 +245,8 @@ export default function Central() {
     ? [
         ...(filtros.situacao ?? []).map((s) => ROTULO_SITUACAO[s]),
         ...(filtros.tipo ?? []).map((t) => rotuloCurtoDoTipo(t)),
+        ...(filtros.categoriaAgente ?? []).map((c) => ROTULO_CATEGORIA_AGENTE[c]),
+        ...(filtros.situacaoAgente ?? []).map((s) => `Agente ${ROTULO_SITUACAO_AGENTE[s].toLowerCase()}`),
         filtros.regiao && `Região ${filtros.regiao}`,
         filtros.bairroId && nomeDoBairro(filtros.bairroId),
         filtros.orgao,
@@ -319,6 +333,10 @@ export default function Central() {
           {filtrosAbertos && (
             <div id="filtros-central" className={estilos.filtros}>
               <BarraFiltros filtros={definicoes} valores={valores} onChange={mudarFiltro} onLimpar={() => setParams({}, { replace: true })} />
+              <p className={estilos.ajudaFiltros}>
+                Região, bairro e órgão valem para equipamentos e agentes (do agente, conta a base). Situação, tipo e manutenção
+                escondem só equipamentos; categoria e situação do agente, só agentes.
+              </p>
             </div>
           )}
 
