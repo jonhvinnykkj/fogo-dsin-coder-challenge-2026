@@ -1,5 +1,5 @@
 // Tabela densa com cabeçalho em degrau de tom, linhas zebradas (sem bordas finas), estado carregando/vazio e paginação.
-import { CaretLeft, CaretRight } from '@phosphor-icons/react';
+import { CaretDown, CaretLeft, CaretRight, CaretUp } from '@phosphor-icons/react';
 import type { KeyboardEvent, ReactNode } from 'react';
 import { formatarNumero } from '../../../shared/formato';
 import { Botao } from './Botao';
@@ -15,6 +15,14 @@ export interface Coluna<T> {
   esconderNoCelular?: boolean;
   /** Não quebra a linha (códigos como FOGO-RAD-0001). */
   semQuebra?: boolean;
+  /** O cabeçalho vira botão que ordena por esta coluna (a chave da coluna é a que sobe em `ordem.onMudar`). */
+  ordenavel?: boolean;
+}
+
+export interface Ordem {
+  chave: string;
+  direcao: 'asc' | 'desc';
+  onMudar: (chave: string) => void;
 }
 
 export interface Paginacao {
@@ -34,11 +42,12 @@ interface Props<T> {
   carregando?: boolean;
   vazio?: ReactNode;
   paginacao?: Paginacao;
+  ordem?: Ordem;
 }
 
 const LINHAS_CARREGANDO = 6;
 
-export function Tabela<T>({ colunas, linhas, chaveLinha, legenda, onLinha, carregando = false, vazio, paginacao }: Props<T>) {
+export function Tabela<T>({ colunas, linhas, chaveLinha, legenda, onLinha, carregando = false, vazio, paginacao, ordem }: Props<T>) {
   const classeCelula = (c: Coluna<T>) =>
     [estilos[c.alinhar ?? 'esquerda'], c.esconderNoCelular ? estilos.esconderNoCelular : '', c.semQuebra ? estilos.semQuebra : ''].filter(Boolean).join(' ');
 
@@ -59,8 +68,19 @@ export function Tabela<T>({ colunas, linhas, chaveLinha, legenda, onLinha, carre
           <thead>
             <tr>
               {colunas.map((c) => (
-                <th key={c.chave} scope="col" className={classeCelula(c)} style={c.largura ? { width: c.largura } : undefined}>
-                  {c.titulo}
+                <th
+                  key={c.chave}
+                  scope="col"
+                  className={classeCelula(c)}
+                  style={c.largura ? { width: c.largura } : undefined}
+                  aria-sort={ordem && c.ordenavel && ordem.chave === c.chave ? (ordem.direcao === 'asc' ? 'ascending' : 'descending') : undefined}
+                >
+                  {ordem && c.ordenavel ? (
+                    <button type="button" className={estilos.ordenar} onClick={() => ordem.onMudar(c.chave)}>
+                      {c.titulo}
+                      {ordem.chave === c.chave && (ordem.direcao === 'asc' ? <CaretUp weight="fill" size={12} aria-hidden="true" /> : <CaretDown weight="fill" size={12} aria-hidden="true" />)}
+                    </button>
+                  ) : c.titulo}
                 </th>
               ))}
             </tr>

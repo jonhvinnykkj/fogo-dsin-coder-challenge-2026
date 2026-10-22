@@ -1,13 +1,13 @@
 // Lista de agentes (trânsito, guarda municipal, policial militar): busca, filtros na URL e paginação.
 import { IdentificationBadge, Plus } from '@phosphor-icons/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  CATEGORIAS_AGENTE, COR_SITUACAO_AGENTE, ORGAOS, REGIOES, ROTULO_CATEGORIA_AGENTE, ROTULO_SITUACAO_AGENTE, ROTULO_TURNO, SITUACOES_AGENTE, TURNOS,
+  CATEGORIAS_AGENTE, COR_SITUACAO_AGENTE, ORGAOS_DE_AGENTE, REGIOES, ROTULO_CATEGORIA_AGENTE, ROTULO_SITUACAO_AGENTE, ROTULO_TURNO, SITUACOES_AGENTE, TURNOS,
 } from '../../../shared/dominio';
 import { formatarNumero, formatarRelativo } from '../../../shared/formato';
 import type { Agente } from '../../../shared/modelos';
-import type { FiltrosAgente } from '../../../shared/schemas';
+import { filtrosAgenteSchema, type FiltrosAgente } from '../../../shared/schemas';
 import { useAgentes, useBairros } from '../api/consultas';
 import { AvisoErro } from '../componentes/AvisoErro';
 import { BarraFiltros, type DefinicaoFiltro, type ValorFiltro } from '../componentes/BarraFiltros';
@@ -15,8 +15,7 @@ import { classeBotao } from '../componentes/Botao';
 import { EstadoVazio } from '../componentes/EstadoVazio';
 import { EtiquetaSituacaoAgente } from '../componentes/EtiquetaSituacaoAgente';
 import { Tabela, type Coluna } from '../componentes/Tabela';
-import { useAtraso } from '../util/useAtraso';
-import { useFiltrosUrl } from '../util/useFiltrosUrl';
+import { useBuscaNaUrl, useCorrigirPagina, useFiltrosUrl } from '../util/useFiltrosUrl';
 import estilos from './Lista.module.css';
 import { usePode } from '../sessao/Sessao';
 
@@ -26,17 +25,11 @@ const CHAVES_FILTRO = ['categoria', 'situacao', 'turno', 'regiao', 'bairroId', '
 export default function Agentes() {
   const podeCadastrar = usePode('cadastrar');
   const navegar = useNavigate();
-  const url = useFiltrosUrl();
+  const url = useFiltrosUrl(filtrosAgenteSchema);
   const bairros = useBairros();
+  const [texto, setTexto] = useBuscaNaUrl(url);
 
-  const [texto, setTexto] = useState(url.ler('busca') ?? '');
-  const textoEsperado = useAtraso(texto, 300);
-  useEffect(() => {
-    if (textoEsperado.trim() !== (url.ler('busca') ?? '')) url.mudar('busca', textoEsperado.trim() || undefined);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [textoEsperado]);
-
-  const pagina = Math.max(1, Number(url.ler('pagina')) || 1);
+  const pagina = Number(url.ler('pagina')) || 1;
   const lista = useAgentes({
     busca: url.ler('busca'),
     categoria: url.ler('categoria'),
@@ -48,6 +41,7 @@ export default function Agentes() {
     pagina,
     porPagina: POR_PAGINA,
   } as Partial<FiltrosAgente>);
+  useCorrigirPagina(url, pagina, lista.data?.total, POR_PAGINA);
 
   const definicoes = useMemo<DefinicaoFiltro[]>(() => [
     { tipo: 'selecao', chave: 'categoria', rotulo: 'Categoria', rotuloTodos: 'Todas', opcoes: CATEGORIAS_AGENTE.map((c) => ({ valor: c, rotulo: ROTULO_CATEGORIA_AGENTE[c] })) },
@@ -58,7 +52,7 @@ export default function Agentes() {
       tipo: 'selecao', chave: 'bairroId', rotulo: 'Bairro da base', rotuloTodos: 'Todos',
       opcoes: [...(bairros.data ?? [])].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map((b) => ({ valor: String(b.id), rotulo: b.nome })),
     },
-    { tipo: 'selecao', chave: 'orgao', rotulo: 'Órgão', rotuloTodos: 'Todos', opcoes: ORGAOS.map((o) => ({ valor: o, rotulo: o })) },
+    { tipo: 'selecao', chave: 'orgao', rotulo: 'Órgão', rotuloTodos: 'Todos', opcoes: ORGAOS_DE_AGENTE.map((o) => ({ valor: o, rotulo: o })) },
   ], [bairros.data]);
   const valores: Record<string, ValorFiltro> = Object.fromEntries(CHAVES_FILTRO.map((c) => [c, url.ler(c)]));
 
@@ -124,7 +118,7 @@ export default function Agentes() {
           chaveLinha={(a) => a.id}
           carregando={lista.isPending}
           onLinha={(a) => navegar(`/agentes/${a.id}`)}
-          vazio={<EstadoVazio icone={<IdentificationBadge weight="fill" />} titulo="Nenhum agente encontrado" descricao={url.temAlgum || texto ? 'Nenhum agente combina com a busca e os filtros. Tente tirar algum filtro.' : 'Ainda não há agentes cadastrados.'} />}
+          vazio={<EstadoVazio icone={<IdentificationBadge weight="fill" />} titulo="Nenhum agente encontrado" descricao={total ? 'Esta página não existe: indo para a última.' : url.temAlgum || texto ? 'Nenhum agente combina com a busca e os filtros. Tente tirar algum filtro.' : 'Ainda não há agentes cadastrados.'} />}
           paginacao={total !== undefined ? { pagina, porPagina: POR_PAGINA, total, onMudar: (p) => url.mudar('pagina', p > 1 ? String(p) : undefined) } : undefined}
         />
       )}

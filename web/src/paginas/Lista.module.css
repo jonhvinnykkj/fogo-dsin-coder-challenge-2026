@@ -82,6 +82,13 @@
 }
 
 @media (max-width: 720px) {
+  /* Alvo de toque de 44 px no link do código/nome (a linha toda também abre a ficha). */
+  .codigo {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
   .soCelular {
     display: block;
   }

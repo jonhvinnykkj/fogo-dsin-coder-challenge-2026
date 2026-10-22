@@ -175,3 +175,16 @@
     gap: 3px;
   }
 }
+
+/* Celular: busca, filtros e botões com alvo de toque de 44 px. */
+@media (max-width: 720px) {
+  .busca,
+  .selecao {
+    height: 44px;
+  }
+
+  .pilula,
+  .barra > button {
+    min-height: 44px;
+  }
+}

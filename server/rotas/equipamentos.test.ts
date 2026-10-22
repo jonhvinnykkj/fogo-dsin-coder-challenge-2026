@@ -590,10 +590,12 @@ describe('correções do inventário (rodada 2)', () => {
     });
     const ids = (r: { itens: { id: number }[] }) => r.itens.map((e) => e.id);
     expect(ids(await lista('ordem=tipo'))).toEqual([camera.id, radar.id]); // "Câmera..." antes de "Radar..."
-    expect(ids(await lista('ordem=tipo&direcao=desc'))).toEqual([radar.id, camera.id]);
-    expect(ids(await lista('ordem=codigo&direcao=desc'))).toEqual([radar.id, camera.id]); // CAM < RAD
+    const cancela = await criarOk({ numeroSerie: 'O-3', tipo: 'cancela', caracteristicas: { tipoAcesso: 'tag', local: 'terminal' } });
+    expect(ids(await lista('ordem=tipo'))).toEqual([camera.id, cancela.id, radar.id]); // "Câmera" (acento) antes de "Cancela", como na tela
+    expect(ids(await lista('ordem=tipo&direcao=desc'))).toEqual([radar.id, cancela.id, camera.id]);
+    expect(ids(await lista('ordem=codigo&direcao=desc'))).toEqual([radar.id, cancela.id, camera.id]); // RAD > CAN > CAM
     ctx.db.prepare("UPDATE equipamentos SET situacao = 'em_manutencao' WHERE id = ?").run(radar.id);
-    expect(ids(await lista('ordem=situacao'))).toEqual([radar.id, camera.id]); // "Em manutenção" antes de "Operacional"
+    expect(ids(await lista('ordem=situacao'))[0]).toBe(radar.id); // "Em manutenção" antes de "Operacional"
     expect((await app.inject({ method: 'GET', url: '/api/equipamentos?ordem=drop%20table' })).statusCode).toBe(400);
   });
 

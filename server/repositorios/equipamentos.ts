@@ -255,14 +255,14 @@ function condicaoManutencao(tipo: CriterioManutencao, hoje: string, params: unkn
 
 /** CASE que troca o id pelo rótulo (a lista mostra "Veículo de fiscalização", não `fiscal_rotativo`: é por ele que se espera a ordem). */
 const casePorRotulo = (coluna: string, rotulos: [string, string][]) =>
-  `CASE ${coluna} ${rotulos.map(([id, rotulo]) => `WHEN '${id}' THEN '${rotulo.replaceAll("'", "''")}'`).join(' ')} ELSE ${coluna} END`;
+  `sem_acento(CASE ${coluna} ${rotulos.map(([id, rotulo]) => `WHEN '${id}' THEN '${rotulo.replaceAll("'", "''")}'`).join(' ')} ELSE ${coluna} END)`;
 
 // Só constantes do código entram aqui (nada que venha da requisição): a chave do usuário escolhe uma destas expressões.
 const EXPRESSAO_ORDEM: Record<OrdemEquipamento, string> = {
   codigo: 'e.codigo',
   tipo: casePorRotulo('e.tipo', TIPOS_EQUIPAMENTO.map((t) => [t.id, t.rotulo])),
   situacao: casePorRotulo('e.situacao', Object.entries(ROTULO_SITUACAO)),
-  bairro: 'b.nome',
+  bairro: 'sem_acento(b.nome)', // sem acento: "Água" fica junto do A, não depois do Z
 };
 
 export function listarEquipamentos(db: Database, f: FiltrosEquipamento, hoje: string): Pagina<Equipamento> {
