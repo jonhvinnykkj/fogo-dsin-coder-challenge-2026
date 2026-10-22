@@ -193,3 +193,8 @@
   background: var(--cor-superficie);
   box-shadow: 0 -1px 0 var(--cor-superficie-baixa);
 }
+
+/* leitura de antes da mudança de situação: número esmaecido para não passar por atual */
+.metricaAnterior .metricaValor {
+  opacity: 0.55;
+}

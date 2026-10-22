@@ -5,7 +5,7 @@ import { Lightning, MapPin, Wrench, X } from '@phosphor-icons/react';
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  HORARIO_TURNO, ROTULO_CATEGORIA_AGENTE, ROTULO_NECESSIDADE_MANUTENCAO, ROTULO_TIPO_OCORRENCIA, ROTULO_TURNO,
+  HORARIO_TURNO, ROTULO_CATEGORIA_AGENTE, ROTULO_NECESSIDADE_MANUTENCAO, ROTULO_SITUACAO, ROTULO_TIPO_OCORRENCIA, ROTULO_TURNO,
 } from '../../../shared/dominio';
 import { formatarDataHora, formatarEndereco, formatarNumero, formatarRelativo } from '../../../shared/formato';
 import type { AgenteDetalhe, EquipamentoDetalhe } from '../../../shared/modelos';
@@ -13,6 +13,7 @@ import { METRICA_PRINCIPAL, metricaDoTipo } from '../../../shared/telemetria';
 import { mensagemDeErro } from '../api/cliente';
 import { useAgente, useEquipamento, useInjetarEvento, useTelemetria } from '../api/consultas';
 import { formatarDia } from '../util/datas';
+import { mudancaDepoisDaLeitura } from '../util/leituraAnterior';
 import { useAgora } from '../util/useAgora';
 import { AvisoErro } from './AvisoErro';
 import { Botao, classeBotao } from './Botao';
@@ -173,16 +174,23 @@ function MetricaAtual({ eq }: { eq: EquipamentoDetalhe }) {
   const def = metricaDoTipo(eq.tipo, chave);
   const ultimo = telemetria.data?.at(-1);
   const valor = ultimo?.metricas[chave];
+  // Situação mudou nesta hora ou depois (ex.: "Simular falha"): o número é de antes e não pode passar por atual.
+  const mudanca = ultimo ? mudancaDepoisDaLeitura(ultimo.hora, eq.historico) : undefined;
   if (!def) return null;
   return (
-    <div className={estilos.metrica}>
+    <div className={`${estilos.metrica} ${mudanca ? estilos.metricaAnterior : ''}`}>
       <span className={`${estilos.metricaValor} numeros`}>
         {valor === undefined ? '—' : formatarNumero(valor, valor >= 100 || Number.isInteger(valor) ? 0 : 1)}
         {valor !== undefined && <span className={estilos.unidade}>{def.unidade}</span>}
       </span>
       <span className={estilos.metricaRotulo}>
         {def.rotulo}
-        <span>{telemetria.isPending ? 'carregando…' : ultimo ? 'média da hora corrente' : 'sem leituras nas últimas 3 h'}</span>
+        <span>
+          {telemetria.isPending ? 'carregando…'
+            : !ultimo ? 'sem leituras nas últimas 3 h'
+              : mudanca ? `última leitura, antes de virar ${ROTULO_SITUACAO[mudanca.para]} (${formatarDataHora(mudanca.em)})`
+                : 'média da hora corrente'}
+        </span>
       </span>
     </div>
   );
