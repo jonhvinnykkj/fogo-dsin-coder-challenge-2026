@@ -5,6 +5,9 @@ export type TipoEquipamentoId =
   | 'radar' | 'camera' | 'balanca' | 'fiscal_rotativo' | 'cancela' | 'transporte' | 'totem_rotativo'
   | 'patinete' | 'moto_agente' | 'viatura' | 'semaforo' | 'painel_mensagem' | 'sensor_alagamento';
 
+/** Tipos de veículo que um agente pode usar (campo "Moto ou viatura vinculada" do cadastro de agente). */
+export const TIPOS_VEICULO_DE_AGENTE: readonly TipoEquipamentoId[] = ['moto_agente', 'viatura'];
+
 export interface CampoCaracteristica {
   chave: string;
   rotulo: string;

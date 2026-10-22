@@ -64,7 +64,7 @@ export function agentePorId(db: Database, id: number): Agente | undefined {
 }
 
 export function matriculaEmUso(db: Database, matricula: string, ignorarId?: number): boolean {
-  return db.prepare('SELECT 1 FROM agentes WHERE matricula = ? AND id IS NOT ?').get(matricula, ignorarId ?? null) !== undefined;
+  return db.prepare('SELECT 1 FROM agentes WHERE matricula = ? COLLATE NOCASE AND id IS NOT ?').get(matricula, ignorarId ?? null) !== undefined;
 }
 
 export function inserirAgente(db: Database, a: AgenteInput, agora: string): number {
@@ -130,4 +130,11 @@ export function agenteMapaPorId(db: Database, id: number): AgenteMapa | undefine
     | { id: number; nome: string; categoria: CategoriaAgente; situacao: SituacaoAgente; lat_atual: number; lng_atual: number; base_bairro_id: number }
     | undefined;
   return l && { id: l.id, nome: l.nome, categoria: l.categoria, situacao: l.situacao, lat: l.lat_atual, lng: l.lng_atual, bairroId: l.base_bairro_id };
+}
+
+/** Agente a que o equipamento já está vinculado (ignorando `ignorarAgenteId`, o que está sendo editado). */
+export function agenteDoEquipamento(db: Database, equipamentoId: number, ignorarAgenteId?: number): { id: number; nome: string } | undefined {
+  return db
+    .prepare('SELECT id, nome FROM agentes WHERE equipamento_id = ? AND id IS NOT ? LIMIT 1')
+    .get(equipamentoId, ignorarAgenteId ?? null) as { id: number; nome: string } | undefined;
 }

@@ -184,7 +184,7 @@ describe('LGPD: dados pessoais e posição dos agentes', () => {
   it('telefone e matrícula inteiros só para o gestor; posição aproximada para "somente consulta"', async () => {
     const { ctx, app } = await montar();
     const gestor = entrarComo(ctx, 'gestor');
-    const criado = (await app.inject({ method: 'POST', url: '/api/agentes', headers: { cookie: gestor }, payload: corpoAgente(ctx, { telefone: '(14) 99876-5432', lat: -22.21437, lng: -49.94621 }) })).json();
+    const criado = (await app.inject({ method: 'POST', url: '/api/agentes', headers: { cookie: gestor }, payload: corpoAgente(ctx, { telefone: '(14) 99876-5432', lat: -22.21437, lng: -49.94621, baseBairroId: ctx.geo.bairroDoPonto(-22.21437, -49.94621) + 1 }) })).json();
     expect(criado).toMatchObject({ telefone: '(14) 99876-5432', matricula: 'AT-1001' });
 
     const operador = entrarComo(ctx, 'operador');
