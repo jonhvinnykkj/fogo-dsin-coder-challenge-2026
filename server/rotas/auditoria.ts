@@ -22,7 +22,7 @@ export async function rotasAuditoria(app: FastifyInstance): Promise<void> {
     schema: {
       tags: ['Acesso'],
       summary: 'Trilha de auditoria: quem fez o quê, antes e depois (só gestor)',
-      description: 'Filtros: login, entidade (equipamentos, agentes, alertas, simulacao, auth), pagina, porPagina. Mais recentes primeiro.',
+      description: 'Filtros: login, entidade (equipamentos, agentes, alertas, ocorrencias, simulacao, auth), pagina, porPagina. Mais recentes primeiro.',
     },
   }, async (req) => listarAuditoria(db, filtrosSchema.parse(req.query)));
 
