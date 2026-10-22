@@ -288,6 +288,18 @@ describe('mudança de situação (PATCH)', () => {
     expect(ficha.historico[1]).toMatchObject({ de: 'operacional', para: 'furtado' });
   });
 
+  it('mau funcionamento torna a manutenção imediata e a manutenção concluída reagenda a periódica', async () => {
+    const eq = await criarOk({ manutencaoNecessidade: 'periodica', manutencaoPeriodicidadeDias: 30, proximaManutencao: '2026-11-20' });
+    expect((await patch(eq.id, { situacao: 'mau_funcionamento', motivo: 'Tela apagada' })).json().manutencaoNecessidade).toBe('imediata');
+    expect((await ler(eq.id)).manutencaoNecessidade).toBe('imediata');
+    // No mapa da Central ele aparece com manutenção imediata.
+    const mapa = (await app.inject({ method: 'GET', url: '/api/central/mapa' })).json();
+    expect(mapa.equipamentos.find((e: { id: number }) => e.id === eq.id).manutencao).toBe('imediata');
+
+    const r = await app.inject({ method: 'POST', url: `/api/equipamentos/${eq.id}/manutencoes`, payload: { tipo: 'corretiva', descricao: 'Troca da tela', concluidaEm: '2026-10-17T12:00:00.000Z' } });
+    expect(r.json()).toMatchObject({ situacao: 'operacional', manutencaoNecessidade: 'periodica', proximaManutencao: '2026-11-16' });
+  });
+
   it('exige motivo e recusa a mesma situação', async () => {
     const eq = await criarOk();
     const semMotivo = await patch(eq.id, { situacao: 'desativado' });

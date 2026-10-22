@@ -13,6 +13,7 @@ import { METRICAS_POR_TIPO } from '../../shared/telemetria';
 import type { TipoEquipamentoId } from '../../shared/tipos-equipamento';
 import { formatarNumero } from '../../shared/formato';
 import { inserirAlerta, resolverAlerta, type NovoAlerta } from '../repositorios/alertas';
+import { preverFalhas } from '../preditivo/falhas';
 import { dataLocal, inicioDaHora, partesLocais } from '../tempo';
 import { calcularBaseHoraria, detectarAnomalia, zPorMetrica, type Anomalia, type BaseHoraria } from './anomalias';
 
@@ -32,6 +33,20 @@ export const LEITURAS_NORMAIS_PARA_RESOLVER = 3;
 export const Z_NORMAL = 2;
 /** Alagamento de sensor só fecha quando a água cai abaixo desta fração da altura de alerta (evita abrir e fechar na beirada). */
 export const FRACAO_ALAGAMENTO_RESOLVIDO = 0.8;
+
+/**
+ * Alerta preventivo de falha provável: abre quando a chance de falha em 7 dias (previsão de falhas) chega a 50%, com
+ * criticidade média; a partir de 80%, alta. Limite alto de propósito: numa semente nova só uns 4 equipamentos passam dele
+ * (medido em 22/10: 7 sem a pausa abaixo, 4 com ela), e a Central não vira lista de "talvez". Fecha quando a chance cai
+ * abaixo de 40% (folga para não abrir e fechar na beirada).
+ */
+export const LIMITE_FALHA_PROVAVEL = 0.5;
+export const LIMITE_FALHA_PROVAVEL_ALTA = 0.8;
+export const LIMITE_FALHA_PROVAVEL_FECHAR = 0.4;
+/** Equipamento que acabou de receber manutenção não ganha o alerta de novo logo em seguida (a previsão não enxerga o conserto). */
+export const DIAS_SEM_ALERTA_APOS_MANUTENCAO = 3;
+/** A previsão muda devagar: recalcular uma vez por minuto basta. */
+const PERIODO_PREVENTIVO_MS = 60_000;
 
 const MIN = 60_000;
 const OPERANDO: readonly SituacaoEquipamento[] = ['operacional', 'mau_funcionamento'];
@@ -100,6 +115,7 @@ export class MotorAlertas {
   private readonly qAbertosPorChave: Statement;
   private readonly qAnomaliasDoEquipamento: Statement;
   private readonly qAlagamentoAbertoNoBairro: Statement;
+  private ultimaVarreduraPreventiva = -Infinity;
 
   constructor(private readonly ctx: { db: Database; barramento: { emitir(e: EventoFogo): void }; relogio: { agora(): Date } }) {
     this.qAbertosPorChave = ctx.db.prepare('SELECT id FROM alertas WHERE chave_dedup = ? AND resolvido_em IS NULL');
@@ -166,6 +182,8 @@ export class MotorAlertas {
   //  Regra 6  furto_suspeito NÃO fecha sozinho: fecha quando uma pessoa resolve o alerta ou tira o equipamento de "furtado"
   //           (recuperado ou dado como perdido, ver mudarSituacao no serviço; fica como resolução manual);
   //           manutencao_atrasada só fecha quando a manutenção é registrada (`resolverPorManutencao`).
+  //  Regra 10 falha_provavel (preventivo): fecha quando a manutenção é registrada, quando a chance de falha em 7 dias cai
+  //           abaixo de 40% ou quando o equipamento deixa de estar operacional (`varrerFalhasProvaveis`).
 
   /** Grava a resolução automática (sem avisar ninguém). */
   private fecharIds(ids: number[], quando: Date, resolucao: 'manual' | 'automatica' = 'automatica'): Alerta[] {
@@ -221,6 +239,7 @@ export class MotorAlertas {
    */
   resolverPorManutencao(equipamentoId: number, voltouAOperar: boolean, quando: Date = this.ctx.relogio.agora()): void {
     this.resolverPorChave(`manutencao:${equipamentoId}`, quando);
+    this.resolverPorChave(`falha_provavel:${equipamentoId}`, quando); // quem recebeu manutenção não está mais "prestes a falhar"
     if (voltouAOperar) this.resolverDoEquipamento(equipamentoId, quando);
   }
 
@@ -373,6 +392,40 @@ export class MotorAlertas {
   }
 
   /**
+   * Alerta preventivo: equipamento operacional com chance alta de falhar nos próximos 7 dias (`/api/previsoes/falhas`).
+   * Diz o motivo (os fatores da previsão) e o que fazer. Um alerta aberto por equipamento (`falha_provavel:<id>`); fecha
+   * quando a chance cai, quando o equipamento sai de operação ou quando recebe manutenção (`resolverPorManutencao`).
+   */
+  varrerFalhasProvaveis(agora: Date): Alerta[] {
+    const criados: Alerta[] = [];
+    const riscos = preverFalhas(this.db, { agora });
+    const chance = new Map(riscos.map((r) => [r.equipamentoId, r.probabilidade]));
+    const semAlertaDesde = new Date(agora.getTime() - DIAS_SEM_ALERTA_APOS_MANUTENCAO * 86_400_000).toISOString();
+    const recemConsertado = this.db.prepare('SELECT 1 FROM manutencoes WHERE equipamento_id = ? AND concluida_em IS NOT NULL AND concluida_em >= ? LIMIT 1');
+    for (const r of riscos) {
+      if (r.probabilidade < LIMITE_FALHA_PROVAVEL) break; // a lista vem do maior risco para o menor
+      if (recemConsertado.get(r.equipamentoId, semAlertaDesde)) continue;
+      const alvo = alvoPorId(this.db, r.equipamentoId);
+      if (!alvo) continue;
+      const motivos = r.fatores.filter((f) => f.contribuicao >= 1.1).slice(0, 3).map((f) => f.nome);
+      const c = this.registrar({
+        tipo: 'falha_provavel', criticidade: r.probabilidade >= LIMITE_FALHA_PROVAVEL_ALTA ? 'alta' : 'media', equipamentoId: alvo.id, bairroId: alvo.bairroId,
+        lat: alvo.lat, lng: alvo.lng, criadoEm: agora.toISOString(), chaveDedup: `falha_provavel:${alvo.id}`,
+        titulo: `${quem(alvo)} com ${formatarNumero(r.probabilidade * 100, 0)}% de chance de falhar em 7 dias`,
+        descricao: `${quem(alvo)} (${onde(alvo)}) ainda opera, mas a previsão aponta ${formatarNumero(r.probabilidade * 100, 0)}% de chance de falha na próxima semana`
+          + `${motivos.length ? `. Motivos: ${motivos.join('; ')}` : ''}. Ação: agende uma manutenção preventiva.`,
+      });
+      if (c) criados.push(c);
+    }
+    // Fecha o que deixou de valer: chance abaixo do piso ou equipamento fora de operação (não está na lista da previsão).
+    const abertos = this.db.prepare("SELECT id, equipamento_id AS e, chave_dedup AS k FROM alertas WHERE tipo = 'falha_provavel' AND resolvido_em IS NULL").all() as { id: number; e: number; k: string }[];
+    const deixaram = abertos.filter((a) => (chance.get(a.e) ?? 0) < LIMITE_FALHA_PROVAVEL_FECHAR);
+    this.resolverIds(deixaram.map((a) => a.id), agora);
+    for (const a of deixaram) this.vistas.delete(a.k);
+    return criados;
+  }
+
+  /**
    * Varredura periódica: equipamento operacional sem sinal há mais de 15 min, manutenção atrasada, patinete fora do
    * município. Também resolve o que deixou de valer (sinal que voltou, manutenção feita, anomalia que não se repete).
    */
@@ -440,6 +493,12 @@ export class MotorAlertas {
     for (const l of patinetes) {
       const alvo = paraAlvo(l);
       if (!dentroDeMarilia(alvo.lat, alvo.lng)) emitido(this.alertaDeFurtoPatinete(alvo, alvo, agora));
+    }
+
+    // Falha provável (preventivo): a previsão muda devagar, então roda no máximo uma vez por minuto.
+    if (agora.getTime() - this.ultimaVarreduraPreventiva >= PERIODO_PREVENTIVO_MS) {
+      this.ultimaVarreduraPreventiva = agora.getTime();
+      criados.push(...this.varrerFalhasProvaveis(agora));
     }
 
     // Anomalia que não se repete há 30 min já passou.

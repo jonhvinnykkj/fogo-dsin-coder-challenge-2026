@@ -169,7 +169,8 @@ export function registrarManutencao(ctx: Base, id: number, m: ManutencaoInput): 
       const prevista = previstaEmAberto(ctx.db, id, m.tipo);
       if (prevista !== undefined) concluirManutencao(ctx.db, prevista, concluidaEm, m.descricao);
       else inserirManutencao(ctx.db, { equipamentoId: id, tipo: m.tipo, abertaEm: agora, previstaPara: m.previstaPara, concluidaEm, descricao: m.descricao });
-      const periodica = eq.manutencaoNecessidade === 'periodica' && eq.manutencaoPeriodicidadeDias !== undefined;
+      // A falha pôs a necessidade em "imediata" sem apagar a periodicidade: depois do reparo a rotina periódica continua.
+      const periodica = (eq.manutencaoNecessidade === 'periodica' || eq.manutencaoNecessidade === 'imediata') && eq.manutencaoPeriodicidadeDias !== undefined;
       repo.gravarManutencaoDoEquipamento(
         ctx.db,
         id,

@@ -72,6 +72,7 @@ export const DESCRICAO_EVENTO_SIMULADO: Record<TipoEventoSimulado, string> = {
 /** Tipos de alerta gravados pelo motor de alertas (server/tempo-real/motor-alertas.ts). */
 export const TIPOS_ALERTA = [
   'acidente', 'alagamento', 'furto_suspeito', 'falha_equipamento', 'sem_sinal', 'anomalia_leitura', 'congestionamento', 'manutencao_atrasada',
+  'falha_provavel',
 ] as const;
 export type TipoAlerta = (typeof TIPOS_ALERTA)[number];
 
@@ -84,6 +85,7 @@ export const ROTULO_TIPO_ALERTA: Record<TipoAlerta, string> = {
   anomalia_leitura: 'Leitura fora do normal',
   congestionamento: 'Congestionamento',
   manutencao_atrasada: 'Manutenção atrasada',
+  falha_provavel: 'Falha provável',
 };
 
 /** Rótulo de um tipo de alerta vindo do banco (texto livre): tipo desconhecido aparece como veio, sem sublinhado. */

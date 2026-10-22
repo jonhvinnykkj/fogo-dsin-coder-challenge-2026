@@ -1,8 +1,8 @@
 import { QueryClient } from '@tanstack/react-query';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { Ocorrencia } from '../../../shared/modelos';
+import type { AgenteMapa, Ocorrencia } from '../../../shared/modelos';
 import { chaves } from '../api/chaves';
-import { aplicarOcorrencia } from './aplicarNoCache';
+import { agenteAtende, aplicarAgente, aplicarOcorrencia } from './aplicarNoCache';
 
 const HORA = 3_600_000;
 const AGORA = new Date('2026-10-17T15:00:00.000Z');
@@ -40,5 +40,26 @@ describe('aplicarOcorrencia', () => {
     const lista = qc.getQueryData<Ocorrencia[]>(chaves.ocorrencias(24))!;
     expect(lista.map((o) => o.id)).toEqual([2, 3]);
     expect(lista[0]!.fim).toBe(AGORA.toISOString());
+  });
+});
+
+describe('agentes no mapa filtrado (ao vivo)', () => {
+  const agente = (extra: Partial<AgenteMapa> = {}): AgenteMapa => ({ id: 1, nome: 'Ana', categoria: 'guarda_municipal', situacao: 'em_servico', lat: -22.2, lng: -49.9, bairroId: 1, ...extra });
+  const semRegiao = () => undefined;
+
+  it('categoria e situação do agente decidem se ele entra na variante do mapa', () => {
+    expect(agenteAtende(agente(), { categoriaAgente: ['agente_transito'] }, semRegiao)).toBe(false);
+    expect(agenteAtende(agente(), { categoriaAgente: ['agente_transito', 'guarda_municipal'] }, semRegiao)).toBe(true);
+    expect(agenteAtende(agente({ situacao: 'pausa' }), { situacaoAgente: ['em_servico'] }, semRegiao)).toBe(false);
+    expect(agenteAtende(agente(), { situacaoAgente: ['em_servico'], tipo: ['radar'], manutencao: 'imediata' }, semRegiao)).toBe(true); // filtro de equipamento não esconde agente
+  });
+
+  it('o agente que muda de situação sai da variante que pede outra e entra na que pede a nova', () => {
+    const qc = new QueryClient();
+    qc.setQueryData(chaves.mapa({ situacaoAgente: ['em_servico'] }), { equipamentos: [], agentes: [agente()] });
+    qc.setQueryData(chaves.mapa({ situacaoAgente: ['em_ocorrencia'] }), { equipamentos: [], agentes: [] });
+    aplicarAgente(qc, agente({ situacao: 'em_ocorrencia' }));
+    expect(qc.getQueryData<{ agentes: AgenteMapa[] }>(chaves.mapa({ situacaoAgente: ['em_servico'] }))!.agentes).toEqual([]);
+    expect(qc.getQueryData<{ agentes: AgenteMapa[] }>(chaves.mapa({ situacaoAgente: ['em_ocorrencia'] }))!.agentes).toHaveLength(1);
   });
 });

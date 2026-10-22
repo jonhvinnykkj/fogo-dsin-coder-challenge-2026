@@ -13,9 +13,10 @@ export interface OpcaoFiltro {
   cor?: string;
 }
 
+/** `grupo`: filtros seguidos com o mesmo grupo saem juntos, sob um título que diz o que eles afetam (ex.: "Só agentes"). */
 export type DefinicaoFiltro =
-  | { tipo: 'selecao'; chave: string; rotulo: string; opcoes: OpcaoFiltro[]; rotuloTodos?: string }
-  | { tipo: 'pilulas'; chave: string; rotulo: string; opcoes: OpcaoFiltro[] };
+  | { tipo: 'selecao'; chave: string; rotulo: string; opcoes: OpcaoFiltro[]; rotuloTodos?: string; grupo?: string }
+  | { tipo: 'pilulas'; chave: string; rotulo: string; opcoes: OpcaoFiltro[]; grupo?: string };
 
 export type ValorFiltro = string | string[] | undefined;
 
@@ -33,6 +34,18 @@ function estaAtivo(v: ValorFiltro): boolean {
   return Array.isArray(v) ? v.length > 0 : v !== undefined && v !== '';
 }
 
+/** Agrupa os filtros seguidos que têm o mesmo `grupo`; os sem grupo seguem soltos, como sempre. */
+function agruparFiltros(filtros: DefinicaoFiltro[]): { titulo?: string; filtros: DefinicaoFiltro[] }[] {
+  const grupos: { titulo?: string; filtros: DefinicaoFiltro[] }[] = [];
+  for (const f of filtros) {
+    const ultimo = grupos[grupos.length - 1];
+    if (f.grupo !== undefined && ultimo?.titulo === f.grupo) ultimo.filtros.push(f);
+    else if (f.grupo === undefined && ultimo && ultimo.titulo === undefined) ultimo.filtros.push(f);
+    else grupos.push({ ...(f.grupo !== undefined && { titulo: f.grupo }), filtros: [f] });
+  }
+  return grupos;
+}
+
 export function BarraFiltros({ filtros, valores, onChange, busca, onLimpar, acoes }: Props) {
   const algumAtivo = filtros.some((f) => estaAtivo(valores[f.chave])) || Boolean(busca?.valor);
 
@@ -46,11 +59,19 @@ export function BarraFiltros({ filtros, valores, onChange, busca, onLimpar, acoe
         </label>
       )}
 
-      {filtros.map((f) => (f.tipo === 'selecao' ? (
-        <FiltroSelecao key={f.chave} def={f} valor={valores[f.chave] as string | undefined} onChange={(v) => onChange(f.chave, v)} />
-      ) : (
-        <FiltroPilulas key={f.chave} def={f} valor={(valores[f.chave] as string[] | undefined) ?? []} onChange={(v) => onChange(f.chave, v.length ? v : undefined)} />
-      )))}
+      {agruparFiltros(filtros).map((g) => {
+        const itens = g.filtros.map((f) => (f.tipo === 'selecao' ? (
+          <FiltroSelecao key={f.chave} def={f} valor={valores[f.chave] as string | undefined} onChange={(v) => onChange(f.chave, v)} />
+        ) : (
+          <FiltroPilulas key={f.chave} def={f} valor={(valores[f.chave] as string[] | undefined) ?? []} onChange={(v) => onChange(f.chave, v.length ? v : undefined)} />
+        )));
+        return g.titulo === undefined ? itens : (
+          <div key={g.titulo} className={estilos.bloco} role="group" aria-label={g.titulo}>
+            <span className={estilos.tituloBloco}>{g.titulo}</span>
+            <div className={estilos.itensBloco}>{itens}</div>
+          </div>
+        );
+      })}
 
       {onLimpar && algumAtivo && (
         <Botao variante="fantasma" tamanho="pequeno" icone={<X weight="bold" size={14} aria-hidden="true" />} onClick={onLimpar}>

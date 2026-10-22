@@ -108,6 +108,75 @@ describe('listarParaMapa', () => {
   });
 });
 
+describe('filtros da Central valendo para os agentes', () => {
+  /** Quatro agentes: dois no 1º bairro (trânsito em serviço, PM em ocorrência) e dois no 2º (GM em serviço, trânsito em pausa). */
+  function montarAgentes(ctx: CtxDeTeste) {
+    const [b1, b2] = bairros(ctx);
+    const ins = ctx.db.prepare(
+      `INSERT INTO agentes (nome, matricula, categoria, orgao, situacao, turno, base_logradouro, base_bairro_id, lat, lng, lat_atual, lng_atual, criado_em, atualizado_em)
+       VALUES (?, ?, ?, ?, ?, 'manha', 'Rua', ?, ?, ?, ?, ?, 'x', 'x')`,
+    );
+    const SMU = 'Secretaria de Mobilidade Urbana';
+    ins.run('A', 'M-1', 'agente_transito', SMU, 'em_servico', b1!.id, b1!.lat, b1!.lng, b1!.lat, b1!.lng);
+    ins.run('B', 'M-2', 'policial_militar', 'Polícia Militar', 'em_ocorrencia', b1!.id, b1!.lat, b1!.lng, b1!.lat, b1!.lng);
+    ins.run('C', 'M-3', 'guarda_municipal', 'Guarda Civil Municipal', 'em_servico', b2!.id, b2!.lat, b2!.lng, b2!.lat, b2!.lng);
+    ins.run('D', 'M-4', 'agente_transito', SMU, 'pausa', b2!.id, b2!.lat, b2!.lng, b2!.lat, b2!.lng);
+    return { b1: b1!, b2: b2! };
+  }
+  const nomes = (ctx: CtxDeTeste, f: Parameters<typeof listarParaMapa>[1]) => listarParaMapa(ctx.db, f, AGORA).agentes.map((a) => a.nome).sort();
+
+  it('bairro e região também filtram os agentes (pela base)', () => {
+    const ctx = criarCtxDeTeste();
+    const { b1, b2 } = montarAgentes(ctx);
+    inserirEquipamentoDeTeste(ctx, { tipo: 'radar', codigo: 'R-1' });
+    expect(nomes(ctx, undefined)).toEqual(['A', 'B', 'C', 'D']);
+    expect(nomes(ctx, { bairroId: b1.id })).toEqual(['A', 'B']);
+    expect(nomes(ctx, { bairroId: b2.id })).toEqual(['C', 'D']);
+    const naRegiaoDoB1 = bairros(ctx).filter((b) => b.regiao === b1.regiao && (b.id === b1.id || b.id === b2.id)).map((b) => b.id);
+    expect(nomes(ctx, { regiao: b1.regiao as 'Centro' })).toEqual(naRegiaoDoB1.length === 2 ? ['A', 'B', 'C', 'D'] : ['A', 'B']);
+  });
+
+  it('filtra por categoria e por situação do agente, também em vários valores, e os dois juntos', () => {
+    const ctx = criarCtxDeTeste();
+    montarAgentes(ctx);
+    expect(nomes(ctx, { categoriaAgente: ['agente_transito'] })).toEqual(['A', 'D']);
+    expect(nomes(ctx, { categoriaAgente: ['guarda_municipal', 'policial_militar'] })).toEqual(['B', 'C']);
+    expect(nomes(ctx, { situacaoAgente: ['em_servico'] })).toEqual(['A', 'C']);
+    expect(nomes(ctx, { situacaoAgente: ['em_ocorrencia', 'pausa'] })).toEqual(['B', 'D']);
+    expect(nomes(ctx, { categoriaAgente: ['agente_transito'], situacaoAgente: ['pausa'] })).toEqual(['D']);
+  });
+
+  it('os filtros de agente não escondem equipamento, e os de equipamento não escondem agente', () => {
+    const ctx = criarCtxDeTeste();
+    montarAgentes(ctx);
+    inserirEquipamentoDeTeste(ctx, { tipo: 'radar', codigo: 'R-1' });
+    inserirEquipamentoDeTeste(ctx, { tipo: 'camera', codigo: 'C-1', situacao: 'furtado' });
+    const soAgente = listarParaMapa(ctx.db, { categoriaAgente: ['guarda_municipal'], situacaoAgente: ['em_servico'] }, AGORA);
+    expect(soAgente.equipamentos).toHaveLength(2);
+    expect(soAgente.agentes.map((a) => a.nome)).toEqual(['C']);
+    const soEquipamento = listarParaMapa(ctx.db, { tipo: ['camera'], situacao: ['furtado'], manutencao: 'imediata' }, AGORA);
+    expect(soEquipamento.agentes).toHaveLength(4);
+  });
+
+  it('os indicadores de agentes seguem os mesmos filtros', () => {
+    const ctx = criarCtxDeTeste();
+    montarAgentes(ctx);
+    expect(calcularIndicadores(ctx.db, { categoriaAgente: ['agente_transito'] }, AGORA)).toMatchObject({ agentesTotal: 2, agentesEmAtividade: 1 });
+    expect(calcularIndicadores(ctx.db, { situacaoAgente: ['em_ocorrencia'] }, AGORA)).toMatchObject({ agentesTotal: 1, agentesEmAtividade: 1 });
+  });
+
+  it('a rota valida os dois filtros novos (valor desconhecido é 400)', async () => {
+    const ctx = criarCtxDeTeste();
+    montarAgentes(ctx);
+    const app = await criarAppDeTeste(ctx);
+    const ok = await app.inject({ method: 'GET', url: '/api/central/mapa?categoriaAgente=guarda_municipal,policial_militar&situacaoAgente=em_servico' });
+    expect(ok.statusCode).toBe(200);
+    expect(ok.json().agentes.map((a: { nome: string }) => a.nome)).toEqual(['C']);
+    expect((await app.inject({ method: 'GET', url: '/api/central/mapa?categoriaAgente=bombeiro' })).statusCode).toBe(400);
+    await app.close();
+  });
+});
+
 describe('calcularStatusRegioes', () => {
   it('1 alerta crítico + 2 indisponíveis = índice 49, nível atenção, com motivos', () => {
     const ctx = criarCtxDeTeste();

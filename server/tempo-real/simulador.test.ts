@@ -203,6 +203,15 @@ describe('Simulador', () => {
     r.definir(new Date(r.agora().getTime() + ms));
   };
 
+  it("a falha da simulação deixa a manutenção do equipamento em 'imediata'", () => {
+    const ctx = cidadezinha();
+    const sim = new Simulador(ctx, { semente: 5 });
+    const id = idDe(ctx, 'FOGO-RAD-0001');
+    expect(ctx.db.prepare('SELECT manutencao_necessidade AS m FROM equipamentos WHERE id = ?').get(id)).toEqual({ m: 'nenhuma' });
+    sim.injetar('falha', id);
+    expect(ctx.db.prepare('SELECT manutencao_necessidade AS m FROM equipamentos WHERE id = ?').get(id)).toEqual({ m: 'imediata' });
+  });
+
   it('ciclo da falha: mau funcionamento → em manutenção → operacional, com alertas resolvidos (relógio de teste)', () => {
     const ctx = cidadezinha();
     const sim = new Simulador(ctx, { semente: 5 });

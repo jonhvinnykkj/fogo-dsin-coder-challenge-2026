@@ -194,6 +194,9 @@ export const filtrosCentralSchema = z.object({
   regiao: q(opcaoDe(REGIOES, 'Região')),
   orgao: q(opcaoDe(ORGAOS, 'Órgão')),
   manutencao: q(z.enum(['ok', 'proxima', 'imediata', 'atrasada'], { errorMap: () => ({ message: 'Manutenção: valor inválido' }) })),
+  // Só os agentes respondem a estes dois (os filtros de equipamento não escondem agente, e estes não escondem equipamento).
+  categoriaAgente: lista(opcaoDe(CATEGORIAS_AGENTE, 'Categoria do agente')),
+  situacaoAgente: lista(opcaoDe(SITUACOES_AGENTE, 'Situação do agente')),
 });
 export type FiltrosCentral = z.infer<typeof filtrosCentralSchema>;
 

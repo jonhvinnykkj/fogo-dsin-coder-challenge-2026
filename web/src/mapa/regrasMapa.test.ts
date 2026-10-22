@@ -2,7 +2,7 @@
 // entre duas listas de marcadores (o que mover, trocar ícone, incluir e tirar sem recriar a camada).
 import { describe, expect, it } from 'vitest';
 import type { EquipamentoMapa } from '../../../shared/modelos';
-import { compararMarcadores, pesoDaOcorrencia, pinturaDoBairro, piorSituacao } from './regrasMapa';
+import { compararMarcadores, manutencaoUrgente, pedeAtencaoDeManutencao, pesoDaOcorrencia, pinturaDoBairro, piorSituacao } from './regrasMapa';
 
 const eq = (id: number, extra: Partial<EquipamentoMapa> = {}): EquipamentoMapa => ({
   id, codigo: `FOGO-RAD-${id}`, tipo: 'radar', situacao: 'operacional', lat: -22.2, lng: -49.9, bairroId: 1,
@@ -72,5 +72,19 @@ describe('compararMarcadores', () => {
     const r = compararMarcadores(new Map([[1, a]]), [{ ...a, lat: -22.3, situacao: 'furtado' }]);
     expect(r.movidos.map((x) => x.id)).toEqual([1]);
     expect(r.mudados.map((x) => x.id)).toEqual([1]);
+  });
+});
+
+describe('manutenção no mapa', () => {
+  it('imediata, atrasada e próxima pedem destaque; ok não. Só imediata e atrasada são urgentes', () => {
+    expect((['ok', 'proxima', 'imediata', 'atrasada'] as const).map(pedeAtencaoDeManutencao)).toEqual([false, true, true, true]);
+    expect((['ok', 'proxima', 'imediata', 'atrasada'] as const).map(manutencaoUrgente)).toEqual([false, false, true, true]);
+  });
+
+  it('mudar só a manutenção (sem mexer na situação) manda o marcador trocar de ícone', () => {
+    const a = eq(1);
+    const r = compararMarcadores(new Map([[1, a]]), [{ ...a, manutencao: 'imediata' }]);
+    expect(r.mudados.map((x) => x.id)).toEqual([1]);
+    expect(r.movidos).toEqual([]);
   });
 });

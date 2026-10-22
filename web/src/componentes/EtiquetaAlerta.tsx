@@ -1,7 +1,7 @@
 // Peças dos alertas usadas pelo feed da Central e pela tela de Alertas: criticidade como placa de cor cheia,
 // ícone + nome do tipo e a ordem "críticos primeiro".
 import {
-  CarProfile, Drop, HandGrabbing, HourglassMedium, Plugs, Pulse, WarningDiamond, WifiSlash, Wrench, type Icon,
+  CarProfile, ChartLineUp, Drop, HandGrabbing, HourglassMedium, Plugs, Pulse, WarningDiamond, WifiSlash, Wrench, type Icon,
 } from '@phosphor-icons/react';
 import { COR_CRITICIDADE, ROTULO_CRITICIDADE, rotuloTipoAlerta, type Criticidade } from '../../../shared/dominio';
 import type { Alerta } from '../../../shared/modelos';
@@ -18,6 +18,7 @@ const ICONE_TIPO_ALERTA: Record<string, Icon> = {
   anomalia_leitura: Pulse,
   congestionamento: HourglassMedium,
   manutencao_atrasada: Wrench,
+  falha_provavel: ChartLineUp,
 };
 
 export function iconeDoTipoAlerta(tipo: string): Icon {

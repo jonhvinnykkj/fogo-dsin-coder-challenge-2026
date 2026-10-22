@@ -35,13 +35,18 @@ function clausulaEquipamentos(f: FiltrosCentral): Clausula {
   return { onde: cond.length ? ` WHERE ${cond.join(' AND ')}` : '', params };
 }
 
-/** Agentes só respondem ao recorte geográfico e de órgão; tipo, situação e manutenção são coisas de equipamento. */
+/**
+ * Agentes respondem ao recorte geográfico (a base do agente), ao órgão e aos próprios filtros (categoria e situação do
+ * agente); tipo, situação e manutenção do equipamento não escondem agente.
+ */
 function clausulaAgentes(f: FiltrosCentral): Clausula {
   const cond: string[] = [];
   const params: unknown[] = [];
   if (f.bairroId) { cond.push('a.base_bairro_id = ?'); params.push(f.bairroId); }
   if (f.regiao) { cond.push('b.regiao = ?'); params.push(f.regiao); }
   if (f.orgao) { cond.push('a.orgao = ?'); params.push(f.orgao); }
+  if (f.categoriaAgente?.length) { cond.push(`a.categoria IN (${f.categoriaAgente.map(() => '?').join(',')})`); params.push(...f.categoriaAgente); }
+  if (f.situacaoAgente?.length) { cond.push(`a.situacao IN (${f.situacaoAgente.map(() => '?').join(',')})`); params.push(...f.situacaoAgente); }
   return { onde: cond.length ? ` WHERE ${cond.join(' AND ')}` : '', params };
 }
 

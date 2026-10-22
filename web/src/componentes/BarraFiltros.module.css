@@ -141,3 +141,37 @@
   gap: var(--e-2);
   margin-left: auto;
 }
+
+/* Filtros agrupados sob um título que diz o que afetam (Central: equipamentos, agentes ou os dois). */
+.bloco {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: center;
+  flex: 1 1 100%;
+  gap: var(--e-2);
+}
+
+.tituloBloco {
+  padding-left: var(--e-2);
+  color: var(--cor-texto-suave);
+  font-size: var(--t-12);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.itensBloco {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-2);
+}
+
+/* Celular: o título sobe para a linha de cima. */
+@media (max-width: 640px) {
+  .bloco {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+  }
+}
