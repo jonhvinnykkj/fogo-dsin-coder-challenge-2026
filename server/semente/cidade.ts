@@ -548,6 +548,14 @@ function referenciaDe(
   return `em frente ${rng.escolher(ESTABELECIMENTOS)}`;
 }
 
+/**
+ * Máximo de equipamentos indisponíveis (falhando, em manutenção ou furtados) que a semente deixa no mesmo bairro. O índice da
+ * Central pesa 12 por indisponível: com 8 no Centro (o bairro com mais equipamentos) o bairro abria em 100 e a cidade parecia
+ * em crise na primeira tela. Com 2, a pressão de um bairro só passa dos 30 se houver também alerta ou ocorrências recentes.
+ */
+export const MAX_INDISPONIVEIS_POR_BAIRRO = 2;
+const INDISPONIVEIS: readonly SituacaoEquipamento[] = ['mau_funcionamento', 'em_manutencao', 'furtado'];
+
 function atribuirSituacoes(equipamentos: EquipamentoCidade[], rng: Rng): void {
   const cotas = distribuir(equipamentos.length, [
     ['operacional', 82], ['mau_funcionamento', 6], ['em_manutencao', 4], ['nao_instalado', 3], ['desativado', 3], ['furtado', 2],
@@ -561,12 +569,18 @@ function atribuirSituacoes(equipamentos: EquipamentoCidade[], rng: Rng): void {
     em_manutencao: () => 1,
   };
   const livres = new Set(equipamentos.map((_, i) => i));
+  const indisponiveisNoBairro = new Map<number, number>();
   for (const situacao of ['furtado', 'nao_instalado', 'desativado', 'mau_funcionamento', 'em_manutencao'] as const) {
     for (let k = 0; k < cotas[situacao]; k++) {
       const candidatos = [...livres].filter((i) => peso[situacao](equipamentos[i]!) > 0);
       if (candidatos.length === 0) break;
-      const i = rng.ponderado(candidatos, (j) => peso[situacao](equipamentos[j]!));
+      // Bairro que já tem o máximo de indisponíveis só recebe mais se não houver outro lugar (a cota total se mantém).
+      const espalhados = INDISPONIVEIS.includes(situacao)
+        ? candidatos.filter((i) => (indisponiveisNoBairro.get(equipamentos[i]!.bairro.id) ?? 0) < MAX_INDISPONIVEIS_POR_BAIRRO)
+        : candidatos;
+      const i = rng.ponderado(espalhados.length ? espalhados : candidatos, (j) => peso[situacao](equipamentos[j]!));
       equipamentos[i]!.situacao = situacao;
+      if (INDISPONIVEIS.includes(situacao)) indisponiveisNoBairro.set(equipamentos[i]!.bairro.id, (indisponiveisNoBairro.get(equipamentos[i]!.bairro.id) ?? 0) + 1);
       livres.delete(i);
     }
   }
