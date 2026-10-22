@@ -30,8 +30,9 @@ function textoDoNumero(valor: unknown): string {
 export function CampoDinamico({ campo, valor, onChange, erro }: Props) {
   const id = useId();
   const idAjuda = `${id}-ajuda`;
+  const idDica = `${id}-dica`;
   const idErro = `${id}-erro`;
-  const descricao = [campo.tipo === 'numero' ? idAjuda : '', erro ? idErro : ''].filter(Boolean).join(' ') || undefined;
+  const descricao = [campo.tipo === 'numero' ? idAjuda : '', campo.dica ? idDica : '', erro ? idErro : ''].filter(Boolean).join(' ') || undefined;
 
   const rotulo = (
     <>
@@ -49,11 +50,12 @@ export function CampoDinamico({ campo, valor, onChange, erro }: Props) {
             checked={valor === true}
             onChange={(e) => onChange(e.target.checked)}
             aria-invalid={erro ? true : undefined}
-            aria-describedby={erro ? idErro : undefined}
+            aria-describedby={descricao}
           />
           <span className={estilos.marca} aria-hidden="true" />
           <span className={estilos.rotuloCaixa}>{rotulo}</span>
         </label>
+        {campo.dica && <span id={idDica} className={estilos.ajuda}>{campo.dica}</span>}
         {erro && <Erro id={idErro} texto={erro} />}
       </div>
     );
@@ -96,6 +98,7 @@ export function CampoDinamico({ campo, valor, onChange, erro }: Props) {
           De {formatarNumero(campo.min)} a {formatarNumero(campo.max)}{campo.unidade ? ` ${campo.unidade}` : ''}
         </span>
       )}
+      {campo.dica && <span id={idDica} className={estilos.ajuda}>{campo.dica}</span>}
       {erro && <Erro id={idErro} texto={erro} />}
     </div>
   );

@@ -25,3 +25,9 @@ export function rotuloHora(iso: string): string {
   const hora = fmtHoraSP.format(d);
   return hora === '00' ? fmtDiaMesSP.format(d) : `${hora}h`;
 }
+
+/** Hora cheia em São Paulo (0 a 23) e dia/mês de um instante, para os rótulos do eixo da telemetria. */
+export function horaEDia(iso: string): { hora: number; minuto: number; dia: string } {
+  const d = new Date(iso);
+  return { hora: Number(fmtHoraSP.format(d)), minuto: Number(new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', minute: '2-digit' }).format(d)), dia: fmtDiaMesSP.format(d) };
+}

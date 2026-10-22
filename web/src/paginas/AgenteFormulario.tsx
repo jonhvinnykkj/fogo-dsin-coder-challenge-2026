@@ -3,11 +3,13 @@ import { CaretLeft, FloppyDisk, Plus } from '@phosphor-icons/react';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  CATEGORIAS_AGENTE, ORGAOS, ROTULO_CATEGORIA_AGENTE, ROTULO_SITUACAO_AGENTE, ROTULO_TURNO, SITUACOES_AGENTE, TURNOS, type CategoriaAgente, type Orgao,
+  CATEGORIAS_AGENTE, ORGAO_DA_CATEGORIA, ORGAOS_DE_AGENTE, ROTULO_CATEGORIA_AGENTE, ROTULO_SITUACAO_AGENTE, ROTULO_TURNO, SITUACOES_AGENTE, TURNOS, type CategoriaAgente,
 } from '../../../shared/dominio';
+import { mascararTelefoneDigitado } from '../../../shared/formato';
 import { dentroDeMarilia } from '../../../shared/geo';
-import type { Agente } from '../../../shared/modelos';
+import type { Agente, Equipamento } from '../../../shared/modelos';
 import { agenteInputSchema } from '../../../shared/schemas';
+import { motivoVeiculoIncompativel } from '../../../shared/tipos-equipamento';
 import { ErroApi } from '../api/cliente';
 import { useAgentes, useAtualizarAgente, useBairros, useCriarAgente, useAgente, useEquipamentos } from '../api/consultas';
 import { AvisoErro } from '../componentes/AvisoErro';
@@ -33,12 +35,6 @@ interface EstadoAgente {
   lng: string;
   equipamentoId: string;
 }
-
-const ORGAO_PADRAO: Record<CategoriaAgente, Orgao> = {
-  agente_transito: 'Secretaria de Mobilidade Urbana',
-  guarda_municipal: 'Guarda Civil Municipal',
-  policial_militar: 'Polícia Militar',
-};
 
 const NOVO: EstadoAgente = {
   nome: '', matricula: '', categoria: '', orgao: '', situacao: 'em_servico', turno: '', telefone: '', baseLogradouro: '', baseBairroId: '', lat: '', lng: '', equipamentoId: '',
@@ -113,12 +109,25 @@ function Formulario({ agente }: { agente?: Agente }) {
     limparErro(chave, ...tambem);
   };
 
-  // Veículos que ainda não têm agente (o atual do agente sempre aparece) e não estão furtados nem desativados.
+  // Veículos que ainda não têm agente (o atual do agente sempre aparece), fora de furto e desativação, e que servem à categoria
+  // e ao órgão escolhidos (agente de trânsito: moto de agente; guarda e PM: viatura do próprio órgão). Sem categoria, aparecem todos.
   const opcoesVeiculo = useMemo(() => {
     const ocupados = new Set((agentes.data?.itens ?? []).filter((a) => a.id !== agente?.id && a.equipamentoId).map((a) => a.equipamentoId));
-    const livres = (lista: typeof motos.data) => (lista?.itens ?? []).filter((e) => e.id === agente?.equipamentoId || (!ocupados.has(e.id) && e.situacao !== 'furtado' && e.situacao !== 'desativado'));
+    const categoria = (estado.categoria || undefined) as CategoriaAgente | undefined;
+    const orgao = ORGAOS_DE_AGENTE.find((o) => o === estado.orgao);
+    const serve = (e: Equipamento) => !categoria || !orgao || motivoVeiculoIncompativel({ categoria, orgao }, e) === undefined;
+    const livres = (lista: typeof motos.data) =>
+      (lista?.itens ?? []).filter((e) => e.id === agente?.equipamentoId || (!ocupados.has(e.id) && e.situacao !== 'furtado' && e.situacao !== 'desativado' && serve(e)));
     return { motos: livres(motos.data), viaturas: livres(viaturas.data) };
-  }, [agentes.data, motos.data, viaturas.data, agente]);
+  }, [agentes.data, motos.data, viaturas.data, agente, estado.categoria, estado.orgao]);
+
+  // Trocou a categoria ou o órgão e o veículo escolhido deixou de servir: sai da escolha (o campo volta a "Sem veículo").
+  useEffect(() => {
+    if (!estado.equipamentoId) return;
+    const escolhido = Number(estado.equipamentoId);
+    const ainda = [...opcoesVeiculo.motos, ...opcoesVeiculo.viaturas].some((e) => e.id === escolhido);
+    if (!ainda && !motos.isPending && !viaturas.isPending) setEstado((s) => ({ ...s, equipamentoId: '' }));
+  }, [opcoesVeiculo, estado.equipamentoId, motos.isPending, viaturas.isPending]);
 
   const sugerirBairro = (lat: number, lng: number, sobrescrever: boolean) => {
     const lista = bairros.data ?? [];
@@ -197,7 +206,7 @@ function Formulario({ agente }: { agente?: Agente }) {
               {(p) => <input {...p} type="text" autoComplete="off" value={estado.matricula} onChange={(e) => definir('matricula', e.target.value)} />}
             </Campo>
             <Campo rotulo="Telefone" erro={erros.telefone} opcional>
-              {(p) => <input {...p} type="tel" placeholder="(14) 99999-0000" value={estado.telefone} onChange={(e) => definir('telefone', e.target.value)} />}
+              {(p) => <input {...p} type="tel" inputMode="tel" autoComplete="off" maxLength={15} placeholder="(14) 99999-0000" value={estado.telefone} onChange={(e) => definir('telefone', mascararTelefoneDigitado(e.target.value))} />}
             </Campo>
             <Campo rotulo="Categoria" erro={erros.categoria}>
               {(p) => (
@@ -206,7 +215,7 @@ function Formulario({ agente }: { agente?: Agente }) {
                   value={estado.categoria}
                   onChange={(e) => {
                     const cat = e.target.value as CategoriaAgente | '';
-                    setEstado((s) => ({ ...s, categoria: cat, orgao: cat && !editando ? ORGAO_PADRAO[cat] : s.orgao }));
+                    setEstado((s) => ({ ...s, categoria: cat, orgao: cat && !editando ? ORGAO_DA_CATEGORIA[cat] : s.orgao }));
                     limparErro('categoria', 'orgao');
                   }}
                 >
@@ -219,7 +228,8 @@ function Formulario({ agente }: { agente?: Agente }) {
               {(p) => (
                 <select {...p} value={estado.orgao} onChange={(e) => definir('orgao', e.target.value)}>
                   <option value="">Escolha o órgão…</option>
-                  {ORGAOS.map((o) => <option key={o} value={o}>{o}</option>)}
+                  {ORGAOS_DE_AGENTE.map((o) => <option key={o} value={o}>{o}</option>)}
+                  {estado.orgao && !ORGAOS_DE_AGENTE.some((o) => o === estado.orgao) && <option value={estado.orgao}>{estado.orgao}</option>}
                 </select>
               )}
             </Campo>
@@ -274,7 +284,7 @@ function Formulario({ agente }: { agente?: Agente }) {
         <section className={estilos.secao} aria-labelledby="sec-veiculo">
           <h2 id="sec-veiculo"><span className={estilos.numero} aria-hidden="true">3</span>Veículo</h2>
           <div className={estilos.grade}>
-            <Campo rotulo="Moto ou viatura vinculada" erro={erros.equipamentoId} opcional ajuda="Só aparecem veículos sem agente, fora de furto e desativação.">
+            <Campo rotulo="Moto ou viatura vinculada" erro={erros.equipamentoId} opcional ajuda="Só aparecem veículos sem agente, fora de furto e desativação, que servem à categoria e ao órgão do agente: moto de agente para trânsito, viatura do mesmo órgão para guarda e PM.">
               {(p) => (
                 <select {...p} value={estado.equipamentoId} onChange={(e) => definir('equipamentoId', e.target.value)}>
                   <option value="">Sem veículo</option>

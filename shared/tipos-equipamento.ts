@@ -32,6 +32,14 @@ export function motivoVeiculoIncompativel(
   return undefined;
 }
 
+/** Unidades que têm singular (valor 1): "1 passageiro", não "1 passageiros". As demais (km, cc, %, t...) não mudam. */
+const UNIDADE_NO_SINGULAR: Record<string, string> = { passageiros: 'passageiro', dias: 'dia', graus: 'grau' };
+
+/** Unidade do campo para o valor dado ("passageiros" ou, com 1, "passageiro"). */
+export function unidadeParaValor(unidade: string | undefined, valor: number): string | undefined {
+  return unidade !== undefined && valor === 1 ? (UNIDADE_NO_SINGULAR[unidade] ?? unidade) : unidade;
+}
+
 export interface CampoCaracteristica {
   chave: string;
   rotulo: string;
