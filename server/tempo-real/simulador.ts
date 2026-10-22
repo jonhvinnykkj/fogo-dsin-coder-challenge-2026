@@ -612,6 +612,21 @@ export class Simulador {
     if (v && v.movel) v.destino = destino;
   }
 
+  /**
+   * A ocorrência foi encerrada por fora (o agente concluiu no Modo Campo): sai da agenda e o agente (e o veículo dele)
+   * deixa de seguir para o local. Gravar o fim, fechar o alerta e mudar a situação do agente fica com quem chamou.
+   */
+  esquecerOcorrencia(id: number): void {
+    const i = this.abertas.findIndex((o) => o.id === id);
+    if (i < 0) return;
+    const [o] = this.abertas.splice(i, 1);
+    const a = o!.agenteId === undefined ? undefined : this.agentes.find((x) => x.id === o!.agenteId);
+    if (!a) return;
+    a.destino = a.alvo = undefined;
+    const v = a.equipamentoId !== undefined ? this.equipamentos.find((e) => e.id === a.equipamentoId) : undefined;
+    if (v) v.destino = v.alvo = undefined;
+  }
+
   private liberarAgente(id: number, agora: Date): void {
     const a = this.agentes.find((x) => x.id === id);
     if (!a || a.situacao !== 'em_ocorrencia') return;
