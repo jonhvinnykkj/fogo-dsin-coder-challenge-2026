@@ -22,7 +22,7 @@
   padding: 0 var(--e-3);
   border: 2px solid transparent;
   border-radius: var(--raio);
-  background: var(--cor-superficie-baixa);
+  background-color: var(--cor-superficie-baixa); /* só a cor: o atalho `background` apagaria a setinha do select */
   color: var(--cor-texto);
   font-size: var(--t-16);
   transition:
@@ -31,14 +31,14 @@
 }
 
 .entrada:hover {
-  background: var(--cor-superficie-alta);
+  background-color: var(--cor-superficie-alta);
 }
 
 .entrada:focus-visible {
   outline: none;
   box-shadow: none;
   border-color: var(--cor-foco);
-  background: var(--cor-superficie);
+  background-color: var(--cor-superficie);
 }
 
 .entrada[aria-invalid='true'] {
