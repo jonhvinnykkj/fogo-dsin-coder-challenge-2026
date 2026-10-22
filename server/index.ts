@@ -8,7 +8,7 @@ import { carregarGeo } from './geo/marilia';
 import { contarBairros, inserirBairros } from './repositorios/bairros';
 import { preencherLacuna, semear, SEMENTE_PADRAO } from './semente/semear';
 import { relogioReal, type ContextoApp } from './contexto';
-import { ErroDePorta, lerPorta, mensagemPortaOcupada } from './porta';
+import { ErroDePorta, lerPorta, mensagemNoAr, mensagemPortaOcupada } from './porta';
 import { Barramento } from './tempo-real/barramento';
 import { MotorAlertas } from './tempo-real/motor-alertas';
 import { Simulador } from './tempo-real/simulador';
@@ -85,7 +85,7 @@ try {
   db.close();
   process.exit(1);
 }
-console.log(`F.O.G.O. no ar em http://localhost:${porta} (banco: ${caminhoBanco})`);
+console.log(mensagemNoAr(porta, caminhoBanco, process.env.FOGO_PORTA_PUBLICADA));
 console.log(demo ? 'Modo demonstração: a tela de entrada tem botões de entrada rápida por papel (FOGO_DEMO=0 desliga).' : 'Modo demonstração desligado: entre com usuário e senha.');
 barramento.iniciarAgrupamento();
 ctx.simulador.iniciar();

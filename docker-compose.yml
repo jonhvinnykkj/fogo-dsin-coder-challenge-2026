@@ -5,6 +5,9 @@ services:
     build: .
     ports:
       - "${PORT:-3333}:3333"
+    environment:
+      # Só para o log dizer a porta certa no navegador (o servidor escuta sempre na 3333 dentro do contêiner).
+      FOGO_PORTA_PUBLICADA: "${PORT:-3333}"
     volumes:
       - fogo-dados:/app/data
     restart: unless-stopped

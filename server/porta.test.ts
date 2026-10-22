@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ErroDePorta, lerPorta, mensagemPortaOcupada } from './porta';
+import { ErroDePorta, lerPorta, mensagemNoAr, mensagemPortaOcupada } from './porta';
 
 describe('lerPorta', () => {
   it('usa 3333 quando PORT não vem ou vem vazio', () => {
@@ -28,5 +28,18 @@ describe('mensagemPortaOcupada', () => {
 
   it('não sugere porta fora da faixa', () => {
     expect(mensagemPortaOcupada(65535)).toBe('A porta 65535 está em uso. Rode com PORT=65534 npm start (Windows PowerShell: $env:PORT=65534; npm start · cmd: set PORT=65534&& npm start)');
+  });
+});
+
+describe('mensagemNoAr', () => {
+  it('fora do Docker, mostra a própria porta', () => {
+    expect(mensagemNoAr(3333, 'data/fogo.db')).toBe('F.O.G.O. no ar em http://localhost:3333 (banco: data/fogo.db)');
+    expect(mensagemNoAr(3333, 'data/fogo.db', '  ')).toBe('F.O.G.O. no ar em http://localhost:3333 (banco: data/fogo.db)');
+  });
+
+  it('no Docker, mostra a porta publicada e explica que 3333 é a do contêiner', () => {
+    expect(mensagemNoAr(3333, '/app/data/fogo.db', '3341')).toBe(
+      'F.O.G.O. no ar. Abra http://localhost:3341 (porta 3333 dentro do contêiner; banco: /app/data/fogo.db)',
+    );
   });
 });
