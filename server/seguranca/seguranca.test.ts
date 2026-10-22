@@ -211,6 +211,24 @@ describe('LGPD: dados pessoais e posição dos agentes', () => {
   });
 });
 
+describe('LGPD: o agente vê os próprios dados inteiros', () => {
+  it('matrícula e telefone dele vêm inteiros; os dos colegas continuam mascarados', async () => {
+    const { ctx, app } = await montar();
+    const gestor = entrarComo(ctx, 'gestor');
+    const criar = (matricula: string, telefone: string) =>
+      app.inject({ method: 'POST', url: '/api/agentes', headers: { cookie: gestor }, payload: corpoAgente(ctx, { matricula, telefone }) }).then((r) => r.json().id as number);
+    const meu = await criar('AT-1004', '(14) 99876-5432');
+    const outro = await criar('AT-1005', '(14) 99111-2233');
+    const cookie = entrarComo(ctx, 'agente', meu);
+    const ver = async (id: number) => (await app.inject({ method: 'GET', url: `/api/agentes/${id}`, headers: { cookie } })).json();
+    expect(await ver(meu)).toMatchObject({ matricula: 'AT-1004', telefone: '(14) 99876-5432' });
+    expect(await ver(outro)).toMatchObject({ matricula: 'AT-••05', telefone: '(14) •••••-••33' });
+    const lista = (await app.inject({ method: 'GET', url: '/api/agentes', headers: { cookie } })).json();
+    expect(lista.itens.find((a: { id: number }) => a.id === meu)).toMatchObject({ matricula: 'AT-1004' });
+    expect(lista.itens.find((a: { id: number }) => a.id === outro)).toMatchObject({ matricula: 'AT-••05' });
+  });
+});
+
 describe('auditoria', () => {
   it('registra quem editou, com antes e depois e sem o token do dispositivo', async () => {
     const { ctx, app } = await montar();

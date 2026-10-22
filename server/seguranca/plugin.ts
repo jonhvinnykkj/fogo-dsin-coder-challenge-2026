@@ -195,7 +195,7 @@ export async function instalarSeguranca(app: FastifyInstance, opcoes: OpcoesSegu
     if (req.auditoria && corpo && typeof corpo === 'object' && typeof (corpo as { id?: unknown }).id === 'number') {
       req.auditoria.idResposta = (corpo as { id: number }).id;
     }
-    return req.usuario ? protegerResposta(rota, req.usuario.papel, corpo) : corpo;
+    return req.usuario ? protegerResposta(rota, req.usuario.papel, corpo, req.usuario.agenteId) : corpo;
   });
 
   // 4) Registro na trilha: toda escrita de quem está logado, inclusive as recusadas (um 403 também conta uma história).
