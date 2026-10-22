@@ -9,7 +9,7 @@ import {
 import { CIDADE, UF, formatarCidadeUf } from '../../../shared/formato';
 import type { Equipamento } from '../../../shared/modelos';
 import { TIPOS_EQUIPAMENTO, tipoPorId, type TipoEquipamentoId } from '../../../shared/tipos-equipamento';
-import { buscarCep } from '../api/viacep';
+import { buscarCep, CEP_INEXISTENTE } from '../api/viacep';
 import { ErroApi } from '../api/cliente';
 import { useAtualizarEquipamento, useBairros, useCriarEquipamento, useEquipamento } from '../api/consultas';
 import { AvisoErro } from '../componentes/AvisoErro';
@@ -73,7 +73,7 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
   const [erroGeral, setErroGeral] = useState<unknown>(null);
   const [tentativas, setTentativas] = useState(0);
   const [sugestaoBairro, setSugestaoBairro] = useState<string | null>(null);
-  const [cepAviso, setCepAviso] = useState<'buscando' | 'falhou' | { foraDeMarilia: string } | null>(null);
+  const [cepAviso, setCepAviso] = useState<'buscando' | 'falhou' | 'inexistente' | { foraDeMarilia: string } | null>(null);
   const buscaCep = useRef(0);
   const logradouroAutomatico = useRef(false);
   const enviando = criar.isPending || atualizar.isPending;
@@ -147,6 +147,10 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
     setCepAviso('buscando');
     void buscarCep(cep).then((endereco) => {
       if (minha !== buscaCep.current) return; // o CEP mudou de novo no meio da busca
+      if (endereco === CEP_INEXISTENTE) {
+        setCepAviso('inexistente');
+        return;
+      }
       if (!endereco) {
         setCepAviso('falhou');
         return;
@@ -279,7 +283,7 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
             <Campo
               rotulo="CEP"
               erro={erros.cep}
-              ajuda={cepAviso === 'buscando' ? 'Buscando o endereço…' : typeof cepAviso === 'object' && cepAviso ? `Este CEP é de ${cepAviso.foraDeMarilia}, fora de ${formatarCidadeUf()}` : cepAviso === 'falhou' ? 'Não foi possível buscar o CEP — preencha o endereço' : 'Marília: 17500-000 a 17539-999. O logradouro é preenchido sozinho quando possível.'}
+              ajuda={cepAviso === 'buscando' ? 'Buscando o endereço…' : typeof cepAviso === 'object' && cepAviso ? `Este CEP é de ${cepAviso.foraDeMarilia}, fora de ${formatarCidadeUf()}` : cepAviso === 'inexistente' ? 'CEP não encontrado — confira os números ou preencha o endereço' : cepAviso === 'falhou' ? 'Não foi possível buscar o CEP — preencha o endereço' : 'Marília: 17500-000 a 17539-999. O logradouro é preenchido sozinho quando possível.'}
             >
               {(p) => <input {...p} type="text" inputMode="numeric" autoComplete="postal-code" placeholder="17500-000" maxLength={9} value={estado.cep} onChange={(e) => digitarCep(e.target.value)} />}
             </Campo>

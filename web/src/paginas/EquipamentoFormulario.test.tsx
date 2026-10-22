@@ -261,6 +261,16 @@ describe('ViaCEP', () => {
     expect(screen.getByLabelText('Logradouro')).toBeEnabled();
   });
 
+  it('CEP que o ViaCEP diz não existir ({ erro: true }) tem aviso próprio, diferente de falha de rede', async () => {
+    const u = userEvent.setup();
+    viacep(() => json({ erro: true }));
+    renderizar();
+    await u.type(screen.getByLabelText('CEP'), '17539999');
+    expect(await screen.findByText('CEP não encontrado — confira os números ou preencha o endereço')).toBeInTheDocument();
+    expect(screen.queryByText('Não foi possível buscar o CEP — preencha o endereço')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Logradouro')).toBeEnabled();
+  });
+
   it('sem resposta em 3 s a busca é abortada e o aviso aparece', async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     try {
