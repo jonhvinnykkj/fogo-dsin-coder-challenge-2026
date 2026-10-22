@@ -14,7 +14,8 @@ export default defineConfig({
   use: { baseURL: `http://localhost:${PORTA}`, trace: 'retain-on-failure' },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 1366, height: 768 } } }],
   webServer: {
-    command: 'npm start',
+    // Antes de subir, apaga o banco que um E2E anterior deixou (no Windows ele não pode ser apagado com o servidor ligado).
+    command: 'node scripts/apagar-banco-e2e.mjs && npm start',
     url: `http://localhost:${PORTA}/api/saude`,
     // Build do Vite + semear a cidade (~2 s) + subir: folga para máquina lenta.
     timeout: 180_000,

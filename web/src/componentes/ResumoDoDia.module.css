@@ -42,6 +42,15 @@
   font-weight: 800;
 }
 
+.informacao {
+  padding: 1px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--cor-texto-suave);
+  color: var(--cor-texto-suave);
+  font-size: var(--t-12);
+  font-weight: 800;
+}
+
 .fonte {
   display: inline-flex;
   align-items: center;

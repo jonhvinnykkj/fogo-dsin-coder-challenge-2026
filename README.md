@@ -20,7 +20,7 @@ Por cima das três partes, uma **camada de segurança**: login com quatro papéi
 npm install && npm start
 ```
 
-Abra **http://localhost:3333**. Na primeira vez o sistema compila a interface e cria sozinho o banco `data/fogo.db` com a cidade inteira (poucos segundos: 3,6 s numa medição de 17/10/2026). Não há banco, chave ou conta para configurar.
+Abra **http://localhost:3333**. Na primeira vez o sistema compila a interface e cria sozinho o banco `data/fogo.db` com a cidade inteira (poucos segundos). Não há banco, chave ou conta para configurar.
 
 **Entrada:** a tela de entrada tem um botão por papel (**Gestor**, Operador da central, Agente em campo, Somente consulta). Para ver tudo, entre como **Gestor**. É o modo demonstração, ligado por padrão para a avaliação rodar de primeira. Na primeira partida o terminal também mostra as senhas aleatórias dos quatro usuários (`gestor`, `operador`, `agente`, `consulta`), para entrar com usuário e senha; `FOGO_DEMO=0` desliga os botões (veja [docs/SEGURANCA.md](docs/SEGURANCA.md)).
 
@@ -215,7 +215,7 @@ npm run typecheck   # TypeScript estrito, servidor e interface
 npm run e2e         # Playwright: sobe o app com banco próprio (porta 3399) e confere Central, Previsões e Equipamentos
 ```
 
-O E2E usa `data/e2e.db` e o apaga ao terminar; não mexe no seu `data/fogo.db`. Na primeira execução do Playwright pode ser preciso `npx playwright install chromium`.
+O E2E usa `data/e2e.db`, apaga o banco velho antes de começar e o apaga de novo ao terminar (no Windows, se o arquivo ainda estiver preso, o próximo `npm run e2e` o remove); não mexe no seu `data/fogo.db`. Na primeira execução do Playwright pode ser preciso `npx playwright install chromium`.
 
 `npm run empacotar` gera `fogo-dsin-coder-challenge.zip` (sem `node_modules`, `dist`, bancos e pastas de trabalho; falha se passar de 50 MB).
 

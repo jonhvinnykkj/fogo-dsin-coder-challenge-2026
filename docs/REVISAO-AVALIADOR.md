@@ -1,6 +1,6 @@
 # Revisão como avaliador — F.O.G.O.
 
-Revisão feita em **19/10/2026** sobre a `main` em `aa55a21`, simulando a comissão do DSIN Coder Challenge testando o sistema pela primeira vez. Nada foi corrigido: este documento só registra o que foi encontrado, como reproduzir e uma sugestão de correção.
+Revisão feita em **19/10/2026** sobre a `main` em `aa55a21`, simulando a comissão do DSIN Coder Challenge testando o sistema pela primeira vez. Este documento registra o que foi encontrado, como reproduzir e uma sugestão de correção. Os itens marcados **Corrigido** (I3, I5, I6, D8, D9, D12 e D13) foram resolvidos na branch `correcao/infra`; os demais estão tratados em outras branches ou seguem abertos.
 
 Máquina: Windows 11, Node 22.23.2, npm 10.9.2, Docker Desktop 4.37.1 (engine 27.4.0). Navegador: Chromium do Playwright 1.64.1 e Chrome instalado (com janela).
 
@@ -29,10 +29,20 @@ Feita num `git worktree` novo da `main` (sem `node_modules`, `dist` nem `data/`)
 | `npm start` (build + semente + subir) | 17 s: build 2,4 s; semente 8,9 s (350 equipamentos, 80 agentes, 17.585 ocorrências, 451.978 horas de telemetria) |
 | **Total até abrir a Central** | **≈ 2 min 18 s** |
 | `docker compose up --build` (`PORT=3341`) | 132 s de build + 11 s até `/api/saude` = **2 min 23 s**; semente em 5,8 s; imagem de 789 MB |
-| Porta 3333 ocupada | Mensagem clara em português com o comando para outra porta (Windows e macOS/Linux) — mas só depois do build e da semente (ver D8) |
+| Porta 3333 ocupada | Mensagem clara em português com o comando para outra porta (Windows e macOS/Linux). **Corrigido (D8):** agora sai em 0,1 s, antes do build e da semente |
 | `npm test` / `npm run typecheck` | 386 testes em 53 arquivos passando (110 s); typecheck sem erros |
-| `npm run e2e` | 4 de 4 passam, mas termina com erro no Windows (ver I3) |
+| `npm run e2e` | 4 de 4 passam, mas termina com erro no Windows. **Corrigido (I3)** |
 | `npm run empacotar` | 334 arquivos, 2,25 MB (limite: 50 MB) |
+
+### Correções desta seção (branch `correcao/infra`)
+
+| # | O que mudou |
+|---|---|
+| **I3** (Corrigido) | `scripts/apagar-banco-e2e.mjs` apaga `data/e2e.db*` tentando até 5 a 10 vezes com espera e **nunca derruba o processo**: se o Windows ainda segurar o arquivo, `e2e/limpeza.ts` só avisa. O Playwright só derruba o servidor depois do `globalTeardown`, então no Windows a primeira limpeza pode falhar; por isso o `webServer` agora roda `node scripts/apagar-banco-e2e.mjs && npm start`, que apaga a sobra antes de subir. Teste: `scripts/apagar-banco-e2e.test.ts` (simula EBUSY) |
+| **D8** (Corrigido) | `scripts/checar-porta.mjs` (no `npm start` e no `npm run dev`, logo depois de `checar-node.mjs`) tenta ocupar a porta e, se estiver em uso ou `PORT` for inválida, mostra a mesma mensagem de antes. As mensagens passaram a morar nesse script e `server/porta.ts` as reexporta. Teste: `scripts/checar-porta.test.ts` (ocupa uma porta de verdade e confere a mensagem e que sai em menos de 5 s) |
+| **D9** (Corrigido) | O log diz `F.O.G.O. no ar. Abra http://localhost:3341 (porta 3333 dentro do contêiner…)`: o `docker-compose.yml` manda `FOGO_PORTA_PUBLICADA`. Imagem de 789 MB para cerca de 312 MB: o Dockerfile faz `npm ci --omit=dev` (o `tsx` virou dependência de produção, e React, Leaflet, Recharts etc. foram para `devDependencies`, porque a interface vai compilada em `dist/web`), e o `npm ci` repete até 5 vezes quando a rede derruba a conexão. Verificado com `PORT=3441 docker compose up --build`: semente, `/api/saude` 200 e a nova mensagem |
+| **D12** (Corrigido) | README e guia dizem "poucos segundos" e "mais de 450 testes" (hoje 470 em 64 arquivos) |
+| **D13** (Corrigido) | `package-lock.json` regenerado por uma instalação limpa (`npm install` numa pasta nova): traz `"hasInstallScript": true` no `better-sqlite3`; um novo `npm install` não altera mais o arquivo |
 
 ## 2. Telas em 1440, 1024, 800 e 390 px
 
@@ -72,50 +82,72 @@ Em nenhum caso o mapa abriu fechado numa rua.
 
 ## 3. Enunciado × o que existe
 
-O texto original do enunciado **não está no repositório**. A conferência abaixo usa a leitura dele que está em `docs/design/2026-10-17-fogo-design.md` (seção 6). Vale colar o enunciado original em `docs/` e repetir esta conferência contra ele.
+Conferido item por item contra o texto **original** do enunciado, salvo em [ENUNCIADO.md](ENUNCIADO.md), no código e no sistema rodando (API em `localhost` com o gestor da entrada de demonstração e a interface aberta no Chromium). A versão anterior desta seção usava a leitura do documento de design.
 
-Legenda: ✅ conferido funcionando na tela ou na API · 🔎 existe no código e nos testes, sem teste manual aprofundado · ⚠️ existe, mas está fraco (com referência ao achado).
+Legenda: ✅ atendido e conferido · ⚠️ atendido em parte ou com ressalva · ❌ não atendido.
 
-### Parte 1 — Inventário Inteligente da Cidade
+### Principais instruções e entrega
 
-| Item | Situação |
-|---|---|
-| Lista de equipamentos com busca, filtros (tipo, situação, bairro, região, órgão, manutenção) e paginação | ✅ |
-| O mesmo para agentes | ✅ |
-| Cadastro e edição com campos por tipo (13 tipos) | ✅ |
-| CEP com preenchimento automático (ViaCEP, opcional) | ✅ (CEP inexistente: ver D7) |
-| Escolha do ponto no mapa (clique preenche GPS e sugere bairro) | ✅ — mas o bairro pode ser trocado por um que não contém o ponto (ver I4) |
-| Ficha: dados, mini-mapa, linha do tempo, manutenções, telemetria, alertas | ✅ |
-| Número de série único | ⚠️ maiúsculas e minúsculas contam como diferentes (D3) |
-| GPS dentro do município | ✅ (API e tela) |
-| Próxima manutenção obrigatória quando agendada/periódica | ✅ |
-| Furtado só volta a operacional com recuperação | ✅ |
-| Excluir com histórico recusado, sugerindo desativar | ✅ — mas um equipamento recém-criado também é recusado (I1) |
-| API documentada em `/api/docs` | ✅ |
+| O enunciado pede | Situação | Onde |
+|---|---|---|
+| Informar qual IA foi usada e mostrar que o time entende o que foi construído | ✅ | README, seção "Uso de IA"; [GUIA-DO-TIME.md](GUIA-DO-TIME.md) (mapa de código, fórmulas, perguntas da comissão) |
+| Mandar tudo o que for preciso para rodar; "roda de primeira" | ✅ | `npm install && npm start` ou `docker compose up --build` (seção 1); README com Windows e macOS/Linux |
+| Limite de 50 MB no envio | ✅ | `npm run empacotar` gera o zip só com o código (cerca de 2 MB) |
+| Vídeo do sistema rodando vale ponto extra | ❌ | O projeto Remotion está em `video/`, mas o vídeo renderizado não vai no zip (`video/out` fica de fora) e o README não cita nenhum vídeo nem link |
+| Formato livre, front-end opcional | ✅ | Sistema web completo (Fastify + React) e API documentada em `/api/docs` |
 
-### Parte 2 — Central de Operações
+### 1ª Parte — Inventário Inteligente da Cidade
 
-| Item | Situação |
-|---|---|
-| Mapa com marcadores por tipo e situação, agrupados; agentes ao vivo; bairros pintados | ✅ |
-| Faixa com 6 indicadores em blocos de cor cheia | ✅ |
-| Filtros (tipo, situação, bairro, região, órgão, manutenção) | 🔎 |
-| Feed de alertas em tempo real com reconhecer e resolver | ✅ |
-| Painel de regiões (normal × atenção, com motivo) | ✅ |
-| Clique no marcador abre a ficha lateral | 🔎 |
-| Velocidade 1×/10×/60× e injetar evento | ✅ — no celular a barra fica fora da tela (I2) |
+| O enunciado pede | Situação | Onde |
+|---|---|---|
+| **Tipo**: radar (velocidade, semáforo, retorno proibido…), câmera, balança, veículo autônomo de fiscalização do rotativo, cancela, veículos de transporte (táxi, mototáxi, escolar), totem do rotativo, patinete, moto de agente, viatura da GM e da PM, "entre outros" | ✅ | 13 tipos em `shared/tipos-equipamento.ts` (os 10 pedidos mais semáforo inteligente, painel de mensagem e sensor de alagamento); `GET /api/tipos-equipamento`. Radar tem modalidade (velocidade, avanço de semáforo, conversão proibida, retorno proibido, parada sobre faixa); transporte tem categoria (táxi, mototáxi, escolar). "Autônomo" só no rótulo do veículo do rotativo: não há campo que diga se é autônomo |
+| **Número de série, marca e modelo** | ✅ | Obrigatórios no cadastro (`shared/schemas.ts`); aparecem na lista, na ficha e na API. Série repetida é recusada, mas maiúsculas e minúsculas contam como diferentes (D3) |
+| **Localização**: CEP, bairro, cidade/UF, nome de rua, referência, GPS | ⚠️ | Todos os campos existem (CEP com busca automática no ViaCEP, logradouro, bairro, referência livre, latitude e longitude, ponto no mapa). Cidade e UF são fixas em Marília/SP e não aparecem como campo editável: o sistema só serve a uma cidade. A referência é um texto livre (a semente traz "nº 1213", "KM 203", "S/N", "oposto ao nº…", "junto a…"), sem modelos prontos |
+| **Situação**: não instalado, operacional, mau funcionamento, desativado, furtado "etc." | ✅ | Seis situações (as cinco citadas mais "Em manutenção"), com histórico de mudanças na ficha. Furtado só volta com recuperação registrada |
+| **Necessidade de manutenção**: imediata ou agendada/periódica, com a data da próxima | ⚠️ | Nenhuma, imediata, agendada, periódica (com periodicidade); data obrigatória nas duas últimas; registro de ordens na ficha e no quadro `/manutencao`. A necessidade é um campo escolhido à mão: passar um equipamento para "mau funcionamento" não a muda para "imediata" sozinho (na semente, 18 dos 20 em mau funcionamento estão como imediata, 2 não) |
+| **Outras características por tipo** (câmera: visão noturna, resolução, cor; radar: velocidade máxima…) | ✅ | Campos próprios por tipo, validados no servidor e mostrados na ficha: câmera com resolução, visão noturna, colorida ou preto e branco, PTZ, ângulo e armazenamento; radar com modalidade, velocidade máxima, faixas e sentido |
+| **Cadastro de agentes** (agentes de trânsito, guardas municipais, policiais) | ✅ | `/agentes`, `/agentes/novo`, ficha e `POST/PATCH /api/agentes`: nome, matrícula, categoria, órgão, turno, situação, base (rua, bairro, GPS), telefone e moto/viatura vinculada. Os três perfis do enunciado estão na semente (10, 7 e 8 agentes na primeira página da API) |
+| Agentes fazem parte da visão integrada | ✅ | Mapa, indicador "Agentes em atividade", reforço previsto, Modo Campo no celular |
 
-### Parte 3 — Cidade Preditiva
+### 2ª Parte — Central de Operações
 
-| Item | Situação |
-|---|---|
-| Risco por bairro e hora (24 h e 7 dias), mapa de calor com régua de horário | ✅ / 🔎 (régua) |
-| Teste retroativo (erro médio e top 5) | ✅ — previsões iguais antes e depois de 5 min a 60× |
-| Reforço de agentes com recomendação concreta | ✅ |
-| Manutenção preditiva com ranking e fatores | ✅ |
-| Anomalias em tempo real que viram alertas explicados | ✅ |
-| Tendências (disponibilidade + projeção, patinetes por bairro, falhas por modelo) | ⚠️ a projeção é pior que a média e mesmo assim gera recomendação no resumo (I5) |
-| Índice consolidado dos bairros e recomendações do dia | ✅ |
+| O enunciado pede | Situação | Onde |
+|---|---|---|
+| Dashboard integrado a um mapa; informações contínuas, em tempo real | ✅ | `/` (Central): mapa Leaflet, posições dos agentes e alertas por SSE (`/api/stream`), velocidades 1×, 10× e 60× |
+| Ver no mapa **todos** os equipamentos e agentes, com ícones ou identificações diferentes por tipo | ✅ | 350 equipamentos e 80 agentes na API do mapa; ícone do tipo dentro do bloco colorido; agentes em losango com o ícone da categoria; marcadores agrupados |
+| Situação simples de ler | ✅ | Cor cheia por situação (não instalado tracejado), legenda no mapa, etiqueta nas fichas |
+| Indicadores: total, operacionais, indisponíveis, % de disponibilidade, agentes em atividade | ✅ | Faixa com seis blocos (`GET /api/central/indicadores`) |
+| Filtros por tipo, situação, bairro, região, órgão responsável | ✅ | Barra de filtros da Central (tipo, situação, região, bairro, órgão, manutenção), guardados no endereço. Quem filtra por tipo ou situação continua vendo os 80 agentes no mapa; região, bairro e órgão filtram os dois |
+| **Destacar** equipamentos com manutenção imediata ou próximos da data prevista | ⚠️ | Existe como filtro "Manutenção" (imediata, próximos 7 dias, atrasada: 28, 23 e 10 equipamentos na semente), como quadro `/manutencao` (atrasadas, imediatas, próximos 7 e 30 dias), como selo com a contagem no menu e como alerta "Manutenção atrasada". **O marcador no mapa não muda** (a API já manda o campo `manutencao`, mas a interface não o usa): sem filtrar, quem olha o mapa não vê quais equipamentos estão perto da data |
+| Alertas para situações críticas, com destaque no painel | ✅ | Feed com reconhecer e resolver, contorno do bairro no mapa para alerta crítico, notificação e contador de críticos |
+| Consultar detalhes de equipamento **ou agente** pelo mapa | ✅ | Clique no marcador abre a ficha lateral; para agente mostra situação, ocorrência atual, turno, órgão, base e último sinal, com "Abrir ficha completa" (conferido clicando num agente) |
+| Visão consolidada: regiões normais × que exigem atenção | ✅ | Painel de regiões e bairros com índice, nível e motivos em texto |
+| Novos indicadores, mapas de calor, criticidade, agrupamento por região (opcional) | ✅ | Níveis de criticidade, índice por bairro, mapa de calor em Previsões, região em tudo |
+| "Se algo estiver acontecendo agora, PROMETHEUS perceberá?" | ✅ | Injetar evento e simulação em 60×: o alerta aparece em segundos (seção 4). No celular a barra de simulação fica fora da tela (I2) |
+
+### 3ª Parte — Cidade Preditiva
+
+| O enunciado pede | Situação | Onde |
+|---|---|---|
+| Regiões, dias ou horários com maior probabilidade de ocorrências | ✅ | `/api/previsoes/risco`: bairro por hora (24 h e 7 dias), mapa de calor, grade da semana e régua de horário |
+| Estimar quando uma região precisará de reforço de agentes | ✅ | `/api/previsoes/reforco`: de que região mover quantos agentes, em que faixa de horas |
+| Comportamentos fora do padrão | ✅ | `server/tempo-real/anomalias.ts` e lista de anomalias (20 alertas "Leitura fora do normal" na semente) |
+| Tendências de disponibilidade e utilização | ⚠️ | Existem (disponibilidade por tipo, patinetes por bairro, falhas por modelo), mas a projeção de 7 dias erra mais que repetir a média (4,9 × 4,1 p.p.). Depois da correção de I5 a tela diz isso e o resumo não manda agir por ela |
+| Índices ou níveis de risco por bairro, região ou período | ✅ | Índice 0 a 100 e níveis (normal, atenção, alto, crítico) por bairro e hora; resumo do dia com o índice de todos os bairros |
+| Alertas preventivos ou recomendações | ⚠️ | Recomendações: sim (resumo do dia, reforço, falhas prováveis). Alertas preventivos no painel: só os de manutenção atrasada e de leitura fora do padrão; a **chance de falha em 7 dias** não vira alerta, aparece só na lista e no resumo |
+| Qualquer outra previsão útil | ✅ | Falhas prováveis por equipamento (ranking com fatores) |
+| **Deixar claro o que é previsto, quais informações foram consideradas e como ajuda** | ✅ | Cada seção tem um cartão "O que prevê / Dados usados / Como ajuda" com a confiabilidade medida (7 conjuntos de textos na tela `/previsoes`) |
+| Gráficos, mapas de calor, indicadores, recomendações (opcional) | ✅ | Todos presentes; o teste retroativo ("Quanto acertou") compara com uma regra simples |
+
+### Lacunas para decidir
+
+1. ❌ **Vídeo da execução** (ponto extra): gravar e citar no README, ou aceitar sem o ponto.
+2. ⚠️ **Marcador de manutenção no mapa**: usar o campo `manutencao` que a API já manda (anel ou ponto no marcador, e linha na legenda). Mudança pequena, mas na interface.
+3. ⚠️ **Chance de falha como alerta preventivo**: gerar alerta quando a probabilidade passar de um limite. Mudança no motor de alertas.
+4. ⚠️ **Cidade e UF**: ficam fixas em Marília/SP; vale uma frase no README dizendo que é decisão de escopo.
+5. ⚠️ **"Autônomo"** no veículo de fiscalização do rotativo: só existe no rótulo; um campo "autônomo" resolveria.
+6. ⚠️ **Mau funcionamento não marca manutenção imediata** sozinho: o enunciado cita esse caso como exemplo. Pode ser automático ao mudar a situação (regra no serviço de situação).
+7. ⚠️ **Filtros do mapa e agentes**: tipo e situação de equipamento não filtram os agentes (não há filtro por categoria ou situação de agente na Central).
 
 ## 4. Casos de borda
 
@@ -191,7 +223,7 @@ Legenda: ✅ conferido funcionando na tela ou na API · 🔎 existe no código e
 **Resultado:** o botão "Injetar evento" fica em y = 827–863 numa tela de 844 (em 360 × 640: 696–732 numa tela de 655). Ele só aparece rolando o contêiner da página, e como o mapa ocupa quase toda a tela, arrastar o dedo sobre ele move o mapa em vez de rolar.
 **Sugestão:** em telas estreitas, prender a barra no rodapé da tela (`position: sticky` / `fixed` com `bottom` e `env(safe-area-inset-bottom)`) ou dimensionar a moldura do mapa com `100dvh` menos a altura real dos indicadores para que tudo caiba.
 
-#### I3. `npm run e2e` termina com erro no Windows e deixa o banco de teste para trás
+#### I3. `npm run e2e` termina com erro no Windows e deixa o banco de teste para trás (Corrigido)
 
 **Passos:** `npm run e2e` no Windows.
 **Resultado:** os 4 testes passam, mas o processo termina com `Error: EBUSY: resource busy or locked, unlink '...\data\e2e.db'` em `e2e/limpeza.ts:5`, e `data/e2e.db*` fica no disco.
@@ -204,17 +236,19 @@ Legenda: ✅ conferido funcionando na tela ou na API · 🔎 existe no código e
 **Resultado:** 201. O equipamento aparece em Alto Cafezal (região Centro) na lista e no índice das regiões, mas o marcador fica em Higienópolis (região Oeste).
 **Sugestão:** no serviço, conferir com `server/geo/marilia.ts` se o ponto cai no polígono do bairro (com uma pequena tolerância na divisa) e responder 400 com "O ponto fica em Higienópolis; escolha esse bairro ou mova o ponto". Outra saída é o servidor deduzir o bairro pelo ponto.
 
-#### I5. O resumo do dia recomenda ação com base numa projeção que a própria tela diz ser pior que a média
+#### I5. O resumo do dia recomenda ação com base numa projeção que a própria tela diz ser pior que a média (Corrigido)
 
 **Passos:** abrir `/previsoes` → "Resumo do dia".
 **Resultado:** aparece "Disponibilidade de veículos de transporte em queda: 88% em 7 dias … Antecipe as preventivas desse tipo", vinda da reta de tendência. Na mesma tela (e no README), o teste retroativo mostra que essa projeção erra mais (4,9 p.p.) do que repetir a média de 30 dias (4,1 p.p.).
 **Por que importa:** um avaliador atento vê a contradição entre a recomendação e o "use para ver a direção".
 **Sugestão:** só levar a tendência ao resumo quando a média recente também estiver abaixo da média de 30 dias, ou rebaixar para "informação" (sem "Antecipe…") e citar a confiabilidade no próprio cartão.
+**Corrigido:** `calcularTendencias` devolve `testeProjecao` (erro da reta, do último valor e da média). Se a reta não errar menos que as duas regras simples, o cartão vira "Informação:" (`natureza: 'informacao'`, prioridade baixa, selo próprio na tela), sem "Antecipe" e com "Confiabilidade baixa: errou 4,9 p.p., mais que repetir a média (4,1 p.p.)". Com os dados da semente ele fica de fora do top 5 (cede a vaga a recomendações de ação), mas aparece se houver espaço. Testes em `server/preditivo/resumo.test.ts`.
 
-#### I6. O enunciado original não está no repositório
+#### I6. O enunciado original não está no repositório (Corrigido)
 
 A conferência da seção 3 foi feita contra a interpretação do documento de design. Se o enunciado pedir algo que o design deixou de fora, nenhum teste pega.
 **Sugestão:** salvar o enunciado em `docs/` e refazer a seção 3 item por item.
+**Corrigido:** o enunciado está em [ENUNCIADO.md](ENUNCIADO.md) e a seção 3 foi refeita contra ele; trouxe sete lacunas para decidir.
 
 ### Detalhes
 
@@ -227,12 +261,12 @@ A conferência da seção 3 foi feita contra a interpretação do documento de d
 | D5 | Equipamento **furtado** aparece no quadro de Manutenção como "Próximos 30 dias" (ex.: FOGO-SEM-0001); o cadastro também aceita já nascer "furtado", sem alerta | `/manutencao`, coluna azul | Tirar furtados e desativados do quadro preventivo; no cadastro, limitar a `nao_instalado` / `operacional` / `em_manutencao` |
 | D6 | Formulário vazio mostra "Tipo: valor inválido", "Órgão responsável: valor inválido" e, para CEP vazio, "CEP inválido: use o formato 00000-000" | Enviar `/equipamentos/novo` vazio | Mensagem própria para vazio: "Escolha o tipo", "Escolha o órgão", "Informe o CEP" |
 | D7 | CEP inexistente aparece como "Não foi possível buscar o CEP", igual a uma falha de rede | Digitar `17539-999` | Separar o `{ erro: true }` do ViaCEP ("CEP não encontrado — confira ou preencha o endereço") da falha de rede |
-| D8 | Com a porta ocupada, o aviso só aparece depois do build e da semente (17 s) | `npm start` com 3333 em uso | Testar a porta antes (em `scripts/checar-node.mjs` ou no começo de `server/index.ts`) |
-| D9 | No Docker, o log diz "no ar em http://localhost:3333" mesmo publicado em outra porta; a imagem tem 789 MB (leva as dependências de desenvolvimento) | `PORT=3341 docker compose up --build` | Dizer "porta 3333 do contêiner (veja o mapeamento)"; `npm prune --omit=dev` mantendo `tsx`, ou compilar o servidor |
+| D8 (Corrigido) | Com a porta ocupada, o aviso só aparece depois do build e da semente (17 s) | `npm start` com 3333 em uso | Testar a porta antes (em `scripts/checar-node.mjs` ou no começo de `server/index.ts`) |
+| D9 (Corrigido) | No Docker, o log diz "no ar em http://localhost:3333" mesmo publicado em outra porta; a imagem tem 789 MB (leva as dependências de desenvolvimento) | `PORT=3341 docker compose up --build` | Dizer "porta 3333 do contêiner (veja o mapeamento)"; `npm prune --omit=dev` mantendo `tsx`, ou compilar o servidor |
 | D10 | Linhas finas e um retângulo de tom diferente no fundo do mapa (emendas dos blocos) | Central em 1440 ou 800, olhar o fundo do mapa | Efeito conhecido de zoom fracionado (`zoomSnap = 0.5`) com `filter` no `.leaflet-tile-pane` (`web/src/estilo/base.css`): usar zoom inteiro no enquadramento ou aplicar o filtro com `will-change: transform` / sobreposição de 0,5 px nos blocos |
 | D11 | Em 800 × 600 o mapa da Central fica com 280 px de altura (os indicadores ocupam duas linhas) | Abrir `/` em 800 × 600 | Indicadores compactos (uma linha rolável) abaixo de ~900 px de largura ou altura mínima para o mapa |
-| D12 | README e guia desatualizados: "376 testes em 52 arquivos" (hoje 386 em 53); semente "3,6 s" (8,9 s nesta máquina, 5,8 s no Docker) | `npm test` | Atualizar os números, ou escrever "cerca de 380 testes" e "poucos segundos" |
-| D13 | `npm install` numa máquina limpa altera o `package-lock.json` (`"hasInstallScript": true` no `better-sqlite3`) | `npm install` num clone novo e `git status` | Rodar `npm install` e commitar o lock atualizado; é a mesma linha que aparece modificada na pasta de trabalho principal |
+| D12 (Corrigido) | README e guia desatualizados: "376 testes em 52 arquivos" (hoje 386 em 53); semente "3,6 s" (8,9 s nesta máquina, 5,8 s no Docker) | `npm test` | Atualizar os números, ou escrever "cerca de 380 testes" e "poucos segundos" |
+| D13 (Corrigido) | `npm install` numa máquina limpa altera o `package-lock.json` (`"hasInstallScript": true` no `better-sqlite3`) | `npm install` num clone novo e `git status` | Rodar `npm install` e commitar o lock atualizado; é a mesma linha que aparece modificada na pasta de trabalho principal |
 
 ## 6. Como estes testes foram feitos
 
