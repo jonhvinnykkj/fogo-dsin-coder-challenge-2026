@@ -305,4 +305,10 @@ describe('cabeçalhos de segurança', () => {
     expect(csp).not.toContain('upgrade-insecure-requests');
     expect(r.headers['x-content-type-options']).toBe('nosniff');
   });
+
+  it('manda a origem como Referer para outros sites: sem ele o OpenStreetMap recusa os blocos do mapa', async () => {
+    const { app } = await montar();
+    const r = await app.inject({ method: 'GET', url: '/api/saude' });
+    expect(r.headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
+  });
 });

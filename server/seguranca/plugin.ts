@@ -119,6 +119,9 @@ export async function instalarSeguranca(app: FastifyInstance, opcoes: OpcoesSegu
     },
     crossOriginEmbedderPolicy: false, // os blocos do mapa vêm do OpenStreetMap
     hsts: false, // só faz sentido atrás de HTTPS; quem publicar com TLS liga no proxy
+    // O padrão do helmet (no-referrer) faz o OpenStreetMap recusar os blocos do mapa ("Access blocked"): a política de uso
+    // dele exige o Referer. Para outros sites vai só a origem (http://localhost:3333), nunca o caminho da página.
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
   });
 
   // Limites por rota, antes do plugin de limite ler a configuração de cada uma.
