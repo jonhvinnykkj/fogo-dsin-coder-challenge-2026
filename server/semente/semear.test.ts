@@ -160,7 +160,7 @@ describe('semear', () => {
     expect(hashOcorrencias(b.db)).toBe(hashOcorrencias(a.db));
     const tokens = (db: Database) => (db.prepare('SELECT token_dispositivo AS t FROM equipamentos ORDER BY id').all() as { t: string }[]).map((l) => l.t);
     expect(tokens(b.db)).toEqual(tokens(a.db));
-    expect(tokens(a.db).every((t) => /^[0-9a-f]{32}$/.test(t))).toBe(true);
+    expect(tokens(a.db).every((t) => /^sha256:[0-9a-f]{64}$/.test(t))).toBe(true); // só o hash do token
   });
 
   it('gera a mesma cidade (códigos, modelos, posições e situações) a qualquer hora em que for semeada', () => {

@@ -11,6 +11,7 @@ import type { Alerta, EstadoSimulacao } from '../../../shared/modelos';
 import { mensagemDeErro } from '../api/cliente';
 import { useDefinirSimulacao, useInjetarEvento, useSimulacao } from '../api/consultas';
 import estilos from './ControlesSimulacao.module.css';
+import { usePode } from '../sessao/Sessao';
 
 const ICONE_EVENTO: Record<TipoEventoSimulado, Icon> = {
   furto: HandGrabbing,
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export function ControlesSimulacao({ onInjetado }: Props) {
+  const podeSimular = usePode('simular');
   const { data: simulacao } = useSimulacao();
   const definir = useDefinirSimulacao();
   const injetar = useInjetarEvento();
@@ -77,6 +79,9 @@ export function ControlesSimulacao({ onInjetado }: Props) {
   };
 
   const pausado = simulacao?.pausado ?? false;
+
+  // Velocidade, pausa e eventos mudam a cidade de todos: só o gestor (o servidor também confere).
+  if (!podeSimular) return null;
 
   return (
     <div className={estilos.controles} ref={raiz}>

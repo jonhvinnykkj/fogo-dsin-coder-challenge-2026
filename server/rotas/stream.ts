@@ -6,6 +6,7 @@
 import type { ServerResponse } from 'node:http';
 import type { FastifyInstance } from 'fastify';
 import type { EstadoInicialStream, EventoFogo } from '../../shared/modelos';
+import { protegerEvento } from '../seguranca/protecao';
 import { calcularIndicadores } from '../servicos/central';
 
 const PING_MS = 15_000;
@@ -48,7 +49,9 @@ export async function rotasStream(app: FastifyInstance): Promise<void> {
     };
 
     // Assina antes de mandar o estado, para não perder o que acontecer entre uma coisa e outra.
-    const cancelar = ctx.barramento.assinar((e: EventoFogo) => escrever(e.tipo, e));
+    // Cada conexão recebe os eventos ajustados ao papel de quem abriu (posição de agentes aproximada para "somente consulta").
+    const papel = req.usuario?.papel ?? 'leitura';
+    const cancelar = ctx.barramento.assinar((e: EventoFogo) => escrever(e.tipo, protegerEvento(e, papel)));
     const ping = setInterval(() => {
       if (!res.writableEnded && !res.destroyed) res.write(':ping\n\n');
     }, PING_MS);

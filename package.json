@@ -15,9 +15,13 @@
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.server.json",
     "e2e": "playwright test",
     "empacotar": "node scripts/empacotar.mjs",
-    "token": "tsx scripts/token.ts"
+    "token": "tsx scripts/token.ts",
+    "senha": "tsx scripts/senha.ts"
   },
   "dependencies": {
+    "@fastify/cookie": "^11.1.3",
+    "@fastify/helmet": "^13.2.0",
+    "@fastify/rate-limit": "^10.3.0",
     "@fastify/static": "^10.1.6",
     "@fastify/swagger": "^9.9.2",
     "@fastify/swagger-ui": "^6.1.2",

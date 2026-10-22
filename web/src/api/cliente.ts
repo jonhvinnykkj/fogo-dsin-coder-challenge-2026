@@ -3,6 +3,9 @@
 
 const SEM_CONEXAO = 'Sem conexão com o servidor do F.O.G.O.';
 
+/** Disparado quando a API responde 401 (sessão vencida ou encerrada): a interface volta para a tela de entrada. */
+export const EVENTO_SESSAO_EXPIRADA = 'fogo:sessao-expirada';
+
 /** Erro de qualquer chamada à API. `status` 0 = o servidor não respondeu. `campos` vem dos erros de validação (`caracteristicas.velocidadeMaxima`, `tipo.0`…). */
 export class ErroApi extends Error {
   readonly status: number;
@@ -68,7 +71,12 @@ async function requisitar<T>(metodo: string, caminho: string, corpo?: unknown, p
     throw new ErroApi(0, SEM_CONEXAO);
   }
 
-  if (!resposta.ok) throw await lerErro(resposta);
+  if (!resposta.ok) {
+    if (resposta.status === 401 && !caminho.startsWith('/api/auth/') && typeof window !== 'undefined') {
+      window.dispatchEvent(new Event(EVENTO_SESSAO_EXPIRADA));
+    }
+    throw await lerErro(resposta);
+  }
   if (resposta.status === 204) return undefined as T;
   const texto = await resposta.text();
   return (texto ? JSON.parse(texto) : undefined) as T;

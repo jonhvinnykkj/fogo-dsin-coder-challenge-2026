@@ -27,6 +27,7 @@ import { corDoTexto } from '../estilo/contraste';
 import { iconeBloco } from '../mapa/marcadores';
 import { formatarDia } from '../util/datas';
 import estilos from './Ficha.module.css';
+import { usePode } from '../sessao/Sessao';
 
 function valorDaCaracteristica(c: CampoCaracteristica, valor: unknown): string | undefined {
   if (valor === undefined || valor === null || valor === '') return undefined;
@@ -64,6 +65,9 @@ function NaoEncontrado() {
 }
 
 function Ficha({ eq }: { eq: EquipamentoDetalhe }) {
+  const podeCadastrar = usePode('cadastrar');
+  const podeOperar = usePode('operar');
+  const podeExcluir = usePode('excluir');
   const navegar = useNavigate();
   const def = tipoPorId(eq.tipo);
   const telemetria = useTelemetria(eq.id, 48);
@@ -105,14 +109,22 @@ function Ficha({ eq }: { eq: EquipamentoDetalhe }) {
           </p>
         </div>
         <div className={estilos.acoes}>
-          <Link to={`/equipamentos/${eq.id}/editar`} className={classeBotao('secundario')}>
-            <PencilSimple weight="fill" size={18} aria-hidden="true" />
-            <span>Editar</span>
-          </Link>
-          <Botao icone={<ArrowsClockwise weight="fill" size={18} aria-hidden="true" />} onClick={() => setSituacaoAberta({})}>Mudar situação</Botao>
-          <Botao icone={<Wrench weight="fill" size={18} aria-hidden="true" />} onClick={() => setManutencaoAberta(true)}>Registrar manutenção</Botao>
-          <Botao icone={<Prohibit weight="fill" size={18} aria-hidden="true" />} disabled={eq.situacao === 'desativado'} onClick={() => setSituacaoAberta({ inicial: 'desativado' })}>Desativar</Botao>
-          <Botao variante="fantasma" icone={<Trash weight="fill" size={18} aria-hidden="true" />} onClick={() => { excluir.reset(); setExcluirAberto(true); }}>Excluir</Botao>
+          {podeCadastrar && (
+            <Link to={`/equipamentos/${eq.id}/editar`} className={classeBotao('secundario')}>
+              <PencilSimple weight="fill" size={18} aria-hidden="true" />
+              <span>Editar</span>
+            </Link>
+          )}
+          {podeOperar && (
+            <>
+              <Botao icone={<ArrowsClockwise weight="fill" size={18} aria-hidden="true" />} onClick={() => setSituacaoAberta({})}>Mudar situação</Botao>
+              <Botao icone={<Wrench weight="fill" size={18} aria-hidden="true" />} onClick={() => setManutencaoAberta(true)}>Registrar manutenção</Botao>
+              <Botao icone={<Prohibit weight="fill" size={18} aria-hidden="true" />} disabled={eq.situacao === 'desativado'} onClick={() => setSituacaoAberta({ inicial: 'desativado' })}>Desativar</Botao>
+            </>
+          )}
+          {podeExcluir && (
+            <Botao variante="fantasma" icone={<Trash weight="fill" size={18} aria-hidden="true" />} onClick={() => { excluir.reset(); setExcluirAberto(true); }}>Excluir</Botao>
+          )}
         </div>
       </header>
 

@@ -11,6 +11,7 @@ import { Botao } from './Botao';
 import { EstadoVazio } from './EstadoVazio';
 import { EtiquetaCriticidade, ordenarParaFeed, TipoAlerta } from './EtiquetaAlerta';
 import estilos from './FeedAlertas.module.css';
+import { usePode } from '../sessao/Sessao';
 
 const PISCAR_MS = 3000;
 
@@ -88,6 +89,7 @@ export function FeedAlertas({ alertas, carregando = false, nomeDoBairro, onSelec
   const agora = agoraFixo ?? relogio;
   const reconhecer = useReconhecerAlerta();
   const resolver = useResolverAlerta();
+  const podeOperar = usePode('operar');
 
   const novos = useAlertasNovos(alertas, (chegaram) => {
     onNovos?.(chegaram);
@@ -151,7 +153,7 @@ export function FeedAlertas({ alertas, carregando = false, nomeDoBairro, onSelec
                   )}
                   {a.reconhecidoEm && <span className={estilos.marca}>Reconhecido</span>}
                 </span>
-                <span className={estilos.acoes}>
+                {podeOperar && <span className={estilos.acoes}>
                   {!a.reconhecidoEm && (
                     <Botao tamanho="pequeno" disabled={ocupado(a.id)} onClick={() => reconhecer.mutate(a.id)}>
                       Reconhecer
@@ -160,7 +162,7 @@ export function FeedAlertas({ alertas, carregando = false, nomeDoBairro, onSelec
                   <Botao tamanho="pequeno" disabled={ocupado(a.id)} onClick={() => resolver.mutate(a.id)}>
                     Resolver
                   </Botao>
-                </span>
+                </span>}
               </div>
             </li>
           );

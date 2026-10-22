@@ -16,7 +16,7 @@ RUN npx vite build
 
 # 3) Imagem final: servidor + interface pronta. O banco fica em /app/data (volume).
 FROM node:22-slim
-ENV NODE_ENV=production PORT=3333 FOGO_DB=/app/data/fogo.db
+ENV NODE_ENV=production PORT=3333 HOST=0.0.0.0 FOGO_DB=/app/data/fogo.db
 WORKDIR /app
 COPY --from=dependencias /app/node_modules ./node_modules
 COPY package.json ./

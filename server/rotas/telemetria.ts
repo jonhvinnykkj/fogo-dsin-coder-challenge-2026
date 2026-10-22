@@ -1,8 +1,8 @@
 // Porta de entrada de dispositivos IoT (e do simulador, que usa a mesma função por dentro).
-import { createHash, timingSafeEqual } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { ErroApi } from '../erros';
+import { tokenDispositivoConfere } from '../seguranca/cripto';
 import { ingerirTelemetria } from '../tempo-real/ingestao';
 
 const corpoSchema = z.object({
@@ -18,7 +18,6 @@ const corpoSchema = z.object({
   lng: z.number().min(-180, 'Longitude entre -180 e 180').max(180, 'Longitude entre -180 e 180').optional(),
 });
 
-const hash = (t: string) => createHash('sha256').update(t).digest();
 const naoAutorizado = () => new ErroApi(401, 'Token do dispositivo ausente ou não confere com o código informado (cabeçalho x-dispositivo-token)');
 
 export async function rotasTelemetria(app: FastifyInstance): Promise<void> {
@@ -43,7 +42,8 @@ export async function rotasTelemetria(app: FastifyInstance): Promise<void> {
     const bruto = req.body as { codigo?: unknown } | null | undefined;
     if (typeof token !== 'string' || token === '' || typeof bruto?.codigo !== 'string') throw naoAutorizado();
     const linha = ctx.db.prepare('SELECT token_dispositivo AS t FROM equipamentos WHERE codigo = ?').get(bruto.codigo) as { t: string } | undefined;
-    if (!linha || !timingSafeEqual(hash(token), hash(linha.t))) throw naoAutorizado();
+    // O banco guarda só o hash do token (sha256:<hex>); a comparação é em tempo constante.
+    if (!linha || !tokenDispositivoConfere(token, linha.t)) throw naoAutorizado();
 
     ingerirTelemetria(ctx, corpoSchema.parse(req.body));
     return reply.code(202).send({ aceita: true });

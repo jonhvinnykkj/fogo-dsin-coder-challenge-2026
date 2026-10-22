@@ -19,11 +19,13 @@ import { formatarDia, hojeIso } from '../util/datas';
 import { useAtraso } from '../util/useAtraso';
 import { useFiltrosUrl } from '../util/useFiltrosUrl';
 import estilos from './Lista.module.css';
+import { usePode } from '../sessao/Sessao';
 
 const POR_PAGINA = 25;
 const CHAVES_FILTRO = ['tipo', 'situacao', 'bairroId', 'regiao', 'orgao', 'manutencao'] as const;
 
 export default function Equipamentos() {
+  const podeCadastrar = usePode('cadastrar');
   const navegar = useNavigate();
   const url = useFiltrosUrl();
   const bairros = useBairros();
@@ -123,10 +125,12 @@ export default function Equipamentos() {
       <header className={estilos.cabecalho}>
         <h1 className={estilos.titulo}>Equipamentos</h1>
         {total !== undefined && <p className={estilos.total}>{formatarNumero(total)} {total === 1 ? 'equipamento' : 'equipamentos'}{url.temAlgum ? ' com esses filtros' : ' cadastrados'}</p>}
-        <Link to="/equipamentos/novo" className={`${classeBotao('primario')} ${estilos.novo}`}>
-          <Plus weight="fill" size={18} aria-hidden="true" />
-          <span>Cadastrar equipamento</span>
-        </Link>
+        {podeCadastrar && (
+          <Link to="/equipamentos/novo" className={`${classeBotao('primario')} ${estilos.novo}`}>
+            <Plus weight="fill" size={18} aria-hidden="true" />
+            <span>Cadastrar equipamento</span>
+          </Link>
+        )}
       </header>
 
       <BarraFiltros

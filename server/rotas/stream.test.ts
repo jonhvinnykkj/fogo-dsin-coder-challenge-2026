@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { AddressInfo } from 'node:net';
 import type { FastifyInstance } from 'fastify';
-import { criarApp } from '../app';
+import { criarAppDeTeste } from '../test/app';
 import { criarCtxDeTeste, type CtxDeTeste } from '../test/ctx';
 import { inserirEquipamentoDeTeste } from '../test/fabricas';
 import { Simulador } from '../tempo-real/simulador';
@@ -9,11 +9,13 @@ import { Simulador } from '../tempo-real/simulador';
 let ctx: CtxDeTeste;
 let app: FastifyInstance;
 let url: string;
+let cookie: string;
 
 beforeEach(async () => {
   ctx = criarCtxDeTeste();
   ctx.simulador = new Simulador(ctx, { semente: 1 });
-  app = await criarApp(ctx);
+  app = await criarAppDeTeste(ctx);
+  cookie = (app as FastifyInstance & { cookieDeTeste: string }).cookieDeTeste;
   await app.listen({ port: 0, host: '127.0.0.1' });
   url = `http://127.0.0.1:${(app.server.address() as AddressInfo).port}`;
 });
@@ -44,7 +46,7 @@ async function lerBlocos(resposta: Response, quantos: number, aoAbrir?: () => vo
 
 describe('GET /api/stream', () => {
   it('manda os cabeçalhos de SSE, retry, o evento estado e depois os eventos do barramento', async () => {
-    const r = await fetch(`${url}/api/stream`);
+    const r = await fetch(`${url}/api/stream`, { headers: { cookie } });
     expect(r.status).toBe(200);
     expect(r.headers.get('content-type')).toContain('text/event-stream');
     expect(r.headers.get('cache-control')).toContain('no-cache');
@@ -63,7 +65,7 @@ describe('GET /api/stream', () => {
 
   it('o estado inicial leva os indicadores e o simulador publica `indicadores` pelo barramento', async () => {
     inserirEquipamentoDeTeste(ctx, { tipo: 'radar', codigo: 'S-1' });
-    const r = await fetch(`${url}/api/stream`);
+    const r = await fetch(`${url}/api/stream`, { headers: { cookie } });
     const blocos = await lerBlocos(r, 3, () => ctx.simulador!.emitirIndicadores());
     const estado = JSON.parse(blocos[1]!.split('data: ')[1]!) as { indicadores: { totalEquipamentos: number } };
     expect(estado.indicadores.totalEquipamentos).toBeGreaterThan(0);
@@ -73,9 +75,9 @@ describe('GET /api/stream', () => {
   });
 
   it('um alerta injetado aparece no stream', async () => {
-    const r = await fetch(`${url}/api/stream`);
+    const r = await fetch(`${url}/api/stream`, { headers: { cookie } });
     const blocos = await lerBlocos(r, 3, () => {
-      void fetch(`${url}/api/simulacao/eventos`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ tipo: 'acidente' }) });
+      void fetch(`${url}/api/simulacao/eventos`, { method: 'POST', headers: { 'content-type': 'application/json', cookie }, body: JSON.stringify({ tipo: 'acidente' }) });
     });
     const alerta = blocos.find((b) => b.startsWith('event: alerta'));
     expect(alerta).toBeDefined();
@@ -83,14 +85,14 @@ describe('GET /api/stream', () => {
   });
 
   it('ao desconectar, a assinatura do barramento é removida', async () => {
-    const r = await fetch(`${url}/api/stream`);
+    const r = await fetch(`${url}/api/stream`, { headers: { cookie } });
     await lerBlocos(r, 2);
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(ctx.barramento.ouvintesAtivos).toBe(0);
   });
 
   it('fechar o servidor encerra as conexões abertas (não trava)', async () => {
-    const r = await fetch(`${url}/api/stream`);
+    const r = await fetch(`${url}/api/stream`, { headers: { cookie } });
     const leitor = r.body!.getReader();
     await leitor.read(); // chegou o retry: a conexão está aberta
     const inicio = Date.now();

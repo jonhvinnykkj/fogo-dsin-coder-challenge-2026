@@ -1,0 +1,25 @@
+.explicacao {
+  max-width: 72ch;
+  color: var(--cor-texto-suave);
+  font-size: var(--t-14);
+}
+
+.duasLinhas {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fraco {
+  color: var(--cor-texto-suave);
+  font-size: var(--t-12);
+}
+
+.ok {
+  font-weight: 700;
+}
+
+.recusada {
+  color: var(--cor-erro);
+  font-weight: 800;
+}

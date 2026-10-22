@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
-import { criarApp } from '../app';
+import { criarAppDeTeste } from '../test/app';
 import { inserirAlerta } from '../repositorios/alertas';
 import { semear, SEMENTE_PADRAO } from '../semente/semear';
 import { AGORA_PADRAO, criarCtxDeTeste, type CtxDeTeste } from '../test/ctx';
@@ -190,7 +190,7 @@ describe('com a cidade semeada', () => {
     ctx = criarCtxDeTeste();
     semear(ctx.db, { agora: AGORA, semente: SEMENTE_PADRAO, geo: ctx.geo });
     ctx.simulador = new Simulador(ctx, { semente: 1 });
-    app = await criarApp(ctx);
+    app = await criarAppDeTeste(ctx);
   }, 120_000);
   afterAll(async () => {
     await app.close();

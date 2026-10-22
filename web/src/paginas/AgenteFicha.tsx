@@ -21,6 +21,7 @@ import { Tabela, type Coluna } from '../componentes/Tabela';
 import { corDoTexto } from '../estilo/contraste';
 import { iconeBloco } from '../mapa/marcadores';
 import estilos from './Ficha.module.css';
+import { usePode, useUsuario } from '../sessao/Sessao';
 
 const GRAVIDADE: Record<Ocorrencia['gravidade'], { rotulo: string; criticidade: Criticidade }> = {
   1: { rotulo: 'Baixa', criticidade: 'baixa' },
@@ -53,6 +54,10 @@ export default function AgenteFicha() {
 }
 
 function Ficha({ ag }: { ag: AgenteDetalhe }) {
+  const podeCadastrar = usePode('cadastrar');
+  const podeOperar = usePode('operar');
+  const podeExcluir = usePode('excluir');
+  const usuario = useUsuario();
   const navegar = useNavigate();
   const bairros = useBairros();
   const veiculo = useEquipamento(ag.equipamentoId);
@@ -100,12 +105,18 @@ function Ficha({ ag }: { ag: AgenteDetalhe }) {
           </p>
         </div>
         <div className={estilos.acoes}>
-          <Link to={`/agentes/${ag.id}/editar`} className={classeBotao('secundario')}>
-            <PencilSimple weight="fill" size={18} aria-hidden="true" />
-            <span>Editar</span>
-          </Link>
-          <Botao icone={<ArrowsClockwise weight="fill" size={18} aria-hidden="true" />} onClick={() => setSituacaoAberta(true)}>Mudar situação</Botao>
-          <Botao variante="fantasma" icone={<Trash weight="fill" size={18} aria-hidden="true" />} onClick={() => { excluir.reset(); setExcluirAberto(true); }}>Excluir</Botao>
+          {podeCadastrar && (
+            <Link to={`/agentes/${ag.id}/editar`} className={classeBotao('secundario')}>
+              <PencilSimple weight="fill" size={18} aria-hidden="true" />
+              <span>Editar</span>
+            </Link>
+          )}
+          {(podeOperar || (usuario?.papel === 'agente' && usuario.agenteId === ag.id)) && (
+            <Botao icone={<ArrowsClockwise weight="fill" size={18} aria-hidden="true" />} onClick={() => setSituacaoAberta(true)}>Mudar situação</Botao>
+          )}
+          {podeExcluir && (
+            <Botao variante="fantasma" icone={<Trash weight="fill" size={18} aria-hidden="true" />} onClick={() => { excluir.reset(); setExcluirAberto(true); }}>Excluir</Botao>
+          )}
         </div>
       </header>
 

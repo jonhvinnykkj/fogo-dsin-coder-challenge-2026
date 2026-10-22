@@ -8,6 +8,7 @@ import type { TipoEquipamentoId } from '../../shared/tipos-equipamento';
 import type { GeoMarilia } from '../geo/marilia';
 import { contarBairros, inserirBairros } from '../repositorios/bairros';
 import { dataLocal, inicioDaHora, partesLocais, somarDias } from '../tempo';
+import { hashTokenDispositivo } from '../seguranca/cripto';
 import { criarRng, derivarSemente } from './aleatorio';
 import { confiabilidadeDoModelo } from './catalogo-marcas';
 import { BAIRROS_FURTO_PATINETE, bairrosAlagaveis, fimDoUltimoTurno, gerarCidade, pesoOcorrenciaBairros } from './cidade';
@@ -88,7 +89,7 @@ export function semear(db: Database, { agora, semente, geo }: OpcoesSemente): Re
       return Number(insEquipamento.run(
         e.codigo, e.tipo, e.numeroSerie, e.marca, e.modelo, e.orgao, e.situacao, e.cep, e.logradouro, e.referencia, e.bairro.id,
         e.lat, e.lng, e.latAtual, e.lngAtual, l.necessidade, periodicidade, l.ultimaManutencao, proxima, JSON.stringify(e.caracteristicas),
-        e.instaladoEm ? dataLocal(e.instaladoEm) : null, iso(l.ultimoSinalEm), e.token, criado.toISOString(), atualizado.toISOString(), proxima,
+        e.instaladoEm ? dataLocal(e.instaladoEm) : null, iso(l.ultimoSinalEm), hashTokenDispositivo(e.token), criado.toISOString(), atualizado.toISOString(), proxima,
       ).lastInsertRowid);
     });
 

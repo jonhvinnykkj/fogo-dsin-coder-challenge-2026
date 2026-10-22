@@ -2,7 +2,7 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import type { Alerta, EventoFogo } from '../../shared/modelos';
-import { criarApp } from '../app';
+import { criarAppDeTeste } from '../test/app';
 import { inserirAlerta } from '../repositorios/alertas';
 import { inserirOcorrencia } from '../repositorios/ocorrencias';
 import { criarCtxDeTeste, type CtxDeTeste, type RelogioDeTeste } from '../test/ctx';
@@ -146,7 +146,7 @@ describe('regra 4: falha_equipamento fecha no reparo concluído', () => {
     const ctx = criarCtxDeTeste();
     const id = inserirEquipamentoDeTeste(ctx, { tipo: 'radar', codigo: 'FOGO-RAD-0300', situacao: 'mau_funcionamento' });
     const falha = ctx.motor.alertarFalha(alvo(ctx, 'FOGO-RAD-0300'), ctx.relogio.agora(), 'lente suja')!;
-    app = await criarApp(ctx);
+    app = await criarAppDeTeste(ctx);
     const r = await app.inject({ method: 'POST', url: `/api/equipamentos/${id}/manutencoes`, payload: { tipo: 'corretiva', descricao: 'Troca da lente', concluidaEm: ctx.relogio.agora().toISOString() } });
     expect(r.statusCode).toBe(201);
     expect(alertaDe(ctx, falha.id)).toMatchObject({ resolucao: 'automatica' });
@@ -204,7 +204,7 @@ describe('regra 6: furto e manutenção atrasada precisam de humano (manutençã
     // Ainda sem manutenção: uma nova varredura não fecha.
     ctx.motor.varrer(new Date('2026-10-17T15:01:00.000Z'));
     expect(alertaDe(ctx, atrasada!.id).resolvidoEm).toBeNull();
-    app = await criarApp(ctx);
+    app = await criarAppDeTeste(ctx);
     const r = await app.inject({ method: 'POST', url: `/api/equipamentos/${id}/manutencoes`, payload: { tipo: 'preventiva', descricao: 'Revisão periódica', concluidaEm: ctx.relogio.agora().toISOString() } });
     expect(r.statusCode).toBe(201);
     expect(alertaDe(ctx, atrasada!.id)).toMatchObject({ resolucao: 'automatica' });
@@ -216,7 +216,7 @@ describe('regra 7: origem da resolução', () => {
   it('PATCH /api/alertas/:id/resolver grava "manual" e emite o evento', async () => {
     const ctx = criarCtxDeTeste();
     const a = inserirAlerta(ctx.db, { tipo: 'furto_suspeito', criticidade: 'critica', titulo: 't', descricao: 'd', criadoEm: '2026-10-17T14:00:00.000Z' });
-    app = await criarApp(ctx);
+    app = await criarAppDeTeste(ctx);
     const eventos: EventoFogo[] = [];
     ctx.barramento.assinar((e) => eventos.push(e));
     const r = await app.inject({ method: 'PATCH', url: `/api/alertas/${a.id}/resolver` });
