@@ -1,6 +1,7 @@
 import type { Database } from 'better-sqlite3';
 import type { Bairro } from '../../shared/modelos';
 import type { Regiao } from '../../shared/dominio';
+import { pontoNoPoligonoComTolerancia, type Poligono } from '../../shared/geo';
 import type { GeoMarilia } from '../geo/marilia';
 
 interface LinhaBairro {
@@ -36,4 +37,20 @@ export function listarBairros(db: Database): Bairro[] {
 
 export function bairroExiste(db: Database, id: number): boolean {
   return db.prepare('SELECT 1 FROM bairros WHERE id = ?').get(id) !== undefined;
+}
+
+export function poligonoDoBairro(db: Database, id: number): Poligono | undefined {
+  const l = db.prepare('SELECT poligono FROM bairros WHERE id = ?').get(id) as { poligono: string } | undefined;
+  return l && (JSON.parse(l.poligono) as Poligono);
+}
+
+/**
+ * Confere se o ponto cai no bairro escolhido (com uma pequena tolerância na divisa). Devolve `null` se cai; senão, a frase
+ * que diz em que bairro o ponto fica, para o 400 do cadastro.
+ */
+export function conferirPontoNoBairro(db: Database, geo: GeoMarilia, bairroId: number, lat: number, lng: number): string | null {
+  const poligono = poligonoDoBairro(db, bairroId);
+  if (!poligono || pontoNoPoligonoComTolerancia(lat, lng, poligono)) return null;
+  const real = geo.bairros[geo.bairroDoPonto(lat, lng)]!.nome;
+  return `O ponto fica em ${real}; escolha esse bairro ou mova o ponto`;
 }

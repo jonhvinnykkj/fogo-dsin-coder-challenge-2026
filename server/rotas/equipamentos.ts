@@ -44,7 +44,7 @@ export async function rotasEquipamentos(app: FastifyInstance): Promise<void> {
   }, async (req) => servico.mudarSituacao(ctx, id(req), mudancaSituacaoSchema.parse(req.body)));
 
   app.delete('/api/equipamentos/:id', {
-    schema: { tags, summary: 'Exclui equipamento sem histórico (com histórico: 409, use "Desativado")' },
+    schema: { tags, summary: 'Exclui equipamento sem histórico (com alertas, ocorrências, manutenções, mudanças de situação ou agente: 409 dizendo qual; a telemetria sai junto)' },
   }, async (req, reply) => {
     servico.excluirEquipamento(ctx, id(req));
     return reply.code(204).send();

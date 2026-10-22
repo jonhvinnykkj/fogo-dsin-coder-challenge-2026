@@ -28,3 +28,30 @@ describe('migrar: cidade/UF', () => {
     db.close();
   });
 });
+
+describe('migrar: número de série sem diferenciar maiúsculas (D3)', () => {
+  const inserir = (db: InstanceType<typeof Database>, serie: string, codigo: string) =>
+    db
+      .prepare(
+        `INSERT INTO equipamentos (codigo, tipo, numero_serie, marca, modelo, orgao, situacao, cep, logradouro, bairro_id, lat, lng, lat_atual, lng_atual, token_dispositivo, criado_em, atualizado_em)
+         VALUES (?, 'radar', ?, 'M', 'X', 'O', 'operacional', '17500-000', 'Rua A', 1, -22.2, -49.9, -22.2, -49.9, 't', 'agora', 'agora')`,
+      )
+      .run(codigo, serie);
+
+  it('banco antigo com "REV-X" e "rev-x" ganha o índice sem perder ninguém, e depois recusa a repetição', () => {
+    const db = new Database(':memory:');
+    db.exec(readFileSync(new URL('./schema.sql', import.meta.url), 'utf8')); // como um banco criado antes da regra
+    db.prepare("INSERT INTO bairros (nome, regiao, lat, lng, cep, poligono) VALUES ('Centro', 'Centro', -22.2, -49.9, '17500-000', '{}')").run();
+    inserir(db, 'REV-X', 'FOGO-RAD-0001');
+    inserir(db, 'rev-x', 'FOGO-RAD-0002');
+
+    migrar(db);
+
+    expect((db.prepare('SELECT numero_serie AS s FROM equipamentos ORDER BY id').all() as { s: string }[]).map((l) => l.s)).toEqual(['REV-X', 'rev-x (repetido 2)']);
+    expect(() => inserir(db, 'Rev-X', 'FOGO-RAD-0003')).toThrow(/UNIQUE/);
+    migrar(db); // segunda partida não renomeia de novo
+    expect((db.prepare('SELECT COUNT(*) AS n FROM equipamentos').get() as { n: number }).n).toBe(2);
+    expect((db.prepare('SELECT numero_serie AS s FROM equipamentos WHERE id = 2').get() as { s: string }).s).toBe('rev-x (repetido 2)');
+    db.close();
+  });
+});

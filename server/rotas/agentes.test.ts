@@ -80,7 +80,8 @@ describe('agentes', () => {
   });
 
   it('PATCH situação e vínculo com equipamento existente', async () => {
-    const eq = (await app.inject({ method: 'POST', url: '/api/equipamentos', payload: corpoEquipamento(ctx) })).json();
+    const moto = corpoEquipamento(ctx, { tipo: 'moto_agente', caracteristicas: { placa: 'ABC1D23', cilindrada: 160 } });
+    const eq = (await app.inject({ method: 'POST', url: '/api/equipamentos', payload: moto })).json();
     const a = (await criar({ equipamentoId: eq.id })).json();
     expect(a.equipamentoId).toBe(eq.id);
     const r = await app.inject({ method: 'PATCH', url: `/api/agentes/${a.id}/situacao`, payload: { situacao: 'pausa' } });

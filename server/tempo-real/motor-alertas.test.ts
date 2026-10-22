@@ -164,6 +164,23 @@ describe('MotorAlertas.varrer', () => {
     expect(abertos(ctx, 'manutencao_atrasada')).toBe(0);
   });
 
+  it('equipamento furtado ou desativado não gera manutencao_atrasada, e o alerta já aberto se fecha', () => {
+    const ctx = criarCtxDeTeste();
+    const furtado = inserirEquipamentoDeTeste(ctx, { tipo: 'radar', codigo: 'FOGO-RAD-0201', ultimoSinalEm: '2026-10-17T14:59:00.000Z', proximaManutencao: '2026-10-10' });
+    const desativado = inserirEquipamentoDeTeste(ctx, { tipo: 'radar', codigo: 'FOGO-RAD-0202', ultimoSinalEm: '2026-10-17T14:59:00.000Z', proximaManutencao: '2026-10-10' });
+    ctx.motor.varrer(new Date('2026-10-17T15:00:00.000Z'));
+    expect(abertos(ctx, 'manutencao_atrasada')).toBe(2);
+    ctx.db.prepare("UPDATE equipamentos SET situacao = 'furtado' WHERE id = ?").run(furtado);
+    ctx.db.prepare("UPDATE equipamentos SET situacao = 'desativado' WHERE id = ?").run(desativado);
+    ctx.motor.varrer(new Date('2026-10-17T15:01:00.000Z'));
+    expect(abertos(ctx, 'manutencao_atrasada')).toBe(0);
+    // E um furtado que nasce com a data vencida nem chega a abrir alerta.
+    const novo = inserirEquipamentoDeTeste(ctx, { tipo: 'radar', codigo: 'FOGO-RAD-0203', ultimoSinalEm: '2026-10-17T14:59:00.000Z', proximaManutencao: '2026-10-01' });
+    ctx.db.prepare("UPDATE equipamentos SET situacao = 'furtado' WHERE id = ?").run(novo);
+    ctx.motor.varrer(new Date('2026-10-17T15:02:00.000Z'));
+    expect(abertos(ctx, 'manutencao_atrasada')).toBe(0);
+  });
+
   it('patinete com posição atual fora de Marília gera furto_suspeito crítico', () => {
     const ctx = criarCtxDeTeste();
     const id = inserirEquipamentoDeTeste(ctx, { tipo: 'patinete', codigo: 'FOGO-PAT-0300', ultimoSinalEm: '2026-10-17T14:59:00.000Z' });

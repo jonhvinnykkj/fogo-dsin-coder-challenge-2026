@@ -399,7 +399,7 @@ export class MotorAlertas {
 
     // Manutenção atrasada (mesmo critério do painel de manutenção).
     const hoje = dataLocal(agora);
-    const atrasados = this.db.prepare(`${SELECT_ALVO} WHERE e.situacao NOT IN ('desativado', 'nao_instalado') AND e.manutencao_necessidade <> 'imediata'
+    const atrasados = this.db.prepare(`${SELECT_ALVO} WHERE e.situacao NOT IN ('desativado', 'nao_instalado', 'furtado') AND e.manutencao_necessidade <> 'imediata'
       AND e.proxima_manutencao IS NOT NULL AND e.proxima_manutencao < ?`).all(hoje) as LinhaAlvo[];
     for (const l of atrasados) {
       const alvo = paraAlvo(l);
@@ -413,7 +413,7 @@ export class MotorAlertas {
     }
     this.resolverIds(
       (this.db.prepare(`SELECT a.id FROM alertas a JOIN equipamentos e ON e.id = a.equipamento_id
-        WHERE a.tipo = 'manutencao_atrasada' AND a.resolvido_em IS NULL AND NOT (e.situacao NOT IN ('desativado', 'nao_instalado')
+        WHERE a.tipo = 'manutencao_atrasada' AND a.resolvido_em IS NULL AND NOT (e.situacao NOT IN ('desativado', 'nao_instalado', 'furtado')
           AND e.manutencao_necessidade <> 'imediata' AND e.proxima_manutencao IS NOT NULL AND e.proxima_manutencao < ?)`).all(hoje) as { id: number }[]).map((a) => a.id),
       agora,
     );

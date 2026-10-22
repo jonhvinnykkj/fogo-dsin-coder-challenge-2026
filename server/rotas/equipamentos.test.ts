@@ -303,15 +303,25 @@ describe('mudança de situação (PATCH)', () => {
 });
 
 describe('exclusão (DELETE)', () => {
-  it('recusa com 409 citando "Desativado" quando há telemetria', async () => {
+  it('telemetria não impede a exclusão e sai junto com o equipamento (I1)', async () => {
     const eq = await criarOk();
     ctx.db
       .prepare("INSERT INTO telemetria_hora (equipamento_id, hora, leituras, online_min, metricas) VALUES (?, '2026-10-17T14:00:00.000Z', 10, 60, '{}')")
       .run(eq.id);
+    expect((await app.inject({ method: 'DELETE', url: `/api/equipamentos/${eq.id}` })).statusCode).toBe(204);
+    expect((await app.inject({ method: 'GET', url: `/api/equipamentos/${eq.id}` })).statusCode).toBe(404);
+    expect(ctx.db.prepare('SELECT COUNT(*) AS n FROM telemetria_hora WHERE equipamento_id = ?').get(eq.id)).toEqual({ n: 0 });
+  });
+
+  it('a recusa diz qual histórico existe (alertas e manutenção)', async () => {
+    const eq = await criarOk();
+    const alerta = ctx.db.prepare("INSERT INTO alertas (tipo, criticidade, titulo, descricao, equipamento_id, criado_em) VALUES ('falha', 'alta', 't', 'd', ?, '2026-10-17T14:00:00.000Z')");
+    alerta.run(eq.id);
+    alerta.run(eq.id);
+    ctx.db.prepare("INSERT INTO manutencoes (equipamento_id, tipo, aberta_em, prevista_para, descricao) VALUES (?, 'preventiva', '2026-10-17T14:00:00.000Z', '2026-11-01', 'x')").run(eq.id);
     const r = await app.inject({ method: 'DELETE', url: `/api/equipamentos/${eq.id}` });
     expect(r.statusCode).toBe(409);
-    expect(r.json().erro).toBe("Este equipamento tem histórico. Use a situação 'Desativado' em vez de excluir.");
-    expect((await app.inject({ method: 'GET', url: `/api/equipamentos/${eq.id}` })).statusCode).toBe(200);
+    expect(r.json().erro).toBe("Este equipamento tem 2 alertas e 1 manutenção. Use a situação 'Desativado' em vez de excluir.");
   });
 
   it('recusa quando há alerta ou agente vinculado', async () => {

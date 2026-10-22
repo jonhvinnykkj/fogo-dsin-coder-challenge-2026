@@ -74,6 +74,26 @@ describe('EquipamentoFormulario', () => {
   });
 });
 
+describe('campos vazios e situação inicial', () => {
+  it('enviar vazio mostra "Escolha o tipo", "Escolha o órgão" e "Informe o CEP", não "valor inválido"', async () => {
+    const u = userEvent.setup();
+    renderizar();
+    await u.click(screen.getByRole('button', { name: 'Cadastrar equipamento' }));
+
+    expect(await screen.findByText('Escolha o tipo')).toBeInTheDocument();
+    expect(screen.getByText('Escolha o órgão')).toBeInTheDocument();
+    expect(screen.getByText('Informe o CEP')).toBeInTheDocument();
+    expect(screen.queryByText(/valor inválido/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/CEP inválido/)).not.toBeInTheDocument();
+  });
+
+  it('no cadastro, a situação oferece só Não instalado, Operacional e Em manutenção', () => {
+    renderizar();
+    const opcoes = within(screen.getByLabelText('Situação')).getAllByRole('option').map((o) => o.textContent);
+    expect(opcoes).toEqual(['Não instalado', 'Operacional', 'Em manutenção']);
+  });
+});
+
 // ---------------------------------------------------------------- edição, erros do servidor e ViaCEP
 
 const EQUIPAMENTO = {

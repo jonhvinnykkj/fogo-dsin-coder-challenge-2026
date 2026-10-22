@@ -3,6 +3,13 @@
 export const SITUACOES_EQUIPAMENTO = ['nao_instalado', 'operacional', 'mau_funcionamento', 'em_manutencao', 'desativado', 'furtado'] as const;
 export type SituacaoEquipamento = (typeof SITUACOES_EQUIPAMENTO)[number];
 
+/**
+ * Situações com que um equipamento pode ser cadastrado. "Furtado" e "desativado" são o fim de uma história (a mudança
+ * pede motivo e fica no histórico, e o furto abre alerta), e "mau funcionamento" nasce de uma leitura fora do normal:
+ * nenhum dos três faz sentido num equipamento que acabou de entrar.
+ */
+export const SITUACOES_INICIAIS = ['nao_instalado', 'operacional', 'em_manutencao'] as const satisfies readonly SituacaoEquipamento[];
+
 export const NECESSIDADES_MANUTENCAO = ['nenhuma', 'imediata', 'agendada', 'periodica'] as const;
 export type NecessidadeManutencao = (typeof NECESSIDADES_MANUTENCAO)[number];
 

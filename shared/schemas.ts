@@ -7,24 +7,40 @@ import { CIDADE, MSG_CIDADE_UF, UF } from './formato';
 import { dentroDeMarilia } from './geo';
 import { TIPOS_EQUIPAMENTO, schemaCaracteristicas, type TipoEquipamentoId } from './tipos-equipamento';
 
-const opcaoDe = <T extends readonly [string, ...string[]]>(valores: T, rotulo: string) =>
-  z.enum(valores, { errorMap: () => ({ message: `${rotulo}: valor inválido` }) });
+/** `vazio` é a mensagem de campo não escolhido ("Escolha o tipo"); sem ele, vazio e errado dizem "valor inválido". */
+const opcaoDe = <T extends readonly [string, ...string[]]>(valores: T, rotulo: string, vazio?: string) =>
+  z.enum(valores, {
+    errorMap: (issue) => {
+      const naoEscolhido = issue.code === 'invalid_type' || (issue.code === 'invalid_enum_value' && issue.received === '');
+      return { message: naoEscolhido && vazio ? vazio : `${rotulo}: valor inválido` };
+    },
+  });
 
 const IDS_TIPO = TIPOS_EQUIPAMENTO.map((t) => t.id) as [TipoEquipamentoId, ...TipoEquipamentoId[]];
 
 const MSG_FORA = 'A coordenada precisa ficar dentro de Marília';
 
+/** Data de calendário que existe de verdade: `2026-02-30` passa no Date.parse do V8 (vira 02/03), aqui não. */
+export function dataExiste(v: string): boolean {
+  if (Number.isNaN(Date.parse(v))) return false;
+  const [a, m, d] = v.slice(0, 10).split('-').map(Number) as [number, number, number];
+  const dia = new Date(Date.UTC(a, m - 1, d));
+  return dia.getUTCFullYear() === a && dia.getUTCMonth() === m - 1 && dia.getUTCDate() === d;
+}
+
 const dataIso = (rotulo: string) =>
   z
     .string({ invalid_type_error: `${rotulo}: informe uma data` })
     .regex(/^\d{4}-\d{2}-\d{2}/, `${rotulo}: use o formato aaaa-mm-dd`)
-    .refine((v) => !Number.isNaN(Date.parse(v)), `${rotulo}: data inválida`);
+    .refine(dataExiste, `${rotulo}: data inválida`);
 
 const latitude = z.number({ required_error: 'Informe a latitude', invalid_type_error: 'A latitude precisa ser um número' }).min(-90).max(90);
 const longitude = z.number({ required_error: 'Informe a longitude', invalid_type_error: 'A longitude precisa ser um número' }).min(-180).max(180);
 
 const cep = z
   .string({ required_error: 'Informe o CEP' })
+  .trim()
+  .min(1, 'Informe o CEP')
   .regex(/^\d{5}-?\d{3}$/, 'CEP inválido: use o formato 00000-000')
   .transform((v) => (v.includes('-') ? v : `${v.slice(0, 5)}-${v.slice(5)}`))
   .refine((v) => v >= '17500-000' && v <= '17539-999', 'O CEP precisa ser de Marília (17500-000 a 17539-999)');
@@ -34,12 +50,12 @@ const cidadeFixa = z.string().optional().refine((v): boolean => v === undefined 
 const ufFixa = z.string().optional().refine((v): boolean => v === undefined || v === UF, MSG_CIDADE_UF);
 
 const camposEquipamento = z.object({
-    tipo: opcaoDe(IDS_TIPO, 'Tipo'),
+    tipo: opcaoDe(IDS_TIPO, 'Tipo', 'Escolha o tipo'),
     numeroSerie: z.string({ required_error: 'Informe o número de série' }).trim().min(1, 'Informe o número de série').max(60),
     marca: z.string({ required_error: 'Informe a marca' }).trim().min(1, 'Informe a marca').max(60),
     modelo: z.string({ required_error: 'Informe o modelo' }).trim().min(1, 'Informe o modelo').max(60),
-    orgao: opcaoDe(ORGAOS, 'Órgão responsável'),
-    situacao: opcaoDe(SITUACOES_EQUIPAMENTO, 'Situação'),
+    orgao: opcaoDe(ORGAOS, 'Órgão responsável', 'Escolha o órgão'),
+    situacao: opcaoDe(SITUACOES_EQUIPAMENTO, 'Situação', 'Escolha a situação'),
     cep,
     logradouro: z.string({ required_error: 'Informe o logradouro' }).trim().min(1, 'Informe o logradouro').max(120),
     referencia: z.string().trim().max(120).default(''),
@@ -48,7 +64,7 @@ const camposEquipamento = z.object({
     uf: ufFixa,
     lat: latitude,
     lng: longitude,
-    manutencaoNecessidade: opcaoDe(NECESSIDADES_MANUTENCAO, 'Necessidade de manutenção'),
+    manutencaoNecessidade: opcaoDe(NECESSIDADES_MANUTENCAO, 'Necessidade de manutenção', 'Escolha a necessidade de manutenção'),
     manutencaoPeriodicidadeDias: z.number().int().min(1, 'A periodicidade precisa ser de pelo menos 1 dia').max(3650).optional(),
     ultimaManutencao: dataIso('Última manutenção').optional(),
     proximaManutencao: dataIso('Próxima manutenção').optional(),
@@ -62,6 +78,9 @@ function regrasEquipamento(v: z.infer<typeof camposEquipamento> | z.infer<typeof
   }
   if ((v.manutencaoNecessidade === 'agendada' || v.manutencaoNecessidade === 'periodica') && !v.proximaManutencao) {
     ctx.addIssue({ code: 'custom', path: ['proximaManutencao'], message: 'Informe a data da próxima manutenção' });
+  }
+  if (v.ultimaManutencao && v.proximaManutencao && v.proximaManutencao.slice(0, 10) < v.ultimaManutencao.slice(0, 10)) {
+    ctx.addIssue({ code: 'custom', path: ['proximaManutencao'], message: 'A próxima manutenção não pode ser anterior à última' });
   }
   if (v.manutencaoNecessidade === 'periodica' && !v.manutencaoPeriodicidadeDias) {
     ctx.addIssue({ code: 'custom', path: ['manutencaoPeriodicidadeDias'], message: 'Informe a periodicidade em dias' });
@@ -88,10 +107,10 @@ export const agenteInputSchema = z
   .object({
     nome: z.string({ required_error: 'Informe o nome' }).trim().min(1, 'Informe o nome').max(120),
     matricula: z.string({ required_error: 'Informe a matrícula' }).trim().min(1, 'Informe a matrícula').max(30),
-    categoria: opcaoDe(CATEGORIAS_AGENTE, 'Categoria'),
-    orgao: opcaoDe(ORGAOS, 'Órgão'),
-    situacao: opcaoDe(SITUACOES_AGENTE, 'Situação'),
-    turno: opcaoDe(TURNOS, 'Turno'),
+    categoria: opcaoDe(CATEGORIAS_AGENTE, 'Categoria', 'Escolha a categoria'),
+    orgao: opcaoDe(ORGAOS, 'Órgão', 'Escolha o órgão'),
+    situacao: opcaoDe(SITUACOES_AGENTE, 'Situação', 'Escolha a situação'),
+    turno: opcaoDe(TURNOS, 'Turno', 'Escolha o turno'),
     baseLogradouro: z.string({ required_error: 'Informe o logradouro da base' }).trim().min(1, 'Informe o logradouro da base').max(120),
     baseBairroId: z.number({ required_error: 'Escolha o bairro da base', invalid_type_error: 'Escolha o bairro da base' }).int().positive('Escolha o bairro da base'),
     lat: latitude,
@@ -150,7 +169,7 @@ export const manutencaoInputSchema = z
     previstaPara: dataIso('Data prevista').optional(),
     concluidaEm: z
       .string({ invalid_type_error: 'Conclusão: informe uma data' })
-      .refine((v) => !Number.isNaN(Date.parse(v)), 'Conclusão: data inválida')
+      .refine(dataExiste, 'Conclusão: data inválida')
       .optional(),
   })
   .refine((v) => v.previstaPara || v.concluidaEm, {
