@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import { criarAppDeTeste } from '../test/app';
 import { criarCtxDeTeste, type CtxDeTeste } from '../test/ctx';
 import { inserirEquipamentoDeTeste } from '../test/fabricas';
+import { RECUSADAS_POR_MINUTO } from './telemetria';
 
 let ctx: CtxDeTeste;
 let app: FastifyInstance;
@@ -65,6 +66,43 @@ describe('POST /api/telemetria', () => {
     const latitudeAbsurda = await enviar('segredo-do-radar-1', { codigo: 'FOGO-RAD-0001', metricas: { fluxo: 1 }, lat: 200, lng: 0 });
     expect(latitudeAbsurda.statusCode).toBe(400);
     expect(sinal('FOGO-RAD-0001')).toBeNull();
+  });
+});
+
+describe('POST /api/telemetria: faixas e limite de recusas', () => {
+  const ok = 'segredo-do-radar-1';
+
+  it('valor absurdo (1.7e308 viraria Infinity na soma) e negativo: 400 com o campo, sem gravar', async () => {
+    const r = await enviar(ok, { codigo: 'FOGO-RAD-0001', metricas: { fluxo: 1.7e308 } });
+    expect(r.statusCode).toBe(400);
+    expect(r.json().campos).toHaveProperty(['metricas.fluxo']);
+    expect((await enviar(ok, { codigo: 'FOGO-RAD-0001', metricas: { fluxo: -1 } })).statusCode).toBe(400);
+    expect(ctx.db.prepare('SELECT COUNT(*) AS n FROM telemetria_hora').get()).toEqual({ n: 0 });
+    expect(sinal('FOGO-RAD-0001')).toBeNull();
+  });
+
+  it('posição em equipamento fixo e hora muito antiga: 400', async () => {
+    const posicao = await enviar(ok, { codigo: 'FOGO-RAD-0001', metricas: { fluxo: 1 }, lat: -22.21, lng: -49.95 });
+    expect(posicao.statusCode).toBe(400);
+    expect(posicao.json().campos.lat).toMatch(/fixo/);
+    const antiga = await enviar(ok, { codigo: 'FOGO-RAD-0001', metricas: { fluxo: 1 }, em: '2001-01-01T00:00:00Z' });
+    expect(antiga.statusCode).toBe(400);
+    expect(antiga.json().campos.em).toMatch(/6 horas/);
+  });
+
+  it('móvel com posição dentro de Marília passa; fora do mundo, não', async () => {
+    inserirEquipamentoDeTeste(ctx, { tipo: 'viatura', codigo: 'FOGO-VIA-0001', token: 'tok-via' });
+    expect((await enviar('tok-via', { codigo: 'FOGO-VIA-0001', metricas: { velocidade: 40 }, lat: -22.21, lng: -49.95 })).statusCode).toBe(202);
+    expect((await enviar('tok-via', { codigo: 'FOGO-VIA-0001', metricas: { velocidade: 40 }, lat: 60, lng: 100 })).statusCode).toBe(400);
+  });
+
+  it('muitas recusas do mesmo IP viram 429, mesmo com tokens diferentes; antes disso, 401', async () => {
+    for (let i = 0; i < RECUSADAS_POR_MINUTO; i += 1) {
+      expect((await enviar(`chute-${i}`, { codigo: 'FOGO-RAD-0001', metricas: { fluxo: 1 } })).statusCode).toBe(401);
+    }
+    const barrada = await enviar('chute-final', { codigo: 'FOGO-RAD-0001', metricas: { fluxo: 1 } });
+    expect(barrada.statusCode).toBe(429);
+    expect(barrada.json().erro).toMatch(/token inválido/);
   });
 });
 
