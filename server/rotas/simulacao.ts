@@ -1,7 +1,7 @@
 // Controle da simulação: velocidade, pausa e botão "simular evento".
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { ErroApi } from '../erros';
+import { ErroApi, invalido } from '../erros';
 import { TIPOS_EVENTO_SIMULADO } from '../../shared/dominio';
 
 const tags = ['Tempo real'];
@@ -11,10 +11,20 @@ const mudancaSchema = z.object({
   pausado: z.boolean({ invalid_type_error: 'Pausado: use verdadeiro ou falso' }).optional(),
 });
 
-const eventoSchema = z.object({
-  tipo: z.enum(TIPOS_EVENTO_SIMULADO, { errorMap: () => ({ message: `Tipo de evento: use ${TIPOS_EVENTO_SIMULADO.join(', ')}` }) }),
-  alvoId: z.number({ invalid_type_error: 'alvoId: informe o id do equipamento' }).int().positive().optional(),
-});
+const idDoEquipamento = (campo: string) => z.number({ invalid_type_error: `${campo}: informe o id do equipamento` }).int().positive().optional();
+// `.strict()`: campo que a rota não conhece (bairroId, por exemplo) era ignorado em silêncio e o evento saía em outro lugar.
+const eventoSchema = z
+  .object({
+    tipo: z.enum(TIPOS_EVENTO_SIMULADO, { errorMap: () => ({ message: `Tipo de evento: use ${TIPOS_EVENTO_SIMULADO.join(', ')}` }) }),
+    alvoId: idDoEquipamento('alvoId'),
+    /** Mesmo que `alvoId`, com o nome que o resto da API usa. */
+    equipamentoId: idDoEquipamento('equipamentoId'),
+  })
+  .strict()
+  .refine((e) => e.alvoId === undefined || e.equipamentoId === undefined || e.alvoId === e.equipamentoId, {
+    message: 'Informe só um: alvoId e equipamentoId são o mesmo campo',
+    path: ['equipamentoId'],
+  });
 
 export async function rotasSimulacao(app: FastifyInstance): Promise<void> {
   const ctx = app.ctx;
@@ -34,12 +44,16 @@ export async function rotasSimulacao(app: FastifyInstance): Promise<void> {
     schema: {
       tags,
       summary: 'Injeta um evento na cidade (furto, falha, acidente, alagamento ou congestionamento)',
-      description: '`alvoId` é o equipamento alvo (furto, falha, alagamento) ou o de referência do local (acidente, congestionamento); sem ele o simulador escolhe. Devolve os alertas gerados.',
+      description: '`alvoId` (ou `equipamentoId`, o mesmo campo) é o equipamento alvo (furto, falha, alagamento) ou o de referência do local (acidente, congestionamento); sem ele o simulador escolhe. Equipamento que não existe dá 404; campo desconhecido (como `bairroId`), 400. Devolve os alertas gerados.',
       body: { type: 'object', additionalProperties: true },
     },
     validatorCompiler: () => (dados) => ({ value: dados }),
   }, async (req) => {
-    const { tipo, alvoId } = eventoSchema.parse(req.body);
-    return { alertas: simulador().injetar(tipo, alvoId) };
+    const corpo = req.body as Record<string, unknown> | null;
+    if (corpo && typeof corpo === 'object' && 'bairroId' in corpo) {
+      throw invalido('bairroId não é aceito: o evento nasce no local do equipamento alvo (alvoId)', { bairroId: 'Campo não aceito: use alvoId' });
+    }
+    const { tipo, alvoId, equipamentoId } = eventoSchema.parse(corpo);
+    return { alertas: simulador().injetar(tipo, alvoId ?? equipamentoId) };
   });
 }

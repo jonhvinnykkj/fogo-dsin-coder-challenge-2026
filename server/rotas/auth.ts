@@ -53,7 +53,10 @@ export async function rotasAuth(app: FastifyInstance): Promise<void> {
     const credenciais = credenciaisPorLogin(db, login);
     const confere = await conferirSenha(senha, credenciais?.senhaHash ?? HASH_FALSO);
     if (!credenciais || !confere) {
-      anotar(req, 'POST /api/auth/entrar', 401, undefined, { login });
+      // Quem errou a senha de um usuário que existe fica na trilha com o login dele (ficou claro quem foi alvo). Um login que não
+      // existe NÃO é gravado: quem digita a senha no campo de usuário por engano deixaria a senha escrita na auditoria.
+      const { senhaHash: _hash, ...alvo } = credenciais ?? {};
+      anotar(req, 'POST /api/auth/entrar', 401, credenciais ? (alvo as UsuarioSessao) : undefined);
       throw new ErroApi(401, RECUSADA);
     }
     const { senhaHash: _omitida, ...usuario } = credenciais;

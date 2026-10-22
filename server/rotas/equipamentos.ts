@@ -5,7 +5,8 @@ import * as servico from '../servicos/equipamentos';
 import { lerId } from './id';
 
 const tags = ['Equipamentos'];
-const horasSchema = z.object({ horas: z.coerce.number().int().min(1).max(720).default(48) });
+// `horas=` vazio vale como não informado (padrão 48), como os outros filtros da API.
+const horasSchema = z.object({ horas: z.preprocess((v) => (v === '' ? undefined : v), z.coerce.number().int().min(1).max(720).default(48)) });
 
 export async function rotasEquipamentos(app: FastifyInstance): Promise<void> {
   const ctx = app.ctx;
