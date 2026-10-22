@@ -27,6 +27,7 @@ export function migrar(db: Database): void {
   if (!temColuna('equipamentos', 'cidade')) db.exec("ALTER TABLE equipamentos ADD COLUMN cidade TEXT NOT NULL DEFAULT 'Marília'");
   if (!temColuna('equipamentos', 'uf')) db.exec("ALTER TABLE equipamentos ADD COLUMN uf TEXT NOT NULL DEFAULT 'SP'");
   if (!temColuna('equipamentos', 'proxima_manutencao_historico')) db.exec('ALTER TABLE equipamentos ADD COLUMN proxima_manutencao_historico TEXT');
+  corrigirNomesDeBairro(db);
   garantirSerieUnicaSemCaixa(db);
   garantirImediataNoMauFuncionamento(db);
   converterTokensLegados(db);
@@ -79,6 +80,36 @@ export function garantirImediataNoMauFuncionamento(db: Database): number {
   return db.transaction(() => {
     const n = db.prepare("UPDATE equipamentos SET manutencao_necessidade = 'imediata' WHERE situacao = 'mau_funcionamento' AND manutencao_necessidade <> 'imediata'").run().changes;
     db.prepare("INSERT INTO meta (chave, valor) VALUES ('mau_funcionamento_imediata', '1')").run();
+    return n;
+  })();
+}
+
+/** Nomes de bairro que vieram do OSM sem acento e foram corrigidos (server/geo/dados/bairros.json). */
+export const NOMES_DE_BAIRRO_CORRIGIDOS: readonly (readonly [antigo: string, novo: string])[] = [
+  ['Parque dos Ipes', 'Parque dos Ipês'],
+  ['Joquei Club', 'Jóquei Clube'],
+  ['Jardim Sao Vicente de Paulo', 'Jardim São Vicente de Paulo'],
+  ['Jardim Guaruja', 'Jardim Guarujá'],
+  ['Jardim Teotonio Vilela', 'Jardim Teotônio Vilela'],
+];
+
+/**
+ * Banco criado antes da correção tem o bairro com o nome sem acento. Renomeia a mesma linha (o id, o polígono e todo
+ * equipamento, agente e ocorrência vinculados continuam) e acerta o nome nos textos dos alertas já gravados. Roda antes de
+ * `inserirBairros`, que ignora por nome: sem isto a partida criaria um bairro duplicado com o nome novo. Se o nome novo já
+ * existe, não mexe. Seguro rodar a cada partida. Devolve quantos bairros renomeou.
+ */
+export function corrigirNomesDeBairro(db: Database): number {
+  const existe = db.prepare('SELECT 1 FROM bairros WHERE nome = ?');
+  const renomear = db.prepare('UPDATE bairros SET nome = ? WHERE nome = ?');
+  const trocarNoAlerta = db.prepare('UPDATE alertas SET titulo = REPLACE(titulo, ?, ?), descricao = REPLACE(descricao, ?, ?) WHERE titulo LIKE ? OR descricao LIKE ?');
+  return db.transaction(() => {
+    let n = 0;
+    for (const [antigo, novo] of NOMES_DE_BAIRRO_CORRIGIDOS) {
+      if (!existe.get(antigo) || existe.get(novo)) continue;
+      n += renomear.run(novo, antigo).changes;
+      trocarNoAlerta.run(antigo, novo, antigo, novo, `%${antigo}%`, `%${antigo}%`);
+    }
     return n;
   })();
 }
