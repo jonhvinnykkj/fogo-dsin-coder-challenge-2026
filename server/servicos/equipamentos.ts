@@ -146,6 +146,7 @@ export function mudarSituacao(ctx: Base, id: number, m: MudancaSituacao): Equipa
   })();
   if (saiDoFurto) ctx.motor?.resolverPorChave(`furto:${id}`, agora, 'manual');
   if (m.situacao === 'operacional') ctx.motor?.resolverDoEquipamento(id, agora);
+  else ctx.motor?.equipamentoSaiuDeOperacao(id, agora); // fora de operação, "prestes a falhar" deixa de valer na hora
   ctx.simulador?.recarregar();
   const mapa = repo.equipamentoMapaPorId(ctx.db, id, dataLocal(agora));
   if (mapa) ctx.barramento?.emitir({ tipo: 'equipamento', dados: mapa });

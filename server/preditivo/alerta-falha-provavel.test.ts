@@ -2,7 +2,7 @@
 import type { Database } from 'better-sqlite3';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { ContextoApp } from '../contexto';
-import { registrarManutencao } from '../servicos/equipamentos';
+import { mudarSituacao, registrarManutencao } from '../servicos/equipamentos';
 import { somarDias } from '../tempo';
 import { Barramento } from '../tempo-real/barramento';
 import { LIMITE_FALHA_PROVAVEL, LIMITE_FALHA_PROVAVEL_FECHAR, MotorAlertas } from '../tempo-real/motor-alertas';
@@ -37,6 +37,14 @@ beforeEach(() => {
 afterEach(() => db.close());
 
 describe('alerta preventivo de falha provável', () => {
+  it('mudar a situação pela tela para fora de operação fecha o alerta na hora, sem esperar a varredura', () => {
+    const id = cameraCandidata();
+    motor.varrerFalhasProvaveis(AGORA_PREDITIVO);
+    expect(abertos(id)).toHaveLength(1);
+    mudarSituacao(ctx, id, { situacao: 'em_manutencao', motivo: 'Levada para a oficina' });
+    expect(abertos(id)).toHaveLength(0);
+  });
+
   it('equipamento operacional com chance alta ganha um alerta com os motivos e a ação, sem duplicar', () => {
     const id = cameraCandidata();
     expect(chance(id)).toBeGreaterThanOrEqual(LIMITE_FALHA_PROVAVEL);
