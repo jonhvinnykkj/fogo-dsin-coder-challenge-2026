@@ -3,7 +3,7 @@ import './erros-zod';
 import {
   CATEGORIAS_AGENTE, NECESSIDADES_MANUTENCAO, ORGAOS, REGIOES, SITUACOES_AGENTE, SITUACOES_EQUIPAMENTO, TURNOS,
 } from './dominio';
-import { CIDADE, MSG_CIDADE_UF, UF } from './formato';
+import { CIDADE, MSG_CIDADE_UF, normalizarTelefone, UF } from './formato';
 import { dentroDeMarilia } from './geo';
 import { TIPOS_EQUIPAMENTO, schemaCaracteristicas, type TipoEquipamentoId } from './tipos-equipamento';
 
@@ -20,6 +20,24 @@ const IDS_TIPO = TIPOS_EQUIPAMENTO.map((t) => t.id) as [TipoEquipamentoId, ...Ti
 
 const MSG_FORA = 'A coordenada precisa ficar dentro de Marília';
 
+/**
+ * Caracteres de controle (NUL, escape, tabulação...) não têm lugar em nome, marca, série ou busca: o NUL, por exemplo, corta o
+ * texto na busca do SQLite (`%00` casaria com tudo). Em texto de várias linhas (motivo, descrição) só quebra de linha e tabulação passam.
+ */
+export const semControle = (v: string): boolean => !/\p{Cc}/u.test(v);
+export const textoSemControle = (v: string): boolean => !/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/.test(v);
+const MSG_CONTROLE = 'O texto tem caracteres inválidos (de controle)';
+
+/** Identificador de peça (série, matrícula): NFKC antes de comparar e gravar, para `ＳN-1` (largura total) valer o mesmo que `SN-1`. */
+const identificador = (obrigatorio: string, max: number) =>
+  z
+    .string({ required_error: obrigatorio })
+    .transform((v) => v.normalize('NFKC'))
+    .pipe(z.string().trim().min(1, obrigatorio).max(max).refine(semControle, MSG_CONTROLE));
+
+/** Menor data de calendário aceita em instalação e manutenção: antes disso é erro de digitação. */
+export const DATA_MINIMA = '2000-01-01';
+
 /** Data de calendário que existe de verdade: `2026-02-30` passa no Date.parse do V8 (vira 02/03), aqui não. */
 export function dataExiste(v: string): boolean {
   if (Number.isNaN(Date.parse(v))) return false;
@@ -28,11 +46,12 @@ export function dataExiste(v: string): boolean {
   return dia.getUTCFullYear() === a && dia.getUTCMonth() === m - 1 && dia.getUTCDate() === d;
 }
 
-const dataIso = (rotulo: string) =>
+const dataIso = (rotulo: string, comMinimo = false) =>
   z
     .string({ invalid_type_error: `${rotulo}: informe uma data` })
     .regex(/^\d{4}-\d{2}-\d{2}/, `${rotulo}: use o formato aaaa-mm-dd`)
-    .refine(dataExiste, `${rotulo}: data inválida`);
+    .refine(dataExiste, `${rotulo}: data inválida`)
+    .refine((v) => !comMinimo || v.slice(0, 10) >= DATA_MINIMA, `${rotulo}: não pode ser anterior a ${DATA_MINIMA.slice(0, 4)}`);
 
 const latitude = z.number({ required_error: 'Informe a latitude', invalid_type_error: 'A latitude precisa ser um número' }).min(-90).max(90);
 const longitude = z.number({ required_error: 'Informe a longitude', invalid_type_error: 'A longitude precisa ser um número' }).min(-180).max(180);
@@ -51,14 +70,14 @@ const ufFixa = z.string().optional().refine((v): boolean => v === undefined || v
 
 const camposEquipamento = z.object({
     tipo: opcaoDe(IDS_TIPO, 'Tipo', 'Escolha o tipo'),
-    numeroSerie: z.string({ required_error: 'Informe o número de série' }).trim().min(1, 'Informe o número de série').max(60),
-    marca: z.string({ required_error: 'Informe a marca' }).trim().min(1, 'Informe a marca').max(60),
-    modelo: z.string({ required_error: 'Informe o modelo' }).trim().min(1, 'Informe o modelo').max(60),
+    numeroSerie: identificador('Informe o número de série', 60),
+    marca: z.string({ required_error: 'Informe a marca' }).trim().min(1, 'Informe a marca').max(60).refine(semControle, MSG_CONTROLE),
+    modelo: z.string({ required_error: 'Informe o modelo' }).trim().min(1, 'Informe o modelo').max(60).refine(semControle, MSG_CONTROLE),
     orgao: opcaoDe(ORGAOS, 'Órgão responsável', 'Escolha o órgão'),
     situacao: opcaoDe(SITUACOES_EQUIPAMENTO, 'Situação', 'Escolha a situação'),
     cep,
-    logradouro: z.string({ required_error: 'Informe o logradouro' }).trim().min(1, 'Informe o logradouro').max(120),
-    referencia: z.string().trim().max(120).default(''),
+    logradouro: z.string({ required_error: 'Informe o logradouro' }).trim().min(1, 'Informe o logradouro').max(120).refine(semControle, MSG_CONTROLE),
+    referencia: z.string().trim().max(120).refine(semControle, MSG_CONTROLE).default(''),
     bairroId: z.number({ required_error: 'Escolha o bairro', invalid_type_error: 'Escolha o bairro' }).int().positive('Escolha o bairro'),
     cidade: cidadeFixa,
     uf: ufFixa,
@@ -66,10 +85,10 @@ const camposEquipamento = z.object({
     lng: longitude,
     manutencaoNecessidade: opcaoDe(NECESSIDADES_MANUTENCAO, 'Necessidade de manutenção', 'Escolha a necessidade de manutenção'),
     manutencaoPeriodicidadeDias: z.number().int().min(1, 'A periodicidade precisa ser de pelo menos 1 dia').max(3650).optional(),
-    ultimaManutencao: dataIso('Última manutenção').optional(),
+    ultimaManutencao: dataIso('Última manutenção', true).optional(),
     proximaManutencao: dataIso('Próxima manutenção').optional(),
     caracteristicas: z.record(z.unknown()).default({}),
-    instaladoEm: dataIso('Data de instalação').optional(),
+    instaladoEm: dataIso('Data de instalação', true).optional(),
   });
 
 function regrasEquipamento(v: z.infer<typeof camposEquipamento> | z.infer<typeof camposEdicao>, ctx: z.RefinementCtx): void {
@@ -84,6 +103,11 @@ function regrasEquipamento(v: z.infer<typeof camposEquipamento> | z.infer<typeof
   }
   if (v.manutencaoNecessidade === 'periodica' && !v.manutencaoPeriodicidadeDias) {
     ctx.addIssue({ code: 'custom', path: ['manutencaoPeriodicidadeDias'], message: 'Informe a periodicidade em dias' });
+  }
+  // A viatura diz o órgão duas vezes (responsável e característica "Órgão"): os dois têm que concordar.
+  const orgaoViatura = v.tipo === 'viatura' ? v.caracteristicas.orgaoViatura : undefined;
+  if (typeof orgaoViatura === 'string' && v.orgao && orgaoViatura !== v.orgao) {
+    ctx.addIssue({ code: 'custom', path: ['orgao'], message: `O órgão responsável precisa ser o mesmo da viatura (${orgaoViatura})` });
   }
   const r = schemaCaracteristicas(v.tipo).safeParse(v.caracteristicas);
   if (!r.success) {
@@ -105,18 +129,32 @@ export type EquipamentoEdicao = z.infer<typeof equipamentoEdicaoSchema>;
 
 export const agenteInputSchema = z
   .object({
-    nome: z.string({ required_error: 'Informe o nome' }).trim().min(1, 'Informe o nome').max(120),
-    matricula: z.string({ required_error: 'Informe a matrícula' }).trim().min(1, 'Informe a matrícula').max(30),
+    nome: z.string({ required_error: 'Informe o nome' }).trim().min(1, 'Informe o nome').max(120).refine(semControle, MSG_CONTROLE),
+    matricula: identificador('Informe a matrícula', 30),
     categoria: opcaoDe(CATEGORIAS_AGENTE, 'Categoria', 'Escolha a categoria'),
     orgao: opcaoDe(ORGAOS, 'Órgão', 'Escolha o órgão'),
     situacao: opcaoDe(SITUACOES_AGENTE, 'Situação', 'Escolha a situação'),
     turno: opcaoDe(TURNOS, 'Turno', 'Escolha o turno'),
-    baseLogradouro: z.string({ required_error: 'Informe o logradouro da base' }).trim().min(1, 'Informe o logradouro da base').max(120),
+    baseLogradouro: z.string({ required_error: 'Informe o logradouro da base' }).trim().min(1, 'Informe o logradouro da base').max(120).refine(semControle, MSG_CONTROLE),
     baseBairroId: z.number({ required_error: 'Escolha o bairro da base', invalid_type_error: 'Escolha o bairro da base' }).int().positive('Escolha o bairro da base'),
     lat: latitude,
     lng: longitude,
     equipamentoId: z.number().int().positive().optional(),
-    telefone: z.string().trim().max(30).optional(),
+    // Vazio = sem telefone. Com valor, tem que ser telefone brasileiro (DDD + fixo ou celular); grava num formato só.
+    telefone: z
+      .string()
+      .trim()
+      .max(30, 'Telefone: texto longo demais')
+      .transform((v, ctx) => {
+        if (v === '') return undefined;
+        const normalizado = normalizarTelefone(v);
+        if (normalizado === undefined) {
+          ctx.addIssue({ code: 'custom', message: 'Telefone inválido: use o DDD e o número, ex.: (14) 99999-0000' });
+          return z.NEVER;
+        }
+        return normalizado;
+      })
+      .optional(),
   })
   .superRefine((v, ctx) => {
     if (!dentroDeMarilia(v.lat, v.lng)) ctx.addIssue({ code: 'custom', path: ['lat'], message: MSG_FORA });
@@ -125,7 +163,7 @@ export type AgenteInput = z.infer<typeof agenteInputSchema>;
 
 export const mudancaSituacaoSchema = z.object({
   situacao: opcaoDe(SITUACOES_EQUIPAMENTO, 'Situação'),
-  motivo: z.string({ required_error: 'Informe o motivo' }).trim().min(3, 'Informe o motivo (mínimo de 3 letras)'),
+  motivo: z.string({ required_error: 'Informe o motivo' }).trim().min(3, 'Informe o motivo (mínimo de 3 letras)').max(500).refine(textoSemControle, MSG_CONTROLE),
   recuperado: z.boolean().optional(),
 });
 export type MudancaSituacao = z.infer<typeof mudancaSituacaoSchema>;
@@ -138,20 +176,26 @@ const paginacao = {
   porPagina: z.coerce.number().int().min(1).max(100).default(25),
 };
 
+/** Colunas pelas quais a lista de equipamentos ordena (o desempate é sempre o código). */
+export const ORDENS_EQUIPAMENTO = ['codigo', 'tipo', 'situacao', 'bairro'] as const;
+export type OrdemEquipamento = (typeof ORDENS_EQUIPAMENTO)[number];
+
 export const filtrosEquipamentoSchema = z.object({
-  busca: q(z.string().trim().max(100)),
+  busca: q(z.string().trim().max(100).refine(semControle, MSG_CONTROLE)),
   tipo: q(opcaoDe(IDS_TIPO, 'Tipo')),
   situacao: q(opcaoDe(SITUACOES_EQUIPAMENTO, 'Situação')),
   bairroId: q(z.coerce.number().int().positive()),
   regiao: q(opcaoDe(REGIOES, 'Região')),
   orgao: q(opcaoDe(ORGAOS, 'Órgão')),
   manutencao: q(z.enum(['imediata', 'proxima', 'atrasada'], { errorMap: () => ({ message: 'Manutenção: valor inválido' }) })),
+  ordem: q(opcaoDe(ORDENS_EQUIPAMENTO, 'Ordem')),
+  direcao: q(opcaoDe(['asc', 'desc'] as const, 'Direção')),
   ...paginacao,
 });
 export type FiltrosEquipamento = z.infer<typeof filtrosEquipamentoSchema>;
 
 export const filtrosAgenteSchema = z.object({
-  busca: q(z.string().trim().max(100)),
+  busca: q(z.string().trim().max(100).refine(semControle, MSG_CONTROLE)),
   categoria: q(opcaoDe(CATEGORIAS_AGENTE, 'Categoria')),
   situacao: q(opcaoDe(SITUACOES_AGENTE, 'Situação')),
   turno: q(opcaoDe(TURNOS, 'Turno')),
@@ -165,11 +209,12 @@ export type FiltrosAgente = z.infer<typeof filtrosAgenteSchema>;
 export const manutencaoInputSchema = z
   .object({
     tipo: opcaoDe(['corretiva', 'preventiva'] as const, 'Tipo de manutenção'),
-    descricao: z.string({ required_error: 'Informe a descrição' }).trim().min(3, 'Informe a descrição (mínimo de 3 letras)').max(500),
+    descricao: z.string({ required_error: 'Informe a descrição' }).trim().min(3, 'Informe a descrição (mínimo de 3 letras)').max(500).refine(textoSemControle, MSG_CONTROLE),
     previstaPara: dataIso('Data prevista').optional(),
     concluidaEm: z
       .string({ invalid_type_error: 'Conclusão: informe uma data' })
       .refine(dataExiste, 'Conclusão: data inválida')
+      .refine((v) => v.slice(0, 10) >= DATA_MINIMA, `Conclusão: não pode ser anterior a ${DATA_MINIMA.slice(0, 4)}`)
       .optional(),
   })
   .refine((v) => v.previstaPara || v.concluidaEm, {

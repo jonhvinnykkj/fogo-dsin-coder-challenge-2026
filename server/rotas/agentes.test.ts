@@ -123,3 +123,90 @@ describe('agentes', () => {
     expect(b.json().campos.baseBairroId).toBe('Bairro não encontrado');
   });
 });
+
+describe('correções do cadastro de agente (rodada 2)', () => {
+  it.each(['123', 'abc', '<script>alert(1)</script>', '(14) 12345-6789', '(00) 99999-0000', '(14) 9999-0000', '14 3333', '(14) 99999-0000 ramal 2'])(
+    'telefone inválido %j é recusado com 400 em campos.telefone',
+    async (telefone) => {
+      const r = await criar({ telefone });
+      expect(r.statusCode).toBe(400);
+      expect(r.json().campos.telefone).toMatch(/Telefone inválido/);
+    },
+  );
+
+  it.each([
+    ['(14) 99999-0000', '(14) 99999-0000'],
+    ['14999990000', '(14) 99999-0000'],
+    ['14 99999 0000', '(14) 99999-0000'],
+    ['+55 (14) 99999-0000', '(14) 99999-0000'],
+    ['(14) 3433-1234', '(14) 3433-1234'],
+    ['1434331234', '(14) 3433-1234'],
+  ])('telefone %j é gravado como %j (um formato só)', async (entrada, gravado) => {
+    const r = await criar({ telefone: entrada });
+    expect(r.statusCode).toBe(201);
+    expect(r.json().telefone).toBe(gravado);
+  });
+
+  it('telefone vazio ou ausente = sem telefone', async () => {
+    const vazio = (await criar({ telefone: '  ' })).json();
+    expect(vazio.telefone).toBeUndefined();
+    expect((await criar({ matricula: 'AT-2' })).json().telefone).toBeUndefined();
+  });
+
+  it('matrícula com letra de largura total repete a existente (NFKC); NUL no nome é recusado', async () => {
+    await criar();
+    expect((await criar({ matricula: 'ＡＴ-1001' })).statusCode).toBe(409);
+    const nul = await criar({ matricula: 'AT-3', nome: 'Carlos\u0000' });
+    expect(nul.statusCode).toBe(400);
+    expect(nul.json().campos.nome).toBeDefined();
+  });
+
+  describe('veículo × categoria e órgão do agente', () => {
+    const veiculo = async (tipo: 'moto_agente' | 'viatura', orgao: string, serie: string) => {
+      const caracteristicas = tipo === 'moto_agente'
+        ? { placa: 'ABC1D23', cilindrada: 160 }
+        : { placa: 'ABC1D23', orgaoViatura: orgao, prefixo: 'P-1' };
+      const r = await app.inject({ method: 'POST', url: '/api/equipamentos', payload: corpoEquipamento(ctx, { tipo, orgao, numeroSerie: serie, caracteristicas }) });
+      expect(r.statusCode).toBe(201);
+      return r.json().id as number;
+    };
+
+    it('agente da PM não aceita moto de agente de trânsito; aceita viatura da PM e recusa a da Guarda', async () => {
+      const moto = await veiculo('moto_agente', 'Secretaria de Mobilidade Urbana', 'M-1');
+      const pm = { categoria: 'policial_militar', orgao: 'Polícia Militar' };
+      const comMoto = await criar({ ...pm, equipamentoId: moto });
+      expect(comMoto.statusCode).toBe(400);
+      expect(comMoto.json().campos.equipamentoId).toMatch(/viatura/);
+
+      const viaturaGcm = await veiculo('viatura', 'Guarda Civil Municipal', 'V-GCM');
+      const deOutroOrgao = await criar({ ...pm, matricula: 'PM-1', equipamentoId: viaturaGcm });
+      expect(deOutroOrgao.statusCode).toBe(400);
+      expect(deOutroOrgao.json().campos.equipamentoId).toMatch(/outro órgão/);
+
+      const viaturaPm = await veiculo('viatura', 'Polícia Militar', 'V-PM');
+      expect((await criar({ ...pm, matricula: 'PM-2', equipamentoId: viaturaPm })).statusCode).toBe(201);
+    });
+
+    it('agente de trânsito usa moto (não viatura) e vale também na edição', async () => {
+      const moto = await veiculo('moto_agente', 'Secretaria de Mobilidade Urbana', 'M-2');
+      const viatura = await veiculo('viatura', 'Guarda Civil Municipal', 'V-2');
+      const comViatura = await criar({ equipamentoId: viatura });
+      expect(comViatura.statusCode).toBe(400);
+      expect(comViatura.json().campos.equipamentoId).toMatch(/moto de agente/);
+      const a = (await criar({ equipamentoId: moto })).json();
+      const put = await app.inject({ method: 'PUT', url: `/api/agentes/${a.id}`, payload: corpoAgente(ctx, { categoria: 'guarda_municipal', orgao: 'Guarda Civil Municipal', equipamentoId: moto }) });
+      expect(put.statusCode).toBe(400);
+      expect(put.json().campos.equipamentoId).toMatch(/viatura/);
+    });
+  });
+
+  it('excluir agente com histórico diz qual (ocorrências e alertas)', async () => {
+    const a = (await criar()).json();
+    const insere = ctx.db.prepare(`INSERT INTO ocorrencias (tipo, gravidade, bairro_id, lat, lng, inicio, agente_id, descricao, chuva, origem) VALUES ('infracao', 1, ?, ?, ?, '2026-10-10T10:00:00.000Z', ?, 'x', 0, 'historico')`);
+    insere.run(a.baseBairroId, a.lat, a.lng, a.id);
+    insere.run(a.baseBairroId, a.lat, a.lng, a.id);
+    const r = await app.inject({ method: 'DELETE', url: `/api/agentes/${a.id}` });
+    expect(r.statusCode).toBe(409);
+    expect(r.json().erro).toBe("Este agente tem 2 ocorrências. Use a situação 'Fora de serviço' em vez de excluir.");
+  });
+});

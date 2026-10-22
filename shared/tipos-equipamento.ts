@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Orgao } from './dominio';
+import type { CategoriaAgente, Orgao } from './dominio';
 
 export type TipoEquipamentoId =
   | 'radar' | 'camera' | 'balanca' | 'fiscal_rotativo' | 'cancela' | 'transporte' | 'totem_rotativo'
@@ -8,9 +8,35 @@ export type TipoEquipamentoId =
 /** Tipos de veículo que um agente pode usar (campo "Moto ou viatura vinculada" do cadastro de agente). */
 export const TIPOS_VEICULO_DE_AGENTE: readonly TipoEquipamentoId[] = ['moto_agente', 'viatura'];
 
+/**
+ * Que veículo cada categoria de agente usa: agente de trânsito, a moto de agente (da Secretaria de Mobilidade); guarda
+ * municipal e policial militar, a viatura (de cada corporação). O órgão do veículo também tem que ser o do agente.
+ */
+export const VEICULO_DA_CATEGORIA: Record<CategoriaAgente, TipoEquipamentoId> = {
+  agente_transito: 'moto_agente',
+  guarda_municipal: 'viatura',
+  policial_militar: 'viatura',
+};
+
+/** Por que o veículo não serve para o agente (texto para o campo), ou `undefined` se serve. */
+export function motivoVeiculoIncompativel(
+  agente: { categoria: CategoriaAgente; orgao: Orgao },
+  veiculo: { tipo: TipoEquipamentoId; orgao: Orgao },
+): string | undefined {
+  if (veiculo.tipo !== VEICULO_DA_CATEGORIA[agente.categoria]) {
+    return agente.categoria === 'agente_transito'
+      ? 'Agente de trânsito usa moto de agente, não viatura'
+      : 'Guarda municipal e policial militar usam viatura, não moto de agente de trânsito';
+  }
+  if (veiculo.orgao !== agente.orgao) return `Este veículo é de outro órgão (${veiculo.orgao}); o agente é de ${agente.orgao}`;
+  return undefined;
+}
+
 export interface CampoCaracteristica {
   chave: string;
   rotulo: string;
+  /** Orientação do formulário (placeholder/ajuda, ex.: "cartão, Pix"). Nunca aparece na ficha, que usa só o `rotulo`. */
+  dica?: string;
   tipo: 'texto' | 'numero' | 'booleano' | 'opcao';
   opcoes?: string[];
   min?: number;
@@ -30,11 +56,15 @@ export interface TipoEquipamento {
   campos: CampoCaracteristica[];
 }
 
-const txt = (chave: string, rotulo: string, obrigatorio = true): CampoCaracteristica => ({ chave, rotulo, tipo: 'texto', obrigatorio });
+const txt = (chave: string, rotulo: string, obrigatorio = true, dica?: string): CampoCaracteristica => ({
+  chave, rotulo, tipo: 'texto', obrigatorio, ...(dica ? { dica } : {}),
+});
 const num = (chave: string, rotulo: string, min: number, max: number, unidade?: string, obrigatorio = true): CampoCaracteristica => ({
   chave, rotulo, tipo: 'numero', min, max, obrigatorio, ...(unidade ? { unidade } : {}),
 });
-const bool = (chave: string, rotulo: string): CampoCaracteristica => ({ chave, rotulo, tipo: 'booleano', obrigatorio: true });
+const bool = (chave: string, rotulo: string, dica?: string): CampoCaracteristica => ({
+  chave, rotulo, tipo: 'booleano', obrigatorio: true, ...(dica ? { dica } : {}),
+});
 const opc = (chave: string, rotulo: string, opcoes: string[], obrigatorio = true): CampoCaracteristica => ({ chave, rotulo, tipo: 'opcao', opcoes, obrigatorio });
 
 const SMU: Orgao = 'Secretaria de Mobilidade Urbana';
@@ -54,7 +84,7 @@ export const TIPOS_EQUIPAMENTO: TipoEquipamento[] = [
     campos: [
       opc('resolucao', 'Resolução', ['720p', '1080p', '4K']),
       bool('visaoNoturna', 'Visão noturna'),
-      bool('colorida', 'Imagem colorida (desmarcado = preto e branco)'),
+      bool('colorida', 'Imagem colorida', 'Desmarcado = preto e branco'),
       bool('ptz', 'Movimento PTZ'),
       num('angulo', 'Ângulo de visão', 10, 360, 'graus'),
       num('armazenamentoDias', 'Armazenamento', 1, 365, 'dias'),
@@ -95,7 +125,7 @@ export const TIPOS_EQUIPAMENTO: TipoEquipamento[] = [
   {
     id: 'totem_rotativo', rotulo: 'Totem de autoatendimento do rotativo', sigla: 'TOT', movel: false, icone: 'Cardholder', orgaoPadrao: 'Concessionária do Rotativo',
     campos: [
-      txt('meiosPagamento', 'Meios de pagamento (ex.: cartão, Pix)'),
+      txt('meiosPagamento', 'Meios de pagamento', true, 'Ex.: cartão, Pix'),
       bool('impressora', 'Possui impressora'),
       bool('telaAcessivel', 'Tela acessível'),
     ],
@@ -134,7 +164,7 @@ export const TIPOS_EQUIPAMENTO: TipoEquipamento[] = [
   {
     id: 'painel_mensagem', rotulo: 'Painel de mensagem variável', sigla: 'PMV', movel: false, icone: 'Monitor', orgaoPadrao: SMU,
     campos: [
-      txt('tamanho', 'Tamanho (ex.: 3 × 1 m)'),
+      txt('tamanho', 'Tamanho', true, 'Ex.: 3 × 1 m'),
       opc('cores', 'Cores', ['monocromático', 'colorido']),
     ],
   },
@@ -175,7 +205,12 @@ function schemaCampo(c: CampoCaracteristica): z.ZodTypeAny {
   let s: z.ZodTypeAny;
   const obrig = { required_error: `Informe: ${c.rotulo}` };
   if (c.tipo === 'texto') {
-    s = z.string(obrig).trim().min(c.obrigatorio ? 1 : 0, `Informe: ${c.rotulo}`);
+    s = z
+      .string(obrig)
+      .trim()
+      .min(c.obrigatorio ? 1 : 0, `Informe: ${c.rotulo}`)
+      .max(120, `${c.rotulo}: no máximo 120 letras`)
+      .refine((v) => !/\p{Cc}/u.test(v), `${c.rotulo}: o texto tem caracteres inválidos (de controle)`);
   } else if (c.tipo === 'numero') {
     const faixa = `${c.min} a ${c.max}${c.unidade ? ' ' + c.unidade : ''}`;
     s = z

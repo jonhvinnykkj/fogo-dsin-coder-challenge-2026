@@ -58,3 +58,28 @@ describe('cidade/UF', () => {
     expect(formatarCidadeUf('Bauru', 'sp')).toBe('Bauru/SP');
   });
 });
+
+describe('telefone', () => {
+  it('normaliza celular e fixo, com ou sem pontuação e +55', async () => {
+    const { normalizarTelefone } = await import('./formato');
+    expect(normalizarTelefone('14999990000')).toBe('(14) 99999-0000');
+    expect(normalizarTelefone('+55 14 99999-0000')).toBe('(14) 99999-0000');
+    expect(normalizarTelefone('(14) 3433-1234')).toBe('(14) 3433-1234');
+  });
+
+  it('recusa o que não é telefone brasileiro com DDD', async () => {
+    const { normalizarTelefone } = await import('./formato');
+    for (const ruim of ['', '123', 'abc', '<script>', '99999-0000', '(14) 8888-0000', '(14) 99999-000', '(10) 99999-0000', '(14) 99999-0000 x']) {
+      expect(normalizarTelefone(ruim), ruim).toBeUndefined();
+    }
+  });
+
+  it('máscara de digitação pontua aos poucos e ignora letras', async () => {
+    const { mascararTelefoneDigitado } = await import('./formato');
+    const digitando = ['', '1', '14', '149', '14999', '1499999', '14999990', '149999900', '1499999000', '14999990000', '149999900001'];
+    expect(digitando.map(mascararTelefoneDigitado)).toEqual([
+      '', '(1', '(14', '(14) 9', '(14) 999', '(14) 9999-9', '(14) 9999-90', '(14) 9999-900', '(14) 9999-9000', '(14) 99999-0000', '(14) 99999-0000',
+    ]);
+    expect(mascararTelefoneDigitado('ab(14) 3433-1234x')).toBe('(14) 3433-1234');
+  });
+});

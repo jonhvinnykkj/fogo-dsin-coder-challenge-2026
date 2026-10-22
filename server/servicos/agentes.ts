@@ -3,7 +3,7 @@ import type { SituacaoAgente } from '../../shared/dominio';
 import type { Agente, AgenteDetalhe } from '../../shared/modelos';
 import type { AgenteInput, FiltrosAgente } from '../../shared/schemas';
 import type { ContextoApp } from '../contexto';
-import { TIPOS_VEICULO_DE_AGENTE } from '../../shared/tipos-equipamento';
+import { motivoVeiculoIncompativel, TIPOS_VEICULO_DE_AGENTE } from '../../shared/tipos-equipamento';
 import { conflito, dadosInvalidos, invalido, naoEncontrado } from '../erros';
 import * as repo from '../repositorios/agentes';
 import { bairroExiste, conferirPontoNoBairro } from '../repositorios/bairros';
@@ -27,6 +27,7 @@ function validarReferencias(ctx: Base, dados: AgenteInput, ignorarId?: number): 
     const veiculo = equipamentoPorId(ctx.db, dados.equipamentoId);
     if (!veiculo) campos.equipamentoId = 'Equipamento não encontrado';
     else if (!TIPOS_VEICULO_DE_AGENTE.includes(veiculo.tipo)) campos.equipamentoId = 'Só uma moto de agente ou uma viatura pode ser vinculada a um agente';
+    else if (motivoVeiculoIncompativel(dados, veiculo)) campos.equipamentoId = motivoVeiculoIncompativel(dados, veiculo)!;
     else {
       const dono = repo.agenteDoEquipamento(ctx.db, veiculo.id, ignorarId);
       if (dono) campos.equipamentoId = `Este veículo já está vinculado a ${dono.nome}`;
@@ -71,9 +72,12 @@ export function mudarSituacaoAgente(ctx: Base, id: number, situacao: SituacaoAge
 
 export function excluirAgente(ctx: Base, id: number): void {
   exigirAgente(ctx, id);
-  if (repo.contarVinculosAgente(ctx.db, id) > 0) {
-    throw conflito("Este agente tem histórico. Use a situação 'Fora de serviço' em vez de excluir.");
-  }
+  const v = repo.vinculosDoAgente(ctx.db, id);
+  const textos = [
+    v.ocorrencias > 0 && `${v.ocorrencias} ${v.ocorrencias === 1 ? 'ocorrência' : 'ocorrências'}`,
+    v.alertas > 0 && `${v.alertas} ${v.alertas === 1 ? 'alerta' : 'alertas'}`,
+  ].filter(Boolean);
+  if (textos.length) throw conflito(`Este agente tem ${textos.join(' e ')}. Use a situação 'Fora de serviço' em vez de excluir.`);
   repo.removerAgente(ctx.db, id);
   ctx.simulador?.recarregar(); // sai da memória do simulador antes da próxima designação
 }

@@ -1,8 +1,8 @@
 import type { Database } from 'better-sqlite3';
-import type { NecessidadeManutencao, Orgao, Regiao, SituacaoEquipamento } from '../../shared/dominio';
+import { ROTULO_SITUACAO, type NecessidadeManutencao, type Orgao, type Regiao, type SituacaoEquipamento } from '../../shared/dominio';
 import type { Equipamento, EquipamentoMapa, HistoricoSituacao, Pagina, PontoTelemetria, SituacaoManutencao } from '../../shared/modelos';
-import type { EquipamentoEdicao, EquipamentoInput, FiltrosEquipamento } from '../../shared/schemas';
-import { tipoPorId, type TipoEquipamentoId } from '../../shared/tipos-equipamento';
+import type { EquipamentoEdicao, EquipamentoInput, FiltrosEquipamento, OrdemEquipamento } from '../../shared/schemas';
+import { TIPOS_EQUIPAMENTO, tipoPorId, type TipoEquipamentoId } from '../../shared/tipos-equipamento';
 import { CIDADE, UF } from '../../shared/formato';
 import { somarDias } from '../tempo';
 import { condicaoBusca } from './busca';
@@ -253,11 +253,23 @@ function condicaoManutencao(tipo: CriterioManutencao, hoje: string, params: unkn
   }
 }
 
+/** CASE que troca o id pelo rótulo (a lista mostra "Veículo de fiscalização", não `fiscal_rotativo`: é por ele que se espera a ordem). */
+const casePorRotulo = (coluna: string, rotulos: [string, string][]) =>
+  `CASE ${coluna} ${rotulos.map(([id, rotulo]) => `WHEN '${id}' THEN '${rotulo.replaceAll("'", "''")}'`).join(' ')} ELSE ${coluna} END`;
+
+// Só constantes do código entram aqui (nada que venha da requisição): a chave do usuário escolhe uma destas expressões.
+const EXPRESSAO_ORDEM: Record<OrdemEquipamento, string> = {
+  codigo: 'e.codigo',
+  tipo: casePorRotulo('e.tipo', TIPOS_EQUIPAMENTO.map((t) => [t.id, t.rotulo])),
+  situacao: casePorRotulo('e.situacao', Object.entries(ROTULO_SITUACAO)),
+  bairro: 'b.nome',
+};
+
 export function listarEquipamentos(db: Database, f: FiltrosEquipamento, hoje: string): Pagina<Equipamento> {
   const cond: string[] = [];
   const params: unknown[] = [];
   if (f.busca) {
-    cond.push(condicaoBusca(f.busca, ['e.codigo', 'e.numero_serie', 'e.marca', 'e.modelo', 'e.logradouro', 'b.nome'], params));
+    cond.push(condicaoBusca(f.busca, ['e.codigo', 'e.numero_serie', 'e.marca', 'e.modelo', 'e.logradouro', 'e.referencia', 'b.nome'], params));
   }
   if (f.tipo) { cond.push('e.tipo = ?'); params.push(f.tipo); }
   if (f.situacao) { cond.push('e.situacao = ?'); params.push(f.situacao); }
@@ -269,7 +281,7 @@ export function listarEquipamentos(db: Database, f: FiltrosEquipamento, hoje: st
 
   const total = (db.prepare(`SELECT COUNT(*) AS n FROM equipamentos e JOIN bairros b ON b.id = e.bairro_id${onde}`).get(...params) as { n: number }).n;
   const linhas = db
-    .prepare(`${SELECT}${onde} ORDER BY e.codigo LIMIT ? OFFSET ?`)
+    .prepare(`${SELECT}${onde} ORDER BY ${EXPRESSAO_ORDEM[f.ordem ?? 'codigo']} ${f.direcao === 'desc' ? 'DESC' : 'ASC'}, e.codigo LIMIT ? OFFSET ?`)
     .all(...params, f.porPagina, (f.pagina - 1) * f.porPagina) as LinhaEquipamento[];
   return { itens: linhas.map(paraEquipamento), total, pagina: f.pagina, porPagina: f.porPagina };
 }
