@@ -26,6 +26,8 @@ export interface OpcoesSeguranca {
   limitePorMinuto?: number;
   /** Tentativas de entrada por minuto por IP (padrão 10). */
   limiteEntradaPorMinuto?: number;
+  /** De quanto em quanto tempo o tempo real (SSE) confere se a sessão do cliente ainda vale (padrão 5 s). */
+  verificarSessaoMs?: number;
   /** Pasta da interface compilada, para liberar no CSP o script inline do index.html. */
   pastaWeb?: string;
 }
@@ -36,7 +38,15 @@ declare module 'fastify' {
     auditoria?: { antes: unknown; idResposta?: number };
   }
   interface FastifyInstance {
-    seguranca: Required<Pick<OpcoesSeguranca, 'demo'>> & { cookieSeguro: boolean; /** "MÉTODO /rota" de tudo o que foi registrado (o teste confere a tabela). */ rotas: string[] };
+    seguranca: Required<Pick<OpcoesSeguranca, 'demo' | 'verificarSessaoMs'>> & {
+      cookieSeguro: boolean;
+      /** "MÉTODO /rota" de tudo o que foi registrado (o teste confere a tabela). */
+      rotas: string[];
+      /** Quem quer saber na hora que uma sessão acabou (o tempo real fecha a conexão dela). Devolve a função que cancela. */
+      aoEncerrarSessao: (ouvinte: (token: string) => void) => () => void;
+      /** Avisa que a sessão com este cookie foi encerrada (saída do sistema). */
+      avisarSessaoEncerrada: (token: string) => void;
+    };
   }
 }
 
@@ -94,7 +104,20 @@ function conferirOrigem(req: FastifyRequest): void {
 export async function instalarSeguranca(app: FastifyInstance, opcoes: OpcoesSeguranca = {}): Promise<void> {
   const db = app.ctx.db;
   const rotas: string[] = [];
-  app.decorate('seguranca', { demo: opcoes.demo ?? false, cookieSeguro: opcoes.cookieSeguro ?? false, rotas });
+  const ouvintesDeSessao = new Set<(token: string) => void>();
+  app.decorate('seguranca', {
+    demo: opcoes.demo ?? false,
+    cookieSeguro: opcoes.cookieSeguro ?? false,
+    verificarSessaoMs: opcoes.verificarSessaoMs ?? 5000,
+    rotas,
+    aoEncerrarSessao: (ouvinte: (token: string) => void) => {
+      ouvintesDeSessao.add(ouvinte);
+      return () => void ouvintesDeSessao.delete(ouvinte);
+    },
+    avisarSessaoEncerrada: (token: string) => {
+      for (const ouvinte of [...ouvintesDeSessao]) ouvinte(token);
+    },
+  });
   app.addHook('onRoute', (r) => {
     for (const metodo of [r.method].flat()) rotas.push(chaveDaRota(metodo, r.url));
   });

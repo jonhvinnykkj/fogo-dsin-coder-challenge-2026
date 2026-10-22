@@ -78,7 +78,10 @@ export async function rotasAuth(app: FastifyInstance): Promise<void> {
 
   app.post('/api/auth/sair', { schema: { tags, summary: 'Encerra a sessão' } }, async (req, reply) => {
     const token = req.cookies[COOKIE_SESSAO];
-    if (token) encerrarSessao(db, token);
+    if (token) {
+      encerrarSessao(db, token);
+      app.seguranca.avisarSessaoEncerrada(token); // o tempo real fecha a conexão desta sessão na hora
+    }
     if (req.usuario) anotar(req, 'POST /api/auth/sair', 204, req.usuario);
     reply.clearCookie(COOKIE_SESSAO, { path: '/' });
     return reply.code(204).send();
