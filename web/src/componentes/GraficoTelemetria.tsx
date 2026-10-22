@@ -6,7 +6,7 @@ import { formatarDataHora, formatarNumero } from '../../../shared/formato';
 import type { PontoTelemetria } from '../../../shared/modelos';
 import { METRICAS_POR_TIPO, METRICA_PRINCIPAL } from '../../../shared/telemetria';
 import type { TipoEquipamentoId } from '../../../shared/tipos-equipamento';
-import { rotuloHora } from '../util/datas';
+import { horaEDia } from '../util/datas';
 import { EstadoVazio } from './EstadoVazio';
 import estilos from './GraficoTelemetria.module.css';
 
@@ -16,6 +16,22 @@ interface Props {
 }
 
 const casas = (n: number) => (Number.isInteger(n) ? 0 : 1);
+
+/** Marcas do eixo de horas: a cada 6 h cheias em São Paulo (00h, 06h, 12h, 18h), sempre com a data: passos iguais e sem adivinhar o dia. */
+const PASSO_DO_EIXO_H = 6;
+export const marcasDoEixo = (horas: string[]) => horas.filter((h) => { const { hora, minuto } = horaEDia(h); return minuto === 0 && hora % PASSO_DO_EIXO_H === 0; });
+
+/** Rótulo em duas linhas: "18h" e, embaixo, "22/10". */
+function MarcaDoEixo({ x, y, payload }: { x?: number; y?: number; payload?: { value: string } }) {
+  if (!payload) return null;
+  const { hora, dia } = horaEDia(payload.value);
+  return (
+    <text x={x} y={y} textAnchor="middle" fill="var(--cor-texto-suave)" fontSize={12}>
+      <tspan x={x} dy={14}>{String(hora).padStart(2, '0')}h</tspan>
+      <tspan x={x} dy={14} fillOpacity={0.8}>{dia}</tspan>
+    </text>
+  );
+}
 
 export function GraficoTelemetria({ tipo, pontos }: Props) {
   const metricas = METRICAS_POR_TIPO[tipo];
@@ -65,7 +81,7 @@ export function GraficoTelemetria({ tipo, pontos }: Props) {
               </linearGradient>
             </defs>
             <CartesianGrid stroke="var(--cor-superficie-baixa)" vertical={false} />
-            <XAxis dataKey="hora" tickFormatter={rotuloHora} tick={{ fill: 'var(--cor-texto-suave)', fontSize: 12 }} tickLine={false} axisLine={false} minTickGap={28} />
+            <XAxis dataKey="hora" ticks={marcasDoEixo(dados.map((d) => d.hora))} interval={0} tick={<MarcaDoEixo />} tickLine={false} axisLine={false} height={42} />
             <YAxis
               width={52}
               domain={porcentagem ? [0, 100] : [0, 'auto']}

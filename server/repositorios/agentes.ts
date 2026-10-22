@@ -95,11 +95,16 @@ export function gravarSituacaoAgente(db: Database, id: number, situacao: Situaca
   db.prepare('UPDATE agentes SET situacao = ?, atualizado_em = ? WHERE id = ?').run(situacao, agora, id);
 }
 
-export function contarVinculosAgente(db: Database, id: number): number {
-  const l = db
-    .prepare('SELECT (SELECT COUNT(*) FROM ocorrencias WHERE agente_id = @id) + (SELECT COUNT(*) FROM alertas WHERE agente_id = @id) AS n')
-    .get({ id }) as { n: number };
-  return l.n;
+export interface VinculosDoAgente {
+  ocorrencias: number;
+  alertas: number;
+}
+
+/** O que impede a exclusão: ocorrências atendidas e alertas ligados ao agente. */
+export function vinculosDoAgente(db: Database, id: number): VinculosDoAgente {
+  return db
+    .prepare('SELECT (SELECT COUNT(*) FROM ocorrencias WHERE agente_id = @id) AS ocorrencias, (SELECT COUNT(*) FROM alertas WHERE agente_id = @id) AS alertas')
+    .get({ id }) as VinculosDoAgente;
 }
 
 export function removerAgente(db: Database, id: number): void {

@@ -137,6 +137,14 @@ export const ORGAOS = [
 ] as const;
 export type Orgao = (typeof ORGAOS)[number];
 
+/** Órgão de cada categoria de agente. É também a lista de órgãos que têm agente (o filtro "Órgão" da lista de agentes usa só estes). */
+export const ORGAO_DA_CATEGORIA: Record<CategoriaAgente, Orgao> = {
+  agente_transito: 'Secretaria de Mobilidade Urbana',
+  guarda_municipal: 'Guarda Civil Municipal',
+  policial_militar: 'Polícia Militar',
+};
+export const ORGAOS_DE_AGENTE: readonly Orgao[] = CATEGORIAS_AGENTE.map((c) => ORGAO_DA_CATEGORIA[c]);
+
 export const ROTULO_SITUACAO: Record<SituacaoEquipamento, string> = {
   nao_instalado: 'Não instalado',
   operacional: 'Operacional',

@@ -22,6 +22,10 @@ interface Props {
 const COR_PONTO = '#F04A00';
 const ZOOM_PONTO = 16;
 
+/** Dois pontos são "o mesmo" quando diferem menos que a casa que o campo mostra (6 casas ≈ 0,1 m): o clique volta arredondado pelo formulário. */
+const mesmoPonto = (a: { lat: number; lng: number } | null, lat: number, lng: number) =>
+  a !== null && Math.abs(a.lat - lat) < 1e-5 && Math.abs(a.lng - lng) < 1e-5;
+
 function Cliques({ onEscolher, registrar }: { onEscolher: Props['onEscolher']; registrar: (lat: number, lng: number) => void }) {
   useMapEvents({
     click(e) {
@@ -32,19 +36,28 @@ function Cliques({ onEscolher, registrar }: { onEscolher: Props['onEscolher']; r
   return null;
 }
 
-/** Quando o ponto muda por fora do mapa (digitou a coordenada, trocou o CEP), o mapa vai até ele. */
-function SeguirPonto({ lat, lng, ultimoClique }: { lat?: number; lng?: number; ultimoClique: React.RefObject<string | null> }) {
+/**
+ * Quando o ponto muda por fora do mapa (digitou a coordenada), o mapa vai até ele. Clicar no mapa NÃO move a vista: a pessoa
+ * está olhando o lugar certo, e recentrar faria o segundo clique no mesmo pixel cair em outro ponto.
+ * O zoom só anima quando não muda: a animação de zoom do Leaflet termina num temporizador de 250 ms que, se a tela fecha
+ * antes (Cancelar logo depois de digitar), mexe num mapa já desmontado e estoura `_leaflet_pos`.
+ */
+function SeguirPonto({ lat, lng, ultimoClique }: { lat?: number; lng?: number; ultimoClique: React.RefObject<{ lat: number; lng: number } | null> }) {
   const mapa = useMap();
   useEffect(() => {
-    if (lat === undefined || lng === undefined || Number.isNaN(lat) || Number.isNaN(lng)) return;
-    if (ultimoClique.current === `${lat},${lng}`) return;
-    mapa.setView([lat, lng], Math.max(mapa.getZoom(), ZOOM_PONTO), { animate: true });
+    if (lat === undefined || lng === undefined || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    if (mesmoPonto(ultimoClique.current, lat, lng)) return;
+    ultimoClique.current = null; // a coordenada foi digitada: vale recentrar de novo, mesmo se for a de um clique antigo
+    const zoom = Math.max(mapa.getZoom(), ZOOM_PONTO);
+    mapa.setView([lat, lng], zoom, { animate: zoom === mapa.getZoom() });
   }, [lat, lng, mapa, ultimoClique]);
+  // A animação de deslizar (sem zoom) usa quadros de animação; parar ao sair evita que continue sobre o mapa desmontado.
+  useEffect(() => () => { try { mapa.stop(); } catch { /* mapa já removido */ } }, [mapa]);
   return null;
 }
 
 export function SeletorPontoMapa({ lat, lng, onEscolher, erro, idErro, dica = 'Clique no mapa para marcar o ponto exato.' }: Props) {
-  const ultimoClique = useRef<string | null>(null);
+  const ultimoClique = useRef<{ lat: number; lng: number } | null>(null);
   const temPonto = lat !== undefined && lng !== undefined && Number.isFinite(lat) && Number.isFinite(lng);
   const icone = useMemo(() => iconeBloco(COR_PONTO, { tamanho: 26, contorno: '#1E1E1F' }), []);
   const aviso = erro ?? (temPonto && !dentroDeMarilia(lat, lng) ? 'A coordenada precisa ficar dentro de Marília' : undefined);
@@ -57,7 +70,7 @@ export function SeletorPontoMapa({ lat, lng, onEscolher, erro, idErro, dica = 'C
       </p>
       <div className={`${estilos.mapa} ${aviso ? estilos.comErro : ''}`}>
         <MapaBase rotulo="Mapa para escolher o ponto" zoom={temPonto ? ZOOM_PONTO : 13} centro={temPonto ? [lat, lng] : undefined}>
-          <Cliques onEscolher={onEscolher} registrar={(la, ln) => { ultimoClique.current = `${la},${ln}`; }} />
+          <Cliques onEscolher={onEscolher} registrar={(la, ln) => { ultimoClique.current = { lat: la, lng: ln }; }} />
           <SeguirPonto lat={lat} lng={lng} ultimoClique={ultimoClique} />
           {temPonto && <Marker position={[lat, lng]} icon={icone} interactive={false} />}
         </MapaBase>

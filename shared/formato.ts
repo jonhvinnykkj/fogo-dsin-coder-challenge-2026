@@ -57,3 +57,32 @@ export function formatarEndereco(e: { logradouro: string; referencia?: string; b
   const rua = e.referencia ? `${e.logradouro}, ${e.referencia}` : e.logradouro;
   return `${rua} — ${e.bairroNome}, ${formatarCidadeUf(e.cidade, e.uf)} — CEP ${e.cep}`;
 }
+
+/**
+ * Telefone brasileiro com DDD, fixo ou celular, com ou sem pontuação e com ou sem +55. Devolve sempre `(14) 99999-0000`
+ * (celular) ou `(14) 3333-4444` (fixo); `undefined` se não for um telefone. Letras e símbolos soltos são recusados.
+ */
+export function normalizarTelefone(texto: string): string | undefined {
+  if (/[^\d\s().+-]/.test(texto)) return undefined;
+  let d = texto.replace(/\D/g, '');
+  if ((d.length === 12 || d.length === 13) && d.startsWith('55')) d = d.slice(2);
+  const ddd = d.slice(0, 2);
+  const numero = d.slice(2);
+  if (!/^[1-9][1-9]$/.test(ddd)) return undefined;
+  if (numero.length === 9 && numero[0] === '9') return `(${ddd}) ${numero.slice(0, 5)}-${numero.slice(5)}`;
+  if (numero.length === 8 && /^[2-5]/.test(numero)) return `(${ddd}) ${numero.slice(0, 4)}-${numero.slice(4)}`;
+  return undefined;
+}
+
+/** Máscara de digitação do telefone: vai pontuando conforme se digita (`(14) 9999`, `(14) 99999-0000`). Letras somem. */
+export function mascararTelefoneDigitado(texto: string): string {
+  let d = texto.replace(/\D/g, '');
+  if (d.length > 11 && d.startsWith('55')) d = d.slice(2);
+  d = d.slice(0, 11);
+  if (d.length === 0) return '';
+  if (d.length <= 2) return `(${d}`;
+  const corte = d.length <= 10 ? 6 : 7;
+  const miolo = d.slice(2, corte);
+  const fim = d.slice(corte);
+  return `(${d.slice(0, 2)}) ${miolo}${fim ? `-${fim}` : ''}`;
+}

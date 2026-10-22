@@ -312,3 +312,95 @@ describe('ViaCEP', () => {
     }
   });
 });
+
+// ---------------------------------------------------------------- rodada 2: token, dicas, viatura, CEP
+
+function renderizarCadastro() {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(
+    <QueryClientProvider client={qc}>
+      <MemoryRouter initialEntries={['/equipamentos/novo']}>
+        <Routes>
+          <Route path="/equipamentos/novo" element={<EquipamentoFormulario />} />
+          <Route path="/equipamentos/:id" element={<p>Ficha aberta</p>} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
+describe('token do dispositivo no cadastro', () => {
+  it('depois de cadastrar mostra o token uma vez, com o aviso de copiar, e só então abre a ficha', async () => {
+    const u = userEvent.setup();
+    let corpo: Record<string, unknown> | undefined;
+    rotear((url, init) => {
+      if (url === '/api/equipamentos' && init?.method === 'POST') {
+        corpo = JSON.parse(String(init.body));
+        return json({ ...EQUIPAMENTO, id: 9, codigo: 'FOGO-RAD-0009', tokenDispositivo: 'f00dcafe00112233445566778899aabb' }, 201);
+      }
+      if (url === '/api/equipamentos/9') return json({ ...EQUIPAMENTO, id: 9 });
+    });
+    renderizarCadastro();
+    await u.selectOptions(screen.getByLabelText('Tipo de equipamento'), 'Radar de fiscalização');
+    await u.type(screen.getByLabelText('Número de série'), 'SN-9');
+    await u.type(screen.getByLabelText('Marca'), 'Perkons');
+    await u.type(screen.getByLabelText('Modelo'), 'SC-400');
+    await u.type(screen.getByLabelText('CEP'), '17500000');
+    await u.type(screen.getByLabelText('Logradouro'), 'Avenida Sampaio Vidal');
+    await u.selectOptions(screen.getByLabelText('Bairro'), 'Centro · Centro');
+    await u.type(screen.getByLabelText('Latitude'), '-22,2138');
+    await u.type(screen.getByLabelText('Longitude'), '-49,9508');
+    await u.selectOptions(screen.getByLabelText(/Modalidade/), 'Velocidade');
+    await u.type(screen.getByLabelText(/Faixas monitoradas/), '2');
+    await u.type(screen.getByLabelText('Sentido'), 'Centro');
+    await u.click(screen.getByRole('button', { name: 'Cadastrar equipamento' }));
+
+    expect(await screen.findByText('f00dcafe00112233445566778899aabb')).toBeInTheDocument();
+    expect(screen.getByText(/Copie agora: o token não aparece de novo/)).toBeInTheDocument();
+    expect(corpo).not.toHaveProperty('tokenDispositivo');
+    expect(screen.queryByText('Ficha aberta')).not.toBeInTheDocument();
+
+    await u.click(screen.getByRole('button', { name: 'Já copiei, abrir a ficha' }));
+    expect(await screen.findByText('Ficha aberta')).toBeInTheDocument();
+    expect(screen.queryByText('f00dcafe00112233445566778899aabb')).not.toBeInTheDocument();
+  });
+});
+
+describe('dica do campo × rótulo', () => {
+  it('"Meios de pagamento" tem a dica numa linha à parte, não no rótulo', async () => {
+    const u = userEvent.setup();
+    renderizar();
+    await u.selectOptions(screen.getByLabelText('Tipo de equipamento'), 'Totem de autoatendimento do rotativo');
+    expect(screen.getByLabelText('Meios de pagamento')).toBeInTheDocument();
+    expect(screen.getByText('Ex.: cartão, Pix')).toBeInTheDocument();
+    expect(screen.getByLabelText('Meios de pagamento')).toHaveAccessibleDescription('Ex.: cartão, Pix');
+  });
+});
+
+describe('viatura: órgão', () => {
+  it('escolher "Polícia Militar" na característica acerta o órgão responsável', async () => {
+    const u = userEvent.setup();
+    renderizar();
+    await u.selectOptions(screen.getByLabelText('Tipo de equipamento'), 'Viatura (Guarda Municipal ou PM)');
+    expect(screen.getByLabelText('Órgão responsável')).toHaveValue('Guarda Civil Municipal');
+    await u.selectOptions(screen.getByLabelText(/^Órgão$/), 'Polícia Militar');
+    expect(screen.getByLabelText('Órgão responsável')).toHaveValue('Polícia Militar');
+  });
+});
+
+describe('CEP trocado', () => {
+  it('o logradouro que veio do CEP anterior sai quando o CEP muda; o digitado fica', async () => {
+    const u = userEvent.setup();
+    rotear((url) => {
+      if (url === 'https://viacep.com.br/ws/17500000/json/') return json({ logradouro: 'Avenida Sampaio Vidal', bairro: 'Centro', localidade: 'Marília', uf: 'SP' });
+      if (url === 'https://viacep.com.br/ws/01001000/json/') return json({ logradouro: 'Praça da Sé', bairro: 'Sé', localidade: 'São Paulo', uf: 'SP' });
+    });
+    renderizar();
+    await u.type(screen.getByLabelText('CEP'), '17500000');
+    await waitFor(() => expect(screen.getByLabelText('Logradouro')).toHaveValue('Avenida Sampaio Vidal'));
+    await u.clear(screen.getByLabelText('CEP'));
+    await u.type(screen.getByLabelText('CEP'), '01001000');
+    expect(await screen.findByText('Este CEP é de São Paulo/SP, fora de Marília/SP')).toBeInTheDocument();
+    expect(screen.getByLabelText('Logradouro')).toHaveValue('');
+  });
+});

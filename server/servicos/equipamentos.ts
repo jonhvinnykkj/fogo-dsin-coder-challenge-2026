@@ -1,7 +1,7 @@
 // Regras de negócio do cadastro de equipamentos (as rotas só traduzem HTTP).
 import { gerarTokenDispositivo, hashTokenDispositivo } from '../seguranca/cripto';
 import { SITUACOES_INICIAIS, ROTULO_SITUACAO, type SituacaoEquipamento } from '../../shared/dominio';
-import type { Equipamento, EquipamentoDetalhe, PainelManutencao, PontoTelemetria } from '../../shared/modelos';
+import type { Equipamento, EquipamentoCriado, EquipamentoDetalhe, PainelManutencao, PontoTelemetria } from '../../shared/modelos';
 import type { EquipamentoEdicao, EquipamentoInput, FiltrosEquipamento, ManutencaoInput, MudancaSituacao } from '../../shared/schemas';
 import { tipoPorId } from '../../shared/tipos-equipamento';
 import type { ContextoApp } from '../contexto';
@@ -44,6 +44,9 @@ function validarDatas(ctx: Base, dados: Pick<EquipamentoInput, 'instaladoEm' | '
   if (Object.keys(campos).length) throw dadosInvalidos(campos);
 }
 
+/** "2026-05-03" -> "03/05/2026" (texto de mensagem; `formatarData` pegaria o dia anterior por causa do fuso). */
+const paraDiaBr = (dia: string) => dia.split('-').reverse().join('/');
+
 /** "2 alertas e 1 manutenção" / "1 ocorrência, 2 alertas e 3 mudanças de situação". */
 function descreverVinculos(v: repo.VinculosDoEquipamento): string {
   const partes: [number, string, string][] = [
@@ -81,7 +84,8 @@ export function telemetria(ctx: Base, id: number, horas: number): PontoTelemetri
   return repo.telemetriaDoEquipamento(ctx.db, id, desde);
 }
 
-export function criarEquipamento(ctx: Base, dados: EquipamentoInput): EquipamentoDetalhe {
+/** Cadastra e devolve a ficha com o token do dispositivo (única vez em que ele existe em claro: no banco fica o hash). */
+export function criarEquipamento(ctx: Base, dados: EquipamentoInput): EquipamentoCriado {
   if (!(SITUACOES_INICIAIS as readonly SituacaoEquipamento[]).includes(dados.situacao)) {
     const mensagem = `Situação inicial: escolha ${SITUACOES_INICIAIS.map((x) => ROTULO_SITUACAO[x]).join(', ')}. Furtado e desativado só depois, pela ficha, com motivo`;
     throw invalido(mensagem, { situacao: mensagem });
@@ -89,13 +93,14 @@ export function criarEquipamento(ctx: Base, dados: EquipamentoInput): Equipament
   validarDatas(ctx, dados);
   validarReferencias(ctx, dados);
   const agora = agoraIso(ctx);
+  const tokenDispositivo = gerarTokenDispositivo();
   const id = ctx.db.transaction(() => {
     const sequencial = repo.proximoSequencial(ctx.db, tipoPorId(dados.tipo).sigla);
     const codigo = `FOGO-${tipoPorId(dados.tipo).sigla}-${String(sequencial).padStart(4, '0')}`;
-    return repo.inserirEquipamento(ctx.db, dados, { codigo, token: hashTokenDispositivo(gerarTokenDispositivo()), agora });
+    return repo.inserirEquipamento(ctx.db, dados, { codigo, token: hashTokenDispositivo(tokenDispositivo), agora });
   })();
   ctx.simulador?.recarregar(); // já pode receber "Simular falha"
-  return detalheDoEquipamento(ctx, id);
+  return { ...detalheDoEquipamento(ctx, id), tokenDispositivo };
 }
 
 /**
@@ -127,8 +132,11 @@ export function atualizarEquipamento(ctx: Base, id: number, dados: EquipamentoEd
 export function mudarSituacao(ctx: Base, id: number, m: MudancaSituacao): EquipamentoDetalhe {
   const atual = exigirEquipamento(ctx, id);
   if (m.situacao === atual.situacao) throw invalido('O equipamento já está nesta situação');
-  if (atual.situacao === 'furtado' && m.situacao === 'operacional' && m.recuperado !== true) {
-    throw invalido('Registre a recuperação do equipamento antes de voltar a operar');
+  // Furtado só sai de lá para qualquer situação "com o órgão" (operacional, em manutenção, não instalado...) se a recuperação
+  // foi registrada: senão "Em manutenção" seria um atalho para ressuscitar o equipamento sem ele ter voltado. A única saída
+  // sem recuperação é "desativado": é dar o equipamento como perdido (baixa), e ele continua fora de operação.
+  if (atual.situacao === 'furtado' && m.situacao !== 'desativado' && m.recuperado !== true) {
+    throw invalido('Registre a recuperação do equipamento antes de tirá-lo de "Furtado" (ou desative-o, se foi dado como perdido)');
   }
   const agora = ctx.relogio.agora();
   const saiDoFurto = atual.situacao === 'furtado';
@@ -165,6 +173,11 @@ export function registrarManutencao(ctx: Base, id: number, m: ManutencaoInput): 
       }
       const concluidaEm = concluida.toISOString();
       const dia = dataLocal(concluida);
+      // Uma manutenção só vale depois de o equipamento existir e não pode voltar no tempo: `ultima_manutencao` é sobrescrita pela data nova.
+      const instalado = eq.instaladoEm?.slice(0, 10);
+      if (instalado && dia < instalado) throw dadosInvalidos({ concluidaEm: `A conclusão não pode ser anterior à instalação (${paraDiaBr(instalado)})` });
+      const ultima = eq.ultimaManutencao?.slice(0, 10);
+      if (ultima && dia < ultima) throw dadosInvalidos({ concluidaEm: `Já há manutenção concluída em ${paraDiaBr(ultima)}: a conclusão não pode ser anterior a ela` });
       // Havia uma do mesmo tipo prevista: é ela que foi feita (não fica "Prevista para…" para sempre ao lado da concluída).
       const prevista = previstaEmAberto(ctx.db, id, m.tipo);
       if (prevista !== undefined) concluirManutencao(ctx.db, prevista, concluidaEm, m.descricao);

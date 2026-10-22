@@ -55,7 +55,7 @@ export function BarraFiltros({ filtros, valores, onChange, busca, onLimpar, acoe
         <label className={estilos.busca}>
           <MagnifyingGlass weight="fill" size={16} aria-hidden="true" />
           <span className="so-leitor">{busca.rotulo ?? 'Buscar'}</span>
-          <input type="search" value={busca.valor} placeholder={busca.placeholder} onChange={(e) => busca.onChange(e.target.value)} />
+          <input type="search" maxLength={100} value={busca.valor} placeholder={busca.placeholder} onChange={(e) => busca.onChange(e.target.value)} />
         </label>
       )}
 

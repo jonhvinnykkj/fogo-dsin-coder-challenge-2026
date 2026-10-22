@@ -3,7 +3,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import type { SituacaoAgente, TipoEventoSimulado } from '../../../shared/dominio';
 import type {
-  Agente, AgenteDetalhe, Alerta, Bairro, Equipamento, EquipamentoDetalhe, EstadoSimulacao, Indicadores, Ocorrencia,
+  Agente, AgenteDetalhe, Alerta, Bairro, Equipamento, EquipamentoCriado, EquipamentoDetalhe, EstadoSimulacao, Indicadores, Ocorrencia,
   Pagina, PainelManutencao, PontoTelemetria, PrevisaoRisco, RespostaFalhas, RespostaReforco, ResultadoBacktest,
   ResumoPreditivo, StatusRegiao, Tendencias,
 } from '../../../shared/modelos';
@@ -57,11 +57,12 @@ export function useEquipamento(id: number | undefined) {
   });
 }
 
-export function useTelemetria(id: number | undefined, horas = 48) {
+/** `ativa: false` para de buscar (a ficha desliga depois de excluir: senão a tela rebusca o equipamento apagado e dá 404). */
+export function useTelemetria(id: number | undefined, horas = 48, ativa = true) {
   return useQuery({
     queryKey: chaves.telemetria(id ?? 0, horas),
     queryFn: () => api.get<PontoTelemetria[]>(`/api/equipamentos/${id}/telemetria`, { horas }),
-    enabled: id !== undefined,
+    enabled: id !== undefined && ativa,
     staleTime: UM_MINUTO,
   });
 }
@@ -164,9 +165,9 @@ function invalidarCadastro(qc: QueryClient, raiz: 'equipamentos' | 'agentes') {
 export function useCriarEquipamento() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (dados: EquipamentoInput) => api.post<EquipamentoDetalhe>('/api/equipamentos', dados),
-    onSuccess: (eq) => {
-      qc.setQueryData(chaves.equipamento(eq.id), eq);
+    mutationFn: (dados: EquipamentoInput) => api.post<EquipamentoCriado>('/api/equipamentos', dados),
+    onSuccess: ({ tokenDispositivo: _token, ...eq }) => {
+      qc.setQueryData(chaves.equipamento(eq.id), eq); // o token não fica no cache: só a tela do cadastro o mostra
       invalidarCadastro(qc, 'equipamentos');
     },
   });
@@ -199,12 +200,21 @@ export function useRegistrarManutencao() {
   });
 }
 
+/** Gera outro token para o dispositivo (só gestor): o anterior deixa de valer e o novo vem UMA vez, nesta resposta. */
+export function useGerarTokenDispositivo() {
+  return useMutation({
+    mutationFn: (id: number) => api.post<{ id: number; codigo: string; token: string }>(`/api/equipamentos/${id}/token`),
+  });
+}
+
 export function useExcluirEquipamento() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.del(`/api/equipamentos/${id}`),
     onSuccess: (_r, id) => {
+      // Ficha e telemetria do equipamento apagado saem do cache ANTES de invalidar: a invalidação do prefixo as buscaria de novo (404).
       qc.removeQueries({ queryKey: chaves.equipamento(id) });
+      qc.removeQueries({ queryKey: ['equipamentos', 'telemetria', id] });
       invalidarCadastro(qc, 'equipamentos');
     },
   });

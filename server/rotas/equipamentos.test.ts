@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import { criarAppDeTeste } from '../test/app';
 import { criarCtxDeTeste, type CtxDeTeste, type RelogioDeTeste } from '../test/ctx';
 import { corpoEquipamento } from '../test/fabricas';
+import { hashTokenDispositivo } from '../seguranca/cripto';
 
 let ctx: CtxDeTeste;
 let app: FastifyInstance;
@@ -19,27 +20,44 @@ afterEach(async () => {
 async function criar(sobrescreve: Record<string, unknown> = {}) {
   return app.inject({ method: 'POST', url: '/api/equipamentos', payload: corpoEquipamento(ctx, sobrescreve) });
 }
+/** Equipamento criado, como o GET devolve (sem o `tokenDispositivo`, que só existe na resposta do POST). */
 async function criarOk(sobrescreve: Record<string, unknown> = {}) {
   const r = await criar(sobrescreve);
   expect(r.statusCode).toBe(201);
-  return r.json();
+  const { tokenDispositivo: _token, ...ficha } = r.json();
+  return ficha;
 }
 const ler = async (id: number) => (await app.inject({ method: 'GET', url: `/api/equipamentos/${id}` })).json();
 
 describe('cadastro de equipamento', () => {
-  it('POST válido devolve 201 com código FOGO-RAD-0001 e não expõe o token', async () => {
+  it('POST válido devolve 201 com código FOGO-RAD-0001 e o token do dispositivo, só nessa resposta', async () => {
     const r = await criar();
     expect(r.statusCode).toBe(201);
     const eq = r.json();
     expect(eq.codigo).toMatch(/^FOGO-RAD-\d{4}$/);
     expect(eq.codigo).toBe('FOGO-RAD-0001');
-    expect(eq).not.toHaveProperty('tokenDispositivo');
+    expect(eq.tokenDispositivo).toMatch(/^[0-9a-f]{32}$/);
     expect(eq).not.toHaveProperty('token_dispositivo');
+    const ficha = await ler(eq.id);
+    expect(ficha).not.toHaveProperty('tokenDispositivo'); // depois do cadastro, nem a ficha nem a lista mostram o token
+    expect(JSON.stringify((await app.inject({ method: 'GET', url: '/api/equipamentos' })).json())).not.toContain(eq.tokenDispositivo);
     expect(eq.criadoEm).toBe('2026-10-17T15:00:00.000Z');
     expect(eq.latAtual).toBe(eq.lat);
     expect(eq.ultimoSinalEm).toBeNull();
     const linha = ctx.db.prepare('SELECT token_dispositivo AS t FROM equipamentos WHERE id = ?').get(eq.id) as { t: string };
     expect(linha.t).toMatch(/^sha256:[0-9a-f]{64}$/); // o banco guarda só o hash do token
+    expect(linha.t).toBe(hashTokenDispositivo(eq.tokenDispositivo)); // e o token devolvido é o que gera esse hash
+  });
+
+  it('o token devolvido no cadastro autentica o dispositivo, e "gerar token novo" invalida o anterior', async () => {
+    const { id, codigo, tokenDispositivo } = (await criar()).json();
+    const envia = (token: string) =>
+      app.inject({ method: 'POST', url: '/api/telemetria', headers: { 'x-dispositivo-token': token }, payload: { codigo, metricas: { fluxo: 100 } } });
+    expect((await envia(tokenDispositivo)).statusCode).toBe(202);
+    const novo = (await app.inject({ method: 'POST', url: `/api/equipamentos/${id}/token` })).json();
+    expect(novo.token).not.toBe(tokenDispositivo);
+    expect((await envia(tokenDispositivo)).statusCode).toBe(401);
+    expect((await envia(novo.token)).statusCode).toBe(202);
   });
 
   it('sem cidade/uf no corpo grava Marília/SP, e o GET devolve os dois campos', async () => {
@@ -277,7 +295,7 @@ describe('mudança de situação (PATCH)', () => {
 
     const sem = await patch(eq.id, { situacao: 'operacional', motivo: 'Voltou a funcionar' });
     expect(sem.statusCode).toBe(400);
-    expect(sem.json().erro).toBe('Registre a recuperação do equipamento antes de voltar a operar');
+    expect(sem.json().erro).toMatch(/Registre a recuperação do equipamento/);
 
     const com = await patch(eq.id, { situacao: 'operacional', motivo: 'Equipamento recuperado', recuperado: true });
     expect(com.statusCode).toBe(200);
@@ -286,6 +304,27 @@ describe('mudança de situação (PATCH)', () => {
     expect(ficha.historico).toHaveLength(2);
     expect(ficha.historico[0]).toMatchObject({ de: 'furtado', para: 'operacional', motivo: 'Equipamento recuperado', em: '2026-10-17T15:00:00.000Z' });
     expect(ficha.historico[1]).toMatchObject({ de: 'operacional', para: 'furtado' });
+  });
+
+  it('furtado não "ressuscita" por outra situação: em manutenção, não instalado e mau funcionamento também exigem a recuperação', async () => {
+    for (const destino of ['em_manutencao', 'nao_instalado', 'mau_funcionamento']) {
+      const eq = await criarOk({ numeroSerie: `SN-${destino}` });
+      await patch(eq.id, { situacao: 'furtado', motivo: 'Boletim de ocorrência 123' });
+      const sem = await patch(eq.id, { situacao: destino, motivo: 'Mandado para a oficina' });
+      expect(sem.statusCode, destino).toBe(400);
+      expect((await ler(eq.id)).situacao).toBe('furtado');
+      const com = await patch(eq.id, { situacao: destino, motivo: 'Equipamento recuperado', recuperado: true });
+      expect(com.statusCode, destino).toBe(200);
+      expect(com.json().situacao).toBe(destino);
+    }
+  });
+
+  it('furtado → desativado (dado como perdido) passa sem recuperação e fecha o alerta de furto', async () => {
+    const eq = await criarOk();
+    await patch(eq.id, { situacao: 'furtado', motivo: 'Boletim de ocorrência 123' });
+    const r = await patch(eq.id, { situacao: 'desativado', motivo: 'Dado como perdido pela secretaria' });
+    expect(r.statusCode).toBe(200);
+    expect(r.json().situacao).toBe('desativado');
   });
 
   it('mau funcionamento torna a manutenção imediata e a manutenção concluída reagenda a periódica', async () => {
@@ -528,5 +567,96 @@ describe('documentação', () => {
     expect(ui.statusCode).toBe(200);
     const json = (await app.inject({ method: 'GET', url: '/api/docs/json' })).json();
     expect(Object.keys(json.paths)).toEqual(expect.arrayContaining(['/api/equipamentos', '/api/agentes', '/api/alertas', '/api/manutencao/painel']));
+  });
+});
+
+describe('correções do inventário (rodada 2)', () => {
+  const lista = async (consulta: string) => (await app.inject({ method: 'GET', url: `/api/equipamentos?${consulta}` })).json();
+
+  it('a busca também olha a referência ("nº 181", "oposto")', async () => {
+    const a = await criarOk({ numeroSerie: 'REF-1', referencia: 'oposto ao mercado' });
+    await criarOk({ numeroSerie: 'REF-2', referencia: 'esquina' });
+    expect((await lista('busca=oposto')).itens.map((e: { id: number }) => e.id)).toEqual([a.id]);
+    const c = await criarOk({ numeroSerie: 'REF-3', referencia: 'nº 181, fundos' });
+    expect((await lista(`busca=${encodeURIComponent('nº 181')}`)).itens.map((e: { id: number }) => e.id)).toEqual([c.id]);
+    expect((await lista('busca=ESQUINA')).total).toBe(1);
+  });
+
+  it('ordena por tipo, situação e bairro (pelo rótulo) com desempate pelo código, e recusa coluna desconhecida', async () => {
+    const radar = await criarOk({ numeroSerie: 'O-1' });
+    const camera = await criarOk({
+      numeroSerie: 'O-2', tipo: 'camera', orgao: 'Guarda Civil Municipal',
+      caracteristicas: { resolucao: '1080p', visaoNoturna: true, colorida: true, ptz: false, angulo: 90, armazenamentoDias: 30 },
+    });
+    const ids = (r: { itens: { id: number }[] }) => r.itens.map((e) => e.id);
+    expect(ids(await lista('ordem=tipo'))).toEqual([camera.id, radar.id]); // "Câmera..." antes de "Radar..."
+    const cancela = await criarOk({ numeroSerie: 'O-3', tipo: 'cancela', caracteristicas: { tipoAcesso: 'tag', local: 'terminal' } });
+    expect(ids(await lista('ordem=tipo'))).toEqual([camera.id, cancela.id, radar.id]); // "Câmera" (acento) antes de "Cancela", como na tela
+    expect(ids(await lista('ordem=tipo&direcao=desc'))).toEqual([radar.id, cancela.id, camera.id]);
+    expect(ids(await lista('ordem=codigo&direcao=desc'))).toEqual([radar.id, cancela.id, camera.id]); // RAD > CAN > CAM
+    ctx.db.prepare("UPDATE equipamentos SET situacao = 'em_manutencao' WHERE id = ?").run(radar.id);
+    expect(ids(await lista('ordem=situacao'))[0]).toBe(radar.id); // "Em manutenção" antes de "Operacional"
+    expect((await app.inject({ method: 'GET', url: '/api/equipamentos?ordem=drop%20table' })).statusCode).toBe(400);
+  });
+
+  it('número de série com letra de largura total conta como repetido (NFKC) e é gravado normalizado', async () => {
+    await criarOk({ numeroSerie: 'SN-S1' });
+    const r = await criar({ numeroSerie: 'SN-Ｓ1' });
+    expect(r.statusCode).toBe(409);
+    const ok = await criarOk({ numeroSerie: 'ＡＢＣ-9' });
+    expect(ok.numeroSerie).toBe('ABC-9');
+  });
+
+  it('caractere de controle (NUL) em marca, série ou busca é recusado; "busca=%00" não casa com tudo', async () => {
+    await criarOk();
+    for (const campo of ['marca', 'modelo', 'numeroSerie', 'logradouro', 'referencia']) {
+      const r = await criar({ numeroSerie: 'SN-NUL', [campo]: 'abc\u0000def' });
+      expect(r.statusCode, campo).toBe(400);
+      expect(Object.keys(r.json().campos), campo).toContain(campo);
+    }
+    expect((await app.inject({ method: 'GET', url: '/api/equipamentos?busca=%00' })).statusCode).toBe(400);
+    expect((await app.inject({ method: 'GET', url: '/api/agentes?busca=a%00' })).statusCode).toBe(400);
+  });
+
+  it('data de instalação absurda (1850) é recusada; 2000 em diante passa', async () => {
+    const r = await criar({ instaladoEm: '1850-01-01' });
+    expect(r.statusCode).toBe(400);
+    expect(r.json().campos.instaladoEm).toMatch(/anterior a 2000/);
+    expect((await criar({ numeroSerie: 'SN-OK', instaladoEm: '2000-01-01' })).statusCode).toBe(201);
+  });
+
+  it('viatura: o órgão responsável tem que ser o da característica "Órgão"', async () => {
+    const viatura = (orgao: string, orgaoViatura: string) =>
+      criar({ numeroSerie: `VTR-${orgao}`, tipo: 'viatura', orgao, caracteristicas: { placa: 'ABC1D23', orgaoViatura, prefixo: 'M-1' } });
+    const errada = await viatura('Guarda Civil Municipal', 'Polícia Militar');
+    expect(errada.statusCode).toBe(400);
+    expect(errada.json().campos.orgao).toMatch(/Polícia Militar/);
+    expect((await viatura('Polícia Militar', 'Polícia Militar')).statusCode).toBe(201);
+  });
+
+  describe('manutenção concluída com data sem sentido', () => {
+    const registrar = (id: number, payload: Record<string, unknown>) =>
+      app.inject({ method: 'POST', url: `/api/equipamentos/${id}/manutencoes`, payload });
+
+    it('1900 é recusada; antes da instalação também', async () => {
+      const eq = await criarOk({ instaladoEm: '2026-05-10' });
+      const antiga = await registrar(eq.id, { tipo: 'corretiva', descricao: 'Data errada', concluidaEm: '1900-01-01T12:00:00.000Z' });
+      expect(antiga.statusCode).toBe(400);
+      expect(antiga.json().campos.concluidaEm).toMatch(/anterior a 2000/);
+      const antes = await registrar(eq.id, { tipo: 'corretiva', descricao: 'Antes de existir', concluidaEm: '2026-05-01T12:00:00.000Z' });
+      expect(antes.statusCode).toBe(400);
+      expect(antes.json().campos.concluidaEm).toMatch(/anterior à instalação \(10\/05\/2026\)/);
+      expect((await ler(eq.id)).ultimaManutencao).toBeUndefined();
+    });
+
+    it('mais antiga que a última manutenção é recusada (não sobrescreve a última) e do mesmo dia passa', async () => {
+      const eq = await criarOk({ instaladoEm: '2026-01-01' });
+      expect((await registrar(eq.id, { tipo: 'preventiva', descricao: 'Revisão de setembro', concluidaEm: '2026-09-20T12:00:00.000Z' })).statusCode).toBe(201);
+      const velha = await registrar(eq.id, { tipo: 'preventiva', descricao: 'Revisão de agosto', concluidaEm: '2026-08-01T12:00:00.000Z' });
+      expect(velha.statusCode).toBe(400);
+      expect(velha.json().campos.concluidaEm).toMatch(/Já há manutenção concluída em 20\/09\/2026/);
+      expect((await ler(eq.id)).ultimaManutencao).toBe('2026-09-20');
+      expect((await registrar(eq.id, { tipo: 'corretiva', descricao: 'No mesmo dia', concluidaEm: '2026-09-20T18:00:00.000Z' })).statusCode).toBe(201);
+    });
   });
 });

@@ -16,6 +16,7 @@ import { AvisoErro } from '../componentes/AvisoErro';
 import { Botao, classeBotao } from '../componentes/Botao';
 import { Campo } from '../componentes/Campo';
 import { CampoDinamico } from '../componentes/CampoDinamico';
+import { DialogoTokenNovo } from '../componentes/DialogoToken';
 import { EstadoVazio } from '../componentes/EstadoVazio';
 import { SeletorPontoMapa } from '../componentes/SeletorPontoMapa';
 import { bairroDoPonto } from '../util/bairroDoPonto';
@@ -74,6 +75,8 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
   const [tentativas, setTentativas] = useState(0);
   const [sugestaoBairro, setSugestaoBairro] = useState<string | null>(null);
   const [cepAviso, setCepAviso] = useState<'buscando' | 'falhou' | 'inexistente' | { foraDeMarilia: string } | null>(null);
+  // Equipamento recém-criado: o token do dispositivo só existe nesta resposta, então a tela o mostra antes de abrir a ficha.
+  const [criado, setCriado] = useState<{ id: number; codigo: string; token: string } | null>(null);
   const buscaCep = useRef(0);
   const logradouroAutomatico = useRef(false);
   const enviando = criar.isPending || atualizar.isPending;
@@ -141,6 +144,11 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
     const cep = mascararCep(texto);
     definir('cep', cep);
     setCepAviso(null);
+    // O logradouro que veio do CEP anterior não vale para este: sai (o que a pessoa digitou fica).
+    if (logradouroAutomatico.current) {
+      logradouroAutomatico.current = false;
+      setEstado((s) => ({ ...s, logradouro: '' }));
+    }
     buscaCep.current += 1;
     if (cep.length !== 9) return;
     const minha = buscaCep.current;
@@ -203,7 +211,7 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
     // Edição: `tipo` e `situacao` seguem como estavam (ver validacaoEquipamento.ts); o servidor ignora a situação no PUT.
     // O grupo de manutenção só vai se a pessoa mexeu nele (dadosDaEdicao).
     if (equipamento) atualizar.mutate({ id: equipamento.id, dados: dadosDaEdicao(dados, estado, inicial.current) }, { onSuccess: aoConcluir, onError: aoFalhar });
-    else criar.mutate(dados, { onSuccess: aoConcluir, onError: aoFalhar });
+    else criar.mutate(dados, { onSuccess: (novo) => setCriado({ id: novo.id, codigo: novo.codigo, token: novo.tokenDispositivo }), onError: aoFalhar });
   };
 
   const def = estado.tipo ? tipoPorId(estado.tipo) : undefined;
@@ -364,8 +372,10 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
                   valor={estado.caracteristicas[c.chave]}
                   erro={erros[`caracteristicas.${c.chave}`]}
                   onChange={(v) => {
-                    setEstado((s) => ({ ...s, caracteristicas: { ...s.caracteristicas, [c.chave]: v } }));
-                    limparErro(`caracteristicas.${c.chave}`);
+                    // A viatura diz o órgão duas vezes (característica e órgão responsável): escolher um acerta o outro.
+                    const acertaOrgao = def.id === 'viatura' && c.chave === 'orgaoViatura' && typeof v === 'string';
+                    setEstado((s) => ({ ...s, ...(acertaOrgao ? { orgao: v } : {}), caracteristicas: { ...s.caracteristicas, [c.chave]: v } }));
+                    limparErro(`caracteristicas.${c.chave}`, ...(acertaOrgao ? ['orgao'] : []));
                   }}
                 />
               ))}
@@ -383,6 +393,10 @@ function Formulario({ equipamento }: { equipamento?: Equipamento }) {
           </Botao>
         </div>
       </form>
+
+      {criado && (
+        <DialogoTokenNovo aberto codigo={criado.codigo} token={criado.token} origem="cadastro" textoFechar="Já copiei, abrir a ficha" onFechar={() => navegar(`/equipamentos/${criado.id}`)} />
+      )}
     </div>
   );
 }

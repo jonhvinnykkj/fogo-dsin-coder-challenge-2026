@@ -1,6 +1,6 @@
 // Ficha do equipamento: dados, mini-mapa, características, linha do tempo da situação, manutenções,
 // telemetria das últimas 48 h e alertas ligados. Ações: editar, mudar situação, registrar manutenção, desativar, excluir.
-import { ArrowsClockwise, CaretLeft, PencilSimple, Prohibit, Trash, Wrench } from '@phosphor-icons/react';
+import { ArrowsClockwise, CaretLeft, Key, PencilSimple, Prohibit, Trash, Wrench } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Marker } from 'react-leaflet';
@@ -9,13 +9,14 @@ import {
 } from '../../../shared/dominio';
 import { formatarCidadeUf, formatarDataHora, formatarEndereco, formatarNumero, formatarRelativo } from '../../../shared/formato';
 import type { Alerta, EquipamentoDetalhe, Manutencao } from '../../../shared/modelos';
-import { tipoPorId, type CampoCaracteristica } from '../../../shared/tipos-equipamento';
+import { tipoPorId, unidadeParaValor, type CampoCaracteristica } from '../../../shared/tipos-equipamento';
 import { useEquipamento, useExcluirEquipamento, useTelemetria } from '../api/consultas';
 import { AvisoErro } from '../componentes/AvisoErro';
 import { Botao, classeBotao } from '../componentes/Botao';
 import { DialogoExcluir } from '../componentes/DialogoExcluir';
 import { DialogoManutencao } from '../componentes/DialogoManutencao';
 import { DialogoSituacao } from '../componentes/DialogoSituacao';
+import { DialogoGerarToken } from '../componentes/DialogoToken';
 import { EstadoVazio } from '../componentes/EstadoVazio';
 import { EtiquetaSituacao } from '../componentes/EtiquetaSituacao';
 import { GraficoTelemetria } from '../componentes/GraficoTelemetria';
@@ -32,7 +33,10 @@ import { usePode } from '../sessao/Sessao';
 function valorDaCaracteristica(c: CampoCaracteristica, valor: unknown): string | undefined {
   if (valor === undefined || valor === null || valor === '') return undefined;
   if (c.tipo === 'booleano') return valor === true ? 'Sim' : 'Não';
-  if (c.tipo === 'numero' && typeof valor === 'number') return `${formatarNumero(valor, Number.isInteger(valor) ? 0 : 1)}${c.unidade ? ` ${c.unidade}` : ''}`;
+  if (c.tipo === 'numero' && typeof valor === 'number') {
+    const unidade = unidadeParaValor(c.unidade, valor);
+    return `${formatarNumero(valor, Number.isInteger(valor) ? 0 : 1)}${unidade ? ` ${unidade}` : ''}`;
+  }
   const texto = String(valor);
   return c.tipo === 'opcao' ? texto.charAt(0).toUpperCase() + texto.slice(1) : texto;
 }
@@ -70,11 +74,12 @@ function Ficha({ eq }: { eq: EquipamentoDetalhe }) {
   const podeExcluir = usePode('excluir');
   const navegar = useNavigate();
   const def = tipoPorId(eq.tipo);
-  const telemetria = useTelemetria(eq.id, 48);
   const excluir = useExcluirEquipamento();
+  const telemetria = useTelemetria(eq.id, 48, !excluir.isSuccess);
   const [situacaoAberta, setSituacaoAberta] = useState<{ inicial?: SituacaoEquipamento } | null>(null);
   const [manutencaoAberta, setManutencaoAberta] = useState(false);
   const [excluirAberto, setExcluirAberto] = useState(false);
+  const [tokenAberto, setTokenAberto] = useState(false);
 
   const posicao: [number, number] = def.movel ? [eq.latAtual, eq.lngAtual] : [eq.lat, eq.lng];
   const agora = new Date();
@@ -121,6 +126,9 @@ function Ficha({ eq }: { eq: EquipamentoDetalhe }) {
               <Botao icone={<Wrench weight="fill" size={18} aria-hidden="true" />} onClick={() => setManutencaoAberta(true)}>Registrar manutenção</Botao>
               <Botao icone={<Prohibit weight="fill" size={18} aria-hidden="true" />} disabled={eq.situacao === 'desativado'} onClick={() => setSituacaoAberta({ inicial: 'desativado' })}>Desativar</Botao>
             </>
+          )}
+          {podeCadastrar && (
+            <Botao icone={<Key weight="fill" size={18} aria-hidden="true" />} onClick={() => setTokenAberto(true)}>Gerar token novo</Botao>
           )}
           {podeExcluir && (
             <Botao variante="fantasma" icone={<Trash weight="fill" size={18} aria-hidden="true" />} onClick={() => { excluir.reset(); setExcluirAberto(true); }}>Excluir</Botao>
@@ -235,6 +243,7 @@ function Ficha({ eq }: { eq: EquipamentoDetalhe }) {
         equipamento={eq}
         situacaoInicial={situacaoAberta?.inicial}
       />
+      <DialogoGerarToken aberto={tokenAberto} onFechar={() => setTokenAberto(false)} equipamento={eq} />
       <DialogoManutencao aberto={manutencaoAberta} onFechar={() => setManutencaoAberta(false)} equipamento={eq} />
       <DialogoExcluir
         aberto={excluirAberto}

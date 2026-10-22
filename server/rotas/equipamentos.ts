@@ -16,7 +16,7 @@ export async function rotasEquipamentos(app: FastifyInstance): Promise<void> {
     schema: {
       tags,
       summary: 'Lista equipamentos com busca, filtros e paginação',
-      description: 'Filtros: busca, tipo, situacao, bairroId, regiao, orgao, manutencao (imediata|proxima|atrasada), pagina, porPagina. A busca ignora acentos e maiúsculas.',
+      description: 'Filtros: busca, tipo, situacao, bairroId, regiao, orgao, manutencao (imediata|proxima|atrasada), ordem (codigo|tipo|situacao|bairro), direcao (asc|desc), pagina, porPagina. A busca ignora acentos e maiúsculas e olha código, série, marca, modelo, logradouro, referência e bairro.',
     },
   }, async (req) => servico.listar(ctx, filtrosEquipamentoSchema.parse(req.query)));
 
@@ -25,7 +25,7 @@ export async function rotasEquipamentos(app: FastifyInstance): Promise<void> {
   }, async (req) => servico.detalheDoEquipamento(ctx, id(req)));
 
   app.post('/api/equipamentos', {
-    schema: { tags, summary: 'Cadastra equipamento (gera o código FOGO-<SIGLA>-0000 e o token do dispositivo)', description: 'Endereço: cep, logradouro, referencia, bairroId. cidade e uf são opcionais e, se vierem, precisam ser Marília/SP (400 caso contrário); o servidor sempre grava Marília/SP.' },
+    schema: { tags, summary: 'Cadastra equipamento (gera o código FOGO-<SIGLA>-0000 e o token do dispositivo)', description: 'A resposta traz a ficha e o campo tokenDispositivo, que aparece só nesta resposta (o banco guarda o hash; para outro, POST /api/equipamentos/:id/token). Endereço: cep, logradouro, referencia, bairroId. cidade e uf são opcionais e, se vierem, precisam ser Marília/SP (400 caso contrário); o servidor sempre grava Marília/SP.' },
   }, async (req, reply) => reply.code(201).send(servico.criarEquipamento(ctx, equipamentoInputSchema.parse(req.body))));
 
   app.put('/api/equipamentos/:id', {
@@ -40,7 +40,7 @@ export async function rotasEquipamentos(app: FastifyInstance): Promise<void> {
     schema: {
       tags,
       summary: 'Muda a situação e grava no histórico',
-      description: 'Corpo: { situacao, motivo, recuperado? }. De "furtado" para "operacional" só com recuperado: true.',
+      description: 'Corpo: { situacao, motivo, recuperado? }. Sair de "furtado" para qualquer situação, exceto "desativado" (dado como perdido), exige recuperado: true.',
     },
   }, async (req) => servico.mudarSituacao(ctx, id(req), mudancaSituacaoSchema.parse(req.body)));
 

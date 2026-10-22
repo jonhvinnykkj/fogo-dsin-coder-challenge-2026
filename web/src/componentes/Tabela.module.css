@@ -102,7 +102,31 @@
   color: var(--cor-texto);
 }
 
+.ordenar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.ordenar:hover {
+  color: var(--cor-texto);
+}
+
 @media (max-width: 720px) {
+  .ordenar {
+    min-height: 44px;
+  }
+
+  .paginas > button {
+    min-height: 44px;
+  }
+
   .esconderNoCelular {
     display: none;
   }

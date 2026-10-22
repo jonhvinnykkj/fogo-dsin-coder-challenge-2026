@@ -127,6 +127,11 @@ export interface EquipamentoDetalhe extends Equipamento {
   alertas: Alerta[];
 }
 
+/** Resposta do cadastro: a ficha mais o token do dispositivo, que só aparece AQUI (o banco guarda o hash). */
+export interface EquipamentoCriado extends EquipamentoDetalhe {
+  tokenDispositivo: string;
+}
+
 export interface AgenteDetalhe extends Agente {
   ocorrencias: Ocorrencia[];
 }

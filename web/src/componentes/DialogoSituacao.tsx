@@ -1,5 +1,5 @@
 // Diálogo "Mudar situação" do equipamento: nova situação + motivo (fica no histórico). Saindo de "Furtado" aparece a
-// confirmação de recuperado, exigida pelo servidor para voltar a "Operacional".
+// confirmação de recuperado, exigida pelo servidor para qualquer destino menos "Desativado" (dado como perdido).
 import { ArrowsClockwise } from '@phosphor-icons/react';
 import { useId, useState, type FormEvent } from 'react';
 import { ROTULO_SITUACAO, SITUACOES_EQUIPAMENTO, type SituacaoEquipamento } from '../../../shared/dominio';
@@ -56,16 +56,17 @@ function FormularioSituacao({ idForm, equipamento, inicial, mutacao, aoConcluir 
   const [erroGeral, setErroGeral] = useState<unknown>(null);
 
   const saiDeFurtado = equipamento.situacao === 'furtado';
-  const voltaAOperar = saiDeFurtado && situacao === 'operacional';
+  // Só "Desativado" (dar como perdido) sai de "Furtado" sem a recuperação: todo outro destino o põe de volta nas mãos do órgão.
+  const exigeRecuperacao = saiDeFurtado && situacao !== '' && situacao !== 'desativado';
 
   const enviar = (ev: FormEvent) => {
     ev.preventDefault();
     setErroGeral(null);
-    const r = mudancaSituacaoSchema.safeParse({ situacao: situacao || undefined, motivo, ...(saiDeFurtado && recuperado ? { recuperado: true } : {}) });
+    const r = mudancaSituacaoSchema.safeParse({ situacao: situacao || undefined, motivo, ...(exigeRecuperacao && recuperado ? { recuperado: true } : {}) });
     const achados: Record<string, string> = {};
     if (!r.success) for (const i of r.error.issues) achados[i.path.join('.')] ??= i.message;
     if (!situacao) achados.situacao = 'Escolha a nova situação';
-    if (voltaAOperar && !recuperado) achados.recuperado = 'Confirme que o equipamento foi recuperado para voltar a operar';
+    if (exigeRecuperacao && !recuperado) achados.recuperado = 'Confirme que o equipamento foi recuperado para tirá-lo de "Furtado"';
     if (!r.success || Object.keys(achados).length) {
       setErros(achados);
       return;
@@ -95,7 +96,7 @@ function FormularioSituacao({ idForm, equipamento, inicial, mutacao, aoConcluir 
       <Campo rotulo="Motivo" erro={erros.motivo} ajuda="Fica registrado na linha do tempo da ficha.">
         {(p) => <textarea {...p} value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Ex.: equipamento localizado pela Guarda Municipal" />}
       </Campo>
-      {saiDeFurtado && (
+      {exigeRecuperacao && (
         <div>
           <label className={estilos.opcao}>
             <input type="checkbox" checked={recuperado} onChange={(e) => setRecuperado(e.target.checked)} aria-invalid={erros.recuperado ? true : undefined} />

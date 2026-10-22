@@ -1,11 +1,11 @@
 // Inventário de equipamentos: busca (espera 300 ms), filtros na URL, paginação e acesso à ficha.
 import { Plus, TrafficCone } from '@phosphor-icons/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ORGAOS, REGIOES, ROTULO_SITUACAO, SITUACOES_EQUIPAMENTO, COR_SITUACAO } from '../../../shared/dominio';
 import { formatarNumero, formatarRelativo } from '../../../shared/formato';
 import type { Equipamento } from '../../../shared/modelos';
-import type { FiltrosEquipamento } from '../../../shared/schemas';
+import { filtrosEquipamentoSchema, ORDENS_EQUIPAMENTO, type FiltrosEquipamento, type OrdemEquipamento } from '../../../shared/schemas';
 import { TIPOS_EQUIPAMENTO } from '../../../shared/tipos-equipamento';
 import { useBairros, useEquipamentos } from '../api/consultas';
 import { AvisoErro } from '../componentes/AvisoErro';
@@ -16,8 +16,7 @@ import { EtiquetaSituacao } from '../componentes/EtiquetaSituacao';
 import { IconeTipo } from '../componentes/IconeTipo';
 import { Tabela, type Coluna } from '../componentes/Tabela';
 import { formatarDia, hojeIso } from '../util/datas';
-import { useAtraso } from '../util/useAtraso';
-import { useFiltrosUrl } from '../util/useFiltrosUrl';
+import { useBuscaNaUrl, useCorrigirPagina, useFiltrosUrl } from '../util/useFiltrosUrl';
 import estilos from './Lista.module.css';
 import { usePode } from '../sessao/Sessao';
 
@@ -27,19 +26,13 @@ const CHAVES_FILTRO = ['tipo', 'situacao', 'bairroId', 'regiao', 'orgao', 'manut
 export default function Equipamentos() {
   const podeCadastrar = usePode('cadastrar');
   const navegar = useNavigate();
-  const url = useFiltrosUrl();
+  const url = useFiltrosUrl(filtrosEquipamentoSchema);
   const bairros = useBairros();
+  const [texto, setTexto] = useBuscaNaUrl(url);
 
-  // Busca: o texto aparece na hora; a URL (e a consulta) só mudam 300 ms depois da última tecla.
-  const [texto, setTexto] = useState(url.ler('busca') ?? '');
-  const textoEsperado = useAtraso(texto, 300);
-  useEffect(() => {
-    if (textoEsperado.trim() !== (url.ler('busca') ?? '')) url.mudar('busca', textoEsperado.trim() || undefined);
-    // `url.mudar` é estável; `url.ler` lê a URL no momento.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [textoEsperado]);
-
-  const pagina = Math.max(1, Number(url.ler('pagina')) || 1);
+  const pagina = Number(url.ler('pagina')) || 1;
+  const ordem = (url.ler('ordem') as OrdemEquipamento | undefined) ?? 'codigo';
+  const direcao = url.ler('direcao') === 'desc' ? 'desc' : 'asc';
   const filtros = {
     busca: url.ler('busca'),
     tipo: url.ler('tipo'),
@@ -48,10 +41,13 @@ export default function Equipamentos() {
     regiao: url.ler('regiao'),
     orgao: url.ler('orgao'),
     manutencao: url.ler('manutencao'),
+    ordem,
+    direcao,
     pagina,
     porPagina: POR_PAGINA,
   } as Partial<FiltrosEquipamento>;
   const lista = useEquipamentos(filtros);
+  useCorrigirPagina(url, pagina, lista.data?.total, POR_PAGINA);
 
   const definicoes = useMemo<DefinicaoFiltro[]>(() => [
     { tipo: 'selecao', chave: 'tipo', rotulo: 'Tipo', rotuloTodos: 'Todos os tipos', opcoes: TIPOS_EQUIPAMENTO.map((t) => ({ valor: t.id, rotulo: t.rotulo })) },
@@ -78,7 +74,7 @@ export default function Equipamentos() {
   const hoje = hojeIso(agora);
   const colunas: Coluna<Equipamento>[] = [
     {
-      chave: 'codigo', titulo: 'Código', semQuebra: true,
+      chave: 'codigo', titulo: 'Código', semQuebra: true, ordenavel: true,
       render: (e) => (
         <span className={estilos.duasLinhas}>
           <Link to={`/equipamentos/${e.id}`} className={estilos.codigo} onClick={(ev) => ev.stopPropagation()}>{e.codigo}</Link>
@@ -86,9 +82,9 @@ export default function Equipamentos() {
         </span>
       ),
     },
-    { chave: 'tipo', titulo: 'Tipo', render: (e) => <IconeTipo tipo={e.tipo} rotulo="curto" />, esconderNoCelular: true },
-    { chave: 'situacao', titulo: 'Situação', render: (e) => <EtiquetaSituacao situacao={e.situacao} tamanho="compacta" /> },
-    { chave: 'bairro', titulo: 'Bairro', render: (e) => e.bairroNome, esconderNoCelular: true },
+    { chave: 'tipo', titulo: 'Tipo', render: (e) => <IconeTipo tipo={e.tipo} rotulo="curto" />, esconderNoCelular: true, ordenavel: true },
+    { chave: 'situacao', titulo: 'Situação', render: (e) => <EtiquetaSituacao situacao={e.situacao} tamanho="compacta" />, ordenavel: true },
+    { chave: 'bairro', titulo: 'Bairro', render: (e) => e.bairroNome, esconderNoCelular: true, ordenavel: true },
     {
       chave: 'endereco', titulo: 'Logradouro e referência', esconderNoCelular: true,
       render: (e) => (
@@ -114,6 +110,13 @@ export default function Equipamentos() {
     },
   ];
 
+  // Clicar na coluna ordena por ela; clicar de novo na mesma inverte. A ordem pelo código é a padrão e não fica na URL.
+  const ordenarPor = (chave: string) => {
+    if (!(ORDENS_EQUIPAMENTO as readonly string[]).includes(chave)) return;
+    const inverter = chave === ordem && direcao === 'asc';
+    url.mudarVarios({ ordem: chave === 'codigo' && !inverter ? undefined : chave, direcao: inverter ? 'desc' : undefined });
+  };
+
   const total = lista.data?.total;
   const limpar = () => {
     setTexto('');
@@ -137,7 +140,7 @@ export default function Equipamentos() {
         filtros={definicoes}
         valores={valores}
         onChange={(chave, valor) => url.mudar(chave, typeof valor === 'string' ? valor : undefined)}
-        busca={{ valor: texto, onChange: setTexto, placeholder: 'Buscar por código, série, marca, rua…', rotulo: 'Buscar equipamentos' }}
+        busca={{ valor: texto, onChange: setTexto, placeholder: 'Buscar por código, série, marca, rua, referência…', rotulo: 'Buscar equipamentos' }}
         onLimpar={limpar}
       />
 
@@ -155,9 +158,13 @@ export default function Equipamentos() {
             <EstadoVazio
               icone={<TrafficCone weight="fill" />}
               titulo="Nenhum equipamento encontrado"
-              descricao={url.temAlgum || texto ? 'Nenhum equipamento combina com a busca e os filtros. Tente tirar algum filtro.' : 'Ainda não há equipamentos cadastrados.'}
+              descricao={
+                total ? 'Esta página não existe: indo para a última.'
+                  : url.temAlgum || texto ? 'Nenhum equipamento combina com a busca e os filtros. Tente tirar algum filtro.' : 'Ainda não há equipamentos cadastrados.'
+              }
             />
           )}
+          ordem={{ chave: ordem, direcao, onMudar: ordenarPor }}
           paginacao={total !== undefined ? { pagina, porPagina: POR_PAGINA, total, onMudar: (p) => url.mudar('pagina', p > 1 ? String(p) : undefined) } : undefined}
         />
       )}

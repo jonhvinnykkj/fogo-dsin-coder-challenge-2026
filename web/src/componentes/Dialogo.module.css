@@ -65,3 +65,17 @@
   gap: var(--e-2);
   font-weight: 700;
 }
+
+/* Token do dispositivo: monoespaçado, quebra em qualquer ponto e seleciona tudo com um clique. */
+.token {
+  display: block;
+  padding: var(--e-3) var(--e-4);
+  border-radius: var(--raio);
+  background: var(--cor-superficie-baixa);
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: var(--t-16);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
