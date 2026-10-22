@@ -27,9 +27,9 @@ beforeEach(() => {
 
 afterEach(() => vi.unstubAllGlobals());
 
-function renderizar(onInjetado = vi.fn()) {
+function renderizar(onInjetado = vi.fn(), encaixado = false) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  render(<QueryClientProvider client={qc}><ControlesSimulacao onInjetado={onInjetado} /></QueryClientProvider>);
+  render(<QueryClientProvider client={qc}><ControlesSimulacao onInjetado={onInjetado} encaixado={encaixado} /></QueryClientProvider>);
   return onInjetado;
 }
 
@@ -58,5 +58,20 @@ describe('ControlesSimulacao', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: '60×' })).toHaveAttribute('aria-pressed', 'true'));
     const patch = fetchFalso.mock.calls.find(([url, init]) => url === '/api/simulacao' && (init as RequestInit)?.method === 'PATCH')!;
     expect(JSON.parse(String((patch[1] as RequestInit).body))).toEqual({ velocidade: 60 });
+  });
+
+  it('encaixada (celular), a barra é marcada para ficar no fluxo e continua com todos os comandos', async () => {
+    const u = userEvent.setup();
+    renderizar(vi.fn(), true);
+    const barra = screen.getByRole('group', { name: 'Controles da simulação' });
+    expect(barra.parentElement).toHaveAttribute('data-encaixado', 'true');
+    for (const nome of ['1×', '10×', '60×', 'Pausar', 'Injetar evento']) expect(screen.getByRole('button', { name: nome })).toBeInTheDocument();
+    await u.click(screen.getByRole('button', { name: 'Injetar evento' }));
+    expect(screen.getByRole('list', { name: 'Evento para injetar na cidade' })).toBeInTheDocument();
+  });
+
+  it('flutuando (padrão), a barra não leva a marca de encaixada', () => {
+    renderizar();
+    expect(screen.getByRole('group', { name: 'Controles da simulação' }).parentElement).not.toHaveAttribute('data-encaixado');
   });
 });

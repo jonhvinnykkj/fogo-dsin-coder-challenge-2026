@@ -334,26 +334,48 @@
   }
 }
 
-/* Celular: a página rola; o mapa fica com boa parte da tela. */
+/*
+ * Celular: a Central ocupa a altura da tela (indicadores e ferramentas em fileiras que se arrastam de lado, mapa no
+ * meio, barra da simulação embaixo). Sem rolagem da página, o dedo nunca disputa com o mapa. Se a tela for baixa
+ * demais (filtros abertos, teclado), a página rola por fora do mapa, pelas margens e pelos indicadores.
+ */
 @media (max-width: 720px) {
   .central {
-    height: auto;
-    padding: var(--e-2) var(--e-2) var(--e-4);
+    min-height: 540px;
+    padding: var(--e-2) var(--e-2) var(--e-2);
+  }
+
+  .corpo {
+    grid-template-rows: minmax(0, 1fr);
   }
 
   .ferramentas {
-    flex-wrap: wrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+    /* o contorno de foco dos botões não pode ser cortado pela rolagem */
+    padding: 4px 2px;
+    margin: -4px -2px;
+  }
+
+  .ferramentas::-webkit-scrollbar {
+    display: none;
+  }
+
+  .botaoFiltros {
+    flex-shrink: 0;
   }
 
   .camadas {
-    flex-wrap: wrap;
-    flex-shrink: 1;
-    min-width: 0;
+    flex-shrink: 0;
+  }
+
+  .filtros {
+    max-height: 38%;
+    overflow-y: auto;
   }
 
   .moldura {
-    flex: none;
-    height: 64vh;
-    min-height: 360px;
+    min-height: 200px;
   }
 }

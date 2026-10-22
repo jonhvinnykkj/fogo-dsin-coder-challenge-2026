@@ -69,14 +69,16 @@ const ROTULO_CAMADA: Record<keyof CamadasVisiveis, string> = {
 };
 
 const CONSULTA_ESTREITA = '(max-width: 1100px)';
-function useTelaEstreita(): boolean {
+/** Celular: a Central ocupa a altura da tela e os controles da simulação descem para baixo do mapa. */
+const CONSULTA_CELULAR = '(max-width: 720px)';
+function useConsulta(consulta: string): boolean {
   return useSyncExternalStore(
     (avisar) => {
-      const mq = window.matchMedia(CONSULTA_ESTREITA);
+      const mq = window.matchMedia(consulta);
       mq.addEventListener('change', avisar);
       return () => mq.removeEventListener('change', avisar);
     },
-    () => window.matchMedia(CONSULTA_ESTREITA).matches,
+    () => window.matchMedia(consulta).matches,
     () => false,
   );
 }
@@ -107,7 +109,8 @@ export default function Central() {
   const [colunaAberta, setColunaAberta] = useState(false);
   const [notificacao, setNotificacao] = useState<DadosNotificacao | null>(null);
   const [injetadoId, setInjetadoId] = useState<number>();
-  const estreita = useTelaEstreita();
+  const estreita = useConsulta(CONSULTA_ESTREITA);
+  const celular = useConsulta(CONSULTA_CELULAR);
   const controle = useRef<ControleMapa>(null);
 
   const nomesBairros = useMemo(() => new Map((bairros.data ?? []).map((b) => [b.id, b.nome])), [bairros.data]);
@@ -268,6 +271,21 @@ export default function Central() {
   const regioesComAtencao = regioes.data?.filter((r) => r.nivel !== 'normal').length ?? 0;
   const colunaVisivel = !estreita || colunaAberta;
 
+  // Em tela grande a barra flutua no canto do mapa; no celular fica logo abaixo dele (ver `encaixado`).
+  const controlesSimulacao = (
+    <ControlesSimulacao
+      encaixado={celular}
+      onInjetado={(_tipo, novos) => {
+        const comLugar = novos.find((a) => a.lat !== undefined && a.lng !== undefined) ?? novos[0];
+        if (!comLugar) return;
+        focarAlerta(comLugar);
+        setInjetadoId(comLugar.id);
+        setAba('alertas');
+        setSelecao(null);
+      }}
+    />
+  );
+
   return (
     <div className={estilos.central}>
       <h1 className="so-leitor">Central de Operações</h1>
@@ -315,15 +333,7 @@ export default function Central() {
               regioes={regioes.data}
               bairros={bairros.data}
             />
-            <ControlesSimulacao onInjetado={(_tipo, novos) => {
-              const comLugar = novos.find((a) => a.lat !== undefined && a.lng !== undefined) ?? novos[0];
-              if (!comLugar) return;
-              focarAlerta(comLugar);
-              setInjetadoId(comLugar.id);
-              setAba('alertas');
-              setSelecao(null);
-            }}
-            />
+            {!celular && controlesSimulacao}
             <Notificacao notificacao={notificacao} onFechar={fecharNotificacao} posicao="canto-pai" />
             {estreita && (
               <button type="button" className={estilos.abrirColuna} onClick={() => setColunaAberta(true)} aria-haspopup="dialog">
@@ -333,6 +343,7 @@ export default function Central() {
               </button>
             )}
           </div>
+          {celular && controlesSimulacao}
         </section>
 
         {estreita && colunaAberta && <div className={estilos.veu} onClick={() => setColunaAberta(false)} aria-hidden="true" />}
