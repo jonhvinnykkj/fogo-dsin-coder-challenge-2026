@@ -135,7 +135,7 @@ describe('preverRisco', () => {
   });
 
   it('o ganho do teste retroativo aparece com uma casa decimal, igual em todos os textos (7,5% e não 8%)', () => {
-    const base = { dias: 14, maeModelo: 0.5339, maeIngenuo: 0.5772, ganhoPct: 7.5, acertoTop5Medio: 3.6, acertoTop5IngenuoMedio: 3.1, porDia: [] };
+    const base = { dias: 14, maeModelo: 0.5339, maeIngenuo: 0.5772, ganhoPct: 7.5, acertoTop5Medio: 3.6, acertoTop5IngenuoMedio: 3.1, porDia: [] } as unknown as Parameters<typeof confiabilidadeDoRisco>[0];
     const texto = confiabilidadeDoRisco(base).map((c) => c.descricao).join(' ');
     expect(texto).toContain('7,5% menos que repetir a média');
     expect(texto).not.toMatch(/\b8% menos/);
