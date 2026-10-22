@@ -12,7 +12,7 @@ import { ROTULO_PAPEL, type UsuarioSessao } from '../../shared/seguranca';
 import { ErroApi } from '../erros';
 import { entidadeDaRota, fotografar, registrar } from './auditoria';
 import { chaveDaRota, foraDaTabela, REGRAS, SO_O_PROPRIO_AGENTE } from './permissoes';
-import { protegerResposta } from './protecao';
+import { protegerResposta, veiculosDeAgentes } from './protecao';
 import { DURACAO_SESSAO_MS, usuarioDaSessao } from './usuarios';
 
 export const COOKIE_SESSAO = 'fogo_sessao';
@@ -195,7 +195,7 @@ export async function instalarSeguranca(app: FastifyInstance, opcoes: OpcoesSegu
     if (req.auditoria && corpo && typeof corpo === 'object' && typeof (corpo as { id?: unknown }).id === 'number') {
       req.auditoria.idResposta = (corpo as { id: number }).id;
     }
-    return req.usuario ? protegerResposta(rota, req.usuario.papel, corpo, req.usuario.agenteId) : corpo;
+    return req.usuario ? protegerResposta(rota, req.usuario.papel, corpo, req.usuario.agenteId, () => veiculosDeAgentes(db)) : corpo;
   });
 
   // 4) Registro na trilha: toda escrita de quem está logado, inclusive as recusadas (um 403 também conta uma história).
