@@ -53,6 +53,13 @@
   outline-offset: 2px;
 }
 
+/* Tela larga: sobra espaço na faixa, o nome inteiro cabe. */
+@media (min-width: 1200px) {
+  .nome {
+    max-width: 32ch;
+  }
+}
+
 /* Celular: só o ícone e o botão de sair. */
 @media (max-width: 720px) {
   .textos {
