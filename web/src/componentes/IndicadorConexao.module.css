@@ -49,3 +49,19 @@
     transform: rotate(360deg);
   }
 }
+
+/* Celular estreito: só o ícone e a cor (o texto continua para leitor de tela); a faixa do topo não comporta mais. */
+@media (max-width: 420px) {
+  .rotulo {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .indicador {
+    position: relative;
+    padding: 0 8px;
+  }
+}
