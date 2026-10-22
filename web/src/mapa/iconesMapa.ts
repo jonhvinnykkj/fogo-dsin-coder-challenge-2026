@@ -18,7 +18,7 @@ import type { SituacaoManutencao } from '../../../shared/modelos';
 import { TIPOS_EQUIPAMENTO, type TipoEquipamentoId } from '../../../shared/tipos-equipamento';
 import { componenteDoIcone } from '../componentes/IconeTipo';
 import { corDoTexto } from '../estilo/contraste';
-import { manutencaoUrgente, pedeAtencaoDeManutencao } from './regrasMapa';
+import { manutencaoUrgente, pedeAtencaoDeManutencao, type ContaManutencao } from './regrasMapa';
 import './mapa-operacional.css';
 
 /** Ícone Phosphor (estilo cheio, cor = currentColor) como texto SVG. */
@@ -110,31 +110,33 @@ export function iconeAgente(categoria: CategoriaAgente, situacao: SituacaoAgente
 /**
  * Grupo de equipamentos: contagem na cor da pior situação; tamanho cresce com a contagem. Quando a pior é um problema
  * (furto, falha, manutenção), um selo branco diz quantos estão com problema — "36" magenta com selo "1" é um furto
- * entre 36, não 36 furtos. No outro canto, a chave inglesa com a conta de quantos precisam de manutenção (imediata, atrasada
- * ou nos próximos 7 dias): o grupo que esconde um equipamento destacado também se destaca.
+ * entre 36, não 36 furtos. No outro canto, os mesmos selos da legenda: chave inglesa com a conta de imediata + atrasada
+ * e, se houver, relógio vazado com a conta dos próximos 7 dias. O grupo que esconde um equipamento destacado também se destaca.
  */
-export function iconeGrupo(contagem: number, pior: SituacaoEquipamento, comProblema: number, comManutencao = 0): L.DivIcon {
+export function iconeGrupo(contagem: number, pior: SituacaoEquipamento, comProblema: number, manutencao: ContaManutencao = { urgentes: 0, proximas: 0 }): L.DivIcon {
   const t = contagem < 10 ? 32 : contagem < 50 ? 38 : 46;
   const cor = pior === 'nao_instalado' ? COR_SITUACAO.desativado : COR_SITUACAO[pior];
   const selo = comProblema > 0 ? `<span class="fogo-grupo__selo">${formatarNumero(comProblema)}</span>` : '';
-  const seloMan = comManutencao > 0 ? `<span class="fogo-selo-man fogo-selo-man--urgente fogo-selo-man--grupo">${SVG_CHAVE}${formatarNumero(comManutencao)}</span>` : '';
+  const seloUrgente = manutencao.urgentes > 0 ? `<span class="fogo-selo-man fogo-selo-man--urgente fogo-selo-man--grupo">${SVG_CHAVE}${formatarNumero(manutencao.urgentes)}</span>` : '';
+  const seloProxima = manutencao.proximas > 0 ? `<span class="fogo-selo-man fogo-selo-man--proxima fogo-selo-man--grupo fogo-selo-man--grupo-proxima">${SVG_RELOGIO}${formatarNumero(manutencao.proximas)}</span>` : '';
   return L.divIcon({
     className: 'fogo-grupo-raiz',
-    html: `<span class="fogo-grupo" style="background:${cor};color:${corDoTexto(cor)}">${formatarNumero(contagem)}${selo}${seloMan}</span>`,
+    html: `<span class="fogo-grupo" style="background:${cor};color:${corDoTexto(cor)}">${formatarNumero(contagem)}${selo}${seloUrgente}${seloProxima}</span>`,
     iconSize: [t, t],
     iconAnchor: [t / 2, t / 2],
   });
 }
 
-/** Resumo do grupo para a dica e leitores de tela: "24 equipamentos (Operacional 22, Mau funcionamento 2). 3 com manutenção…". */
-export function resumoDoGrupo(situacoes: SituacaoEquipamento[], comManutencao = 0): string {
+/** Resumo do grupo para a dica e leitores de tela: "24 equipamentos (Operacional 22, Mau funcionamento 2). 2 com manutenção imediata ou atrasada…". */
+export function resumoDoGrupo(situacoes: SituacaoEquipamento[], manutencao: ContaManutencao = { urgentes: 0, proximas: 0 }): string {
   const conta = new Map<SituacaoEquipamento, number>();
   for (const s of situacoes) conta.set(s, (conta.get(s) ?? 0) + 1);
   const partes = [...conta.entries()]
     .sort((a, b) => b[1] - a[1])
     .map(([s, n]) => `${ROTULO_SITUACAO[s]} ${formatarNumero(n)}`);
-  const manutencao = comManutencao > 0 ? ` ${formatarNumero(comManutencao)} com manutenção imediata, atrasada ou nos próximos 7 dias.` : '';
-  return `${formatarNumero(situacoes.length)} equipamentos (${partes.join(', ')}).${manutencao} Clique para aproximar.`;
+  const urgentes = manutencao.urgentes > 0 ? ` ${formatarNumero(manutencao.urgentes)} com manutenção imediata ou atrasada.` : '';
+  const proximas = manutencao.proximas > 0 ? ` ${formatarNumero(manutencao.proximas)} com manutenção nos próximos 7 dias.` : '';
+  return `${formatarNumero(situacoes.length)} equipamentos (${partes.join(', ')}).${urgentes}${proximas} Clique para aproximar.`;
 }
 
 /** Ponto na cor da criticidade com dois anéis pulsando: marca onde o alerta ou o evento recém-criado aconteceu. */

@@ -186,7 +186,7 @@ function Legenda({ camadas }: { camadas: CamadasVisiveis }) {
             <li><span className={`fogo-selo-man fogo-selo-man--urgente ${estilos.selo}`}><Wrench weight="fill" size={10} aria-hidden="true" /></span>Imediata ou atrasada</li>
             <li><span className={`fogo-selo-man fogo-selo-man--proxima ${estilos.selo}`}><Clock weight="fill" size={10} aria-hidden="true" /></span>Nos próximos 7 dias</li>
           </ul>
-          <p>No grupo, o selo à esquerda conta quantos dali precisam de manutenção.</p>
+          <p>No grupo, a chave conta quantos dali têm manutenção imediata ou atrasada; o relógio, quantos têm nos próximos 7 dias.</p>
         </div>
       )}
       {camadas.agentes && (
