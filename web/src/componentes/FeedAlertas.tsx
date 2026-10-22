@@ -6,6 +6,7 @@ import { formatarRelativo } from '../../../shared/formato';
 import type { Alerta } from '../../../shared/modelos';
 import { mensagemDeErro } from '../api/cliente';
 import { useReconhecerAlerta, useResolverAlerta } from '../api/consultas';
+import { useOrdemSemPular } from '../util/ordemEstavel';
 import { useAgora } from '../util/useAgora';
 import { Botao } from './Botao';
 import { EstadoVazio } from './EstadoVazio';
@@ -91,6 +92,9 @@ export function FeedAlertas({ alertas, carregando = false, nomeDoBairro, onSelec
   const resolver = useResolverAlerta();
   const podeOperar = usePode('operar');
 
+  // Reconhecer não muda o lugar do alerta: o clique seguinte no mesmo ponto não pode resolver outro.
+  const ordenadosSemPular = useOrdemSemPular(alertas, ordenarParaFeed);
+
   const novos = useAlertasNovos(alertas, (chegaram) => {
     onNovos?.(chegaram);
     for (const a of chegaram) if (a.criticidade === 'critica') onNovoCritico?.(a);
@@ -114,7 +118,7 @@ export function FeedAlertas({ alertas, carregando = false, nomeDoBairro, onSelec
     );
   }
 
-  const ordenados = ordenarParaFeed(alertas).slice(0, limite);
+  const ordenados = (ordenadosSemPular ?? []).slice(0, limite);
   const ocupado = (id: number) => (reconhecer.isPending && reconhecer.variables === id) || (resolver.isPending && resolver.variables === id);
   const erro = reconhecer.error ?? resolver.error;
 

@@ -7,7 +7,7 @@
 // próprias posições (só ele re-renderiza a cada 2 s); esta página só re-renderiza com indicadores, alertas e regiões.
 import { Faders, ListBullets, SquaresFour, WarningDiamond } from '@phosphor-icons/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   CATEGORIAS_AGENTE, COR_CRITICIDADE, COR_SITUACAO, ORGAOS, REGIOES, ROTULO_CATEGORIA_AGENTE, ROTULO_SITUACAO, ROTULO_SITUACAO_AGENTE,
@@ -27,7 +27,9 @@ import { rotuloCurtoDoTipo } from '../componentes/IconeTipo';
 import { MapaOperacional, type CamadasVisiveis, type ControleMapa, type SelecaoMapa } from '../componentes/MapaOperacional';
 import { Notificacao, type DadosNotificacao } from '../componentes/Notificacao';
 import { PainelRegioes } from '../componentes/PainelRegioes';
+import { filtrarAlertasPorLugar, filtrarRegioesPorLugar, temRecorteDeLugar } from '../util/alertasPorLugar';
 import { contagemAteLimite } from '../util/numeros';
+import { useConsulta } from '../util/useConsulta';
 import estilos from './Central.module.css';
 
 /** /api/alertas devolve no máximo 200 (os mais recentes, sem o total): chegando a isso, a contagem vira "200+". */
@@ -78,18 +80,6 @@ const ROTULO_CAMADA: Record<keyof CamadasVisiveis, string> = {
 const CONSULTA_ESTREITA = '(max-width: 1100px)';
 /** Celular: a Central ocupa a altura da tela e os controles da simulação descem para baixo do mapa. */
 const CONSULTA_CELULAR = '(max-width: 720px)';
-function useConsulta(consulta: string): boolean {
-  return useSyncExternalStore(
-    (avisar) => {
-      const mq = window.matchMedia(consulta);
-      mq.addEventListener('change', avisar);
-      return () => mq.removeEventListener('change', avisar);
-    },
-    () => window.matchMedia(consulta).matches,
-    () => false,
-  );
-}
-
 /** Regiões não têm evento no SSE: quando chegam alertas, relê o índice dos bairros (no máximo a cada 4 s). */
 const INTERVALO_REGIOES_MS = 4000;
 
@@ -105,8 +95,8 @@ export default function Central() {
   const filtrado = qtdFiltros > 0;
 
   const indicadores = useIndicadores(filtros, { atualizarACada: filtrado ? 5000 : undefined });
-  const alertas = useAlertas({ status: 'abertos', limite: LIMITE_ALERTAS });
-  const regioes = useRegioes();
+  const alertasTodos = useAlertas({ status: 'abertos', limite: LIMITE_ALERTAS });
+  const regioesTodas = useRegioes();
   const bairros = useBairros();
 
   const [camadas, setCamadas] = useState<CamadasVisiveis>(lerCamadas);
@@ -120,6 +110,18 @@ export default function Central() {
   const celular = useConsulta(CONSULTA_CELULAR);
   const controle = useRef<ControleMapa>(null);
 
+  // Alertas e regiões seguem o recorte de lugar (região e bairro), como a placa de alertas críticos; a API de alertas não filtra por lugar.
+  const recorte = useMemo(() => ({ regiao: filtros.regiao, bairroId: filtros.bairroId }), [filtros.regiao, filtros.bairroId]);
+  const recortado = temRecorteDeLugar(recorte);
+  const alertas = useMemo(
+    () => ({ ...alertasTodos, data: filtrarAlertasPorLugar(alertasTodos.data, recorte, bairros.data) }),
+    [alertasTodos, recorte, bairros.data],
+  );
+  const regioes = useMemo(
+    () => ({ ...regioesTodas, data: filtrarRegioesPorLugar(regioesTodas.data, recorte) }),
+    [regioesTodas, recorte],
+  );
+
   const nomesBairros = useMemo(() => new Map((bairros.data ?? []).map((b) => [b.id, b.nome])), [bairros.data]);
   const nomeDoBairro = useCallback((id: number) => nomesBairros.get(id), [nomesBairros]);
 
@@ -128,7 +130,7 @@ export default function Central() {
   const ultimaRegioes = useRef(Date.now());
   const relerRegioes = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => {
-    if (!alertas.data) return;
+    if (!alertasTodos.data) return;
     if (primeiraLeitura.current) {
       primeiraLeitura.current = false;
       return;
@@ -140,7 +142,7 @@ export default function Central() {
       ultimaRegioes.current = Date.now();
       void qc.invalidateQueries({ queryKey: chaves.regioes() });
     }, espera);
-  }, [alertas.data, qc]);
+  }, [alertasTodos.data, qc]);
   useEffect(() => () => {
     clearTimeout(relerRegioes.current);
     relerRegioes.current = undefined;
@@ -279,8 +281,9 @@ export default function Central() {
   const abertos = alertas.data?.length ?? 0;
   const criticos = alertas.data?.filter((a) => a.criticidade === 'critica').length ?? 0;
   // No limite pode haver mais do que veio: "200+" abertos e "pelo menos N" críticos (contados entre os mais recentes).
-  const noLimite = abertos >= LIMITE_ALERTAS;
-  const textoAbertos = contagemAteLimite(abertos, LIMITE_ALERTAS);
+  const noLimite = (alertasTodos.data?.length ?? 0) >= LIMITE_ALERTAS;
+  const textoAbertos = recortado ? formatarNumero(abertos) : contagemAteLimite(abertos, LIMITE_ALERTAS);
+  const lugar = filtros.bairroId !== undefined ? nomeDoBairro(filtros.bairroId) : filtros.regiao && `região ${filtros.regiao}`;
   const textoCriticos = `${formatarNumero(criticos)}${noLimite ? '+' : ''}`;
   const regioesComAtencao = regioes.data?.filter((r) => r.nivel !== 'normal').length ?? 0;
   const colunaVisivel = !estreita || colunaAberta;
@@ -335,7 +338,8 @@ export default function Central() {
               <BarraFiltros filtros={definicoes} valores={valores} onChange={mudarFiltro} onLimpar={() => setParams({}, { replace: true })} />
               <p className={estilos.ajudaFiltros}>
                 Região, bairro e órgão valem para equipamentos e agentes (do agente, conta a base). Situação, tipo e manutenção
-                escondem só equipamentos; categoria e situação do agente, só agentes.
+                escondem só equipamentos; categoria e situação do agente, só agentes. Região e bairro também recortam a lista de
+                alertas e o painel de regiões.
               </p>
             </div>
           )}
@@ -347,8 +351,8 @@ export default function Central() {
               camadas={camadas}
               selecao={selecao}
               onSelecionar={aoSelecionarMarcador}
-              alertasAbertos={alertas.data}
-              regioes={regioes.data}
+              alertasAbertos={alertasTodos.data}
+              regioes={regioesTodas.data}
               bairros={bairros.data}
             />
             {!celular && controlesSimulacao}
@@ -420,9 +424,9 @@ export default function Central() {
               <div className={estilos.cabecalhoPainel}>
                 <p>
                   {criticos > 0 ? `${textoCriticos} ${criticos === 1 && !noLimite ? 'crítico' : 'críticos'} · ` : ''}
-                  {textoAbertos} {abertos === 1 ? 'aberto' : 'abertos'}
+                  {textoAbertos} {abertos === 1 ? 'aberto' : 'abertos'}{recortado && lugar ? ` em ${lugar}` : ''}
                 </p>
-                <Link to="/alertas">Ver todos</Link>
+                <Link to="/alertas">{recortado ? 'Ver todos da cidade' : 'Ver todos'}</Link>
               </div>
               <FeedAlertas
                 alertas={alertas.data}
@@ -435,7 +439,7 @@ export default function Central() {
               />
             </div>
             <div id="painel-regioes" role="tabpanel" aria-labelledby="aba-regioes" className={estilos.painel} hidden={aba !== 'regioes'}>
-              <PainelRegioes regioes={regioes.data} carregando={regioes.isPending} onFocarBairro={focarBairro} />
+              <PainelRegioes regioes={regioes.data} carregando={regioes.isPending} onFocarBairro={focarBairro} recorte={recortado ? lugar || undefined : undefined} />
             </div>
           </div>
         </aside>

@@ -13,6 +13,8 @@ interface Props {
   regioes: StatusRegiao[] | undefined;
   carregando?: boolean;
   onFocarBairro?: (bairroId: number) => void;
+  /** Lugar do filtro da Central ("região Norte"): o painel avisa que mostra só ele. */
+  recorte?: string;
 }
 
 function Nivel({ nivel }: { nivel: NivelAtencao }) {
@@ -20,7 +22,7 @@ function Nivel({ nivel }: { nivel: NivelAtencao }) {
   return <span className={estilos.nivel} style={{ background: cor, color: corDoTexto(cor) }}>{ROTULO_NIVEL_ATENCAO[nivel]}</span>;
 }
 
-function PainelRegioesBase({ regioes, carregando = false, onFocarBairro }: Props) {
+function PainelRegioesBase({ regioes, carregando = false, onFocarBairro, recorte }: Props) {
   const [aberta, setAberta] = useState<string | null>(null);
 
   if (!regioes) {
@@ -29,6 +31,7 @@ function PainelRegioesBase({ regioes, carregando = false, onFocarBairro }: Props
 
   const comAtencao = regioes.filter((r) => r.nivel !== 'normal').length;
   const normais = regioes.length - comAtencao;
+  if (regioes.length === 0) return <EstadoVazio titulo="Nenhuma região neste recorte" descricao="Troque a região ou o bairro nos filtros para ver as demais." />;
   const resumo = comAtencao === 0
     ? `As ${regioes.length} regiões operam normalmente.`
     : normais === 0
@@ -37,6 +40,7 @@ function PainelRegioesBase({ regioes, carregando = false, onFocarBairro }: Props
 
   return (
     <div className={estilos.painel}>
+      {recorte && <p className={estilos.recorte}>Só {recorte}, como no filtro da Central.</p>}
       <p className={estilos.resumo}>{resumo}</p>
       <ul className={estilos.lista}>
         {regioes.map((r) => {
