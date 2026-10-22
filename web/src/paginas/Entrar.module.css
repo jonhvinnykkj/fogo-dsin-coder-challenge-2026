@@ -105,6 +105,24 @@
   cursor: pointer;
 }
 
+.recomendado {
+  grid-column: 1 / -1;
+  order: -1;
+}
+
+.recomendado .papel {
+  box-shadow: inset 0 0 0 2px var(--cor-fogo);
+}
+
+.etiqueta {
+  align-self: flex-start;
+  padding: 2px var(--e-2);
+  background: var(--cor-fogo);
+  color: var(--cor-sobre-fogo);
+  font-size: var(--t-12);
+  font-weight: 800;
+}
+
 .papel:hover:not(:disabled) {
   background: var(--cor-fogo-suave);
 }

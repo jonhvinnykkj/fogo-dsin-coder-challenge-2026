@@ -9,6 +9,9 @@ import { Campo } from '../componentes/Campo';
 import { useModoAcesso, useSessao } from '../sessao/Sessao';
 import estilos from './Entrar.module.css';
 
+/** O papel que mostra o sistema inteiro: o que a comissão de avaliação deve escolher. */
+const PAPEL_RECOMENDADO: Papel = 'gestor';
+
 export default function Entrar() {
   const { usuario, entrar, entrarDemo } = useSessao();
   const modo = useModoAcesso();
@@ -65,13 +68,16 @@ export default function Entrar() {
           </Botao>
         </form>
 
-        {modo.data?.demo && (
-          <section className={estilos.demo} aria-labelledby="entrar-demo">
+        {/* Enquanto /api/auth/modo não responde, os botões já ocupam o lugar (desligados): se a seção só aparecesse
+            depois, o cartão cresceria e empurraria tudo, e um toque no lugar de um papel cairia em outro. */}
+        {(modo.isPending || modo.data?.demo) && (
+          <section className={estilos.demo} aria-labelledby="entrar-demo" aria-busy={modo.isPending}>
             <h2 id="entrar-demo" className={estilos.demoTitulo}>Demonstração: entrar com um clique como</h2>
             <ul className={estilos.papeis}>
               {PAPEIS.map((papel) => (
-                <li key={papel}>
-                  <button type="button" className={estilos.papel} disabled={enviando !== undefined} onClick={() => void executar(papel, () => entrarDemo(papel))}>
+                <li key={papel} className={papel === PAPEL_RECOMENDADO ? estilos.recomendado : undefined}>
+                  <button type="button" className={estilos.papel} disabled={modo.isPending || enviando !== undefined} onClick={() => void executar(papel, () => entrarDemo(papel))}>
+                    {papel === PAPEL_RECOMENDADO && <span className={estilos.etiqueta}>Recomendado para avaliar: vê tudo</span>}
                     <span className={estilos.papelNome}>{enviando === papel ? 'Entrando…' : ROTULO_PAPEL[papel]}</span>
                     <span className={estilos.papelDescricao}>{DESCRICAO_PAPEL[papel]}</span>
                   </button>

@@ -2,7 +2,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CHAVE_AGENTE_CAMPO } from '../campo/agenteSalvo';
 import { SessaoProvider } from '../sessao/Sessao';
@@ -60,9 +60,19 @@ const chamadas = (metodo: string, trecho = '') =>
   fetchFalso.mock.calls.filter(([url, init]) => ((init as RequestInit | undefined)?.method ?? 'GET') === metodo && String(url).includes(trecho));
 const corpo = (c: unknown[]) => JSON.parse(String((c[1] as RequestInit).body)) as unknown;
 
+let usuarioLogado: Record<string, unknown>;
+
 function renderizar({ comSessao = false } = {}) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const tela = <MemoryRouter initialEntries={['/campo']}><Campo /></MemoryRouter>;
+  const tela = (
+    <MemoryRouter initialEntries={['/campo']}>
+      <Routes>
+        <Route path="/campo" element={<Campo />} />
+        <Route path="/" element={<p>Tela da Central</p>} />
+        <Route path="/entrar" element={<p>Tela de entrada</p>} />
+      </Routes>
+    </MemoryRouter>
+  );
   return render(<QueryClientProvider client={qc}>{comSessao ? <SessaoProvider>{tela}</SessaoProvider> : tela}</QueryClientProvider>);
 }
 
@@ -72,10 +82,12 @@ beforeEach(() => {
   vi.stubGlobal('EventSource', EventSourceFalso);
   Object.defineProperty(navigator, 'vibrate', { value: vi.fn(() => true), configurable: true });
   despachoAtual = null;
+  usuarioLogado = { id: 3, login: 'agente', nome: 'Ana Souza', papel: 'agente', agenteId: 7 };
   fetchFalso = vi.fn(async (url: string, init?: RequestInit) => {
     const u = String(url);
     const metodo = init?.method ?? 'GET';
-    if (metodo === 'GET' && u === '/api/auth/eu') return json({ usuario: { id: 3, login: 'agente', nome: 'Ana Souza', papel: 'agente', agenteId: 7 } });
+    if (metodo === 'GET' && u === '/api/auth/eu') return json({ usuario: usuarioLogado });
+    if (metodo === 'POST' && u === '/api/auth/sair') return json({ ok: true });
     if (metodo === 'GET' && u.startsWith('/api/agentes?')) return json({ itens: [ANA, BRUNO], total: 2, pagina: 1, porPagina: 100 });
     if (metodo === 'GET' && u === '/api/agentes/7') return json(ANA);
     if (metodo === 'PATCH' && u === '/api/agentes/7/situacao') return json({ ...ANA, situacao: 'pausa' });
@@ -204,5 +216,25 @@ describe('Modo Campo', () => {
     // O mesmo despacho repetido (ex.: reconexão) não vibra de novo.
     act(() => fonte!.emitir('ocorrencia', { tipo: 'ocorrencia', dados: OCORRENCIA }));
     expect(navigator.vibrate).toHaveBeenCalledTimes(1);
+  });
+
+  describe('topo: sair e voltar à Central', () => {
+    it('o agente tem "Sair" no topo e não tem "Central" (não há Central para ele)', async () => {
+      const u = userEvent.setup();
+      renderizar({ comSessao: true });
+      await screen.findByRole('heading', { name: 'Ana Souza' });
+      expect(screen.queryByRole('link', { name: 'Central' })).not.toBeInTheDocument();
+      await u.click(screen.getByRole('button', { name: 'Sair' }));
+      await waitFor(() => expect(chamadas('POST', '/api/auth/sair')).toHaveLength(1));
+      expect(await screen.findByText('Tela de entrada')).toBeInTheDocument();
+    });
+
+    it('gestor e operador voltam à Central pelo topo', async () => {
+      usuarioLogado = { id: 1, login: 'gestor', nome: 'Gestão da operação', papel: 'gestor', agenteId: null };
+      const u = userEvent.setup();
+      renderizar({ comSessao: true });
+      await u.click(await screen.findByRole('link', { name: 'Central' }));
+      expect(await screen.findByText('Tela da Central')).toBeInTheDocument();
+    });
   });
 });

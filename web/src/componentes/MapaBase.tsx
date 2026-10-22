@@ -4,7 +4,7 @@
 import { WifiSlash } from '@phosphor-icons/react';
 import type { LatLngBoundsExpression, LatLngExpression, Map as MapaLeaflet, TileLayer as CamadaLeaflet } from 'leaflet';
 import { useEffect, useRef, useState, type ReactNode, type Ref } from 'react';
-import { GeoJSON, MapContainer, TileLayer } from 'react-leaflet';
+import { GeoJSON, MapContainer, TileLayer, useMapEvents } from 'react-leaflet';
 import { LIMITE_MARILIA } from '../../../shared/geo';
 import '../mapa/configurarLeaflet';
 import estilos from './MapaBase.module.css';
@@ -30,6 +30,22 @@ interface Props {
   rotulo?: string;
   className?: string;
   ref?: Ref<MapaLeaflet>;
+}
+
+/**
+ * Fecha os balões (dica de bairro, de grupo) quando o mapa começa a se mexer: no voo, no zoom ou no arrasto o
+ * balão que estava sob o mouse ficaria parado na tela, longe do que ele descrevia. Ele volta no próximo mouse-over.
+ */
+export function FechaDicasAoMover() {
+  const mapa = useMapEvents({
+    movestart: () => fecharDicas(mapa),
+    zoomstart: () => fecharDicas(mapa),
+  });
+  return null;
+}
+
+export function fecharDicas(mapa: MapaLeaflet) {
+  mapa.eachLayer((camada) => camada.closeTooltip());
 }
 
 export function MapaBase({ children, centro = CENTRO_MARILIA, zoom = ZOOM_PADRAO, mostrarLimite = true, rotulo = 'Mapa de Marília', className, ref }: Props) {
@@ -79,6 +95,7 @@ export function MapaBase({ children, centro = CENTRO_MARILIA, zoom = ZOOM_PADRAO
             },
           }}
         />
+        <FechaDicasAoMover />
         {mostrarLimite && <GeoJSON data={LIMITE_MARILIA} interactive={false} style={{ className: estilos.limite, fill: false, weight: 2, dashArray: '6 6' }} />}
         {children}
       </MapContainer>

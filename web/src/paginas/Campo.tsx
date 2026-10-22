@@ -2,16 +2,20 @@
 // gestor (sem menu lateral). Fecha o ciclo da Central: o gestor vê o agente no mapa, e o agente conta daqui o que
 // acontece na rua (situação, chegada e conclusão do despacho, problemas nos equipamentos).
 // Quem entra como agente vê direto o próprio painel; gestor e operador escolhem um agente (para acompanhar ou demonstrar).
+import { ArrowLeft, SignOut } from '@phosphor-icons/react';
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { esquecerAgente, lerAgenteSalvo, salvarAgente } from '../campo/agenteSalvo';
 import estilos from '../campo/Campo.module.css';
 import { EscolhaDoAgente } from '../campo/EscolhaDoAgente';
 import { PainelDoAgente } from '../campo/PainelDoAgente';
 import { EstadoVazio } from '../componentes/EstadoVazio';
-import { useUsuario } from '../sessao/Sessao';
+import { useSessaoOpcional } from '../sessao/Sessao';
 
 export default function Campo() {
-  const usuario = useUsuario();
+  const sessao = useSessaoOpcional();
+  const usuario = sessao?.usuario;
+  const navegar = useNavigate();
   const [agenteId, setAgenteId] = useState(lerAgenteSalvo);
 
   const escolher = (id: number) => {
@@ -28,6 +32,21 @@ export default function Campo() {
       <header className={estilos.topo}>
         <span className={estilos.marca}>F.O.G.O.</span>
         <span className={estilos.modo}>Modo Campo</span>
+        <nav className={estilos.acoesTopo} aria-label="Sessão">
+          {/* Gestor e operador abrem o Modo Campo pela Central; o agente não tem Central para voltar. */}
+          {usuario && usuario.papel !== 'agente' && (
+            <Link to="/" className={estilos.acaoTopo}>
+              <ArrowLeft weight="bold" size={20} aria-hidden="true" />
+              Central
+            </Link>
+          )}
+          {sessao && (
+            <button type="button" className={estilos.acaoTopo} onClick={() => void sessao.sair().finally(() => navegar('/entrar', { replace: true }))}>
+              <SignOut weight="bold" size={20} aria-hidden="true" />
+              Sair
+            </button>
+          )}
+        </nav>
       </header>
       <main className={estilos.conteudo}>
         {usuario?.papel === 'agente' ? (
