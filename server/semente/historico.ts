@@ -369,7 +369,8 @@ export function gerarOcorrenciasDaHora(
   for (const trecho of minutosEscolaresNaHora(p)) {
     const fracao = (trecho.fim - trecho.inicio) / 60;
     for (const escola of ctx.escolas) {
-      const n = rng.poisson(ACIDENTES_ESCOLA_POR_HORA * fracao * (chuva ? FATOR_CHUVA.acidente! : 1));
+      // `escala`: ao vivo cada chamada é um tick (fração da hora); sem ela, cada tick de 2 s gerava a hora inteira.
+      const n = rng.poisson(ACIDENTES_ESCOLA_POR_HORA * fracao * escala * (chuva ? FATOR_CHUVA.acidente! : 1));
       for (let k = 0; k < n; k++) {
         const pt = rng.escolher(escola.pontos);
         registrar({
