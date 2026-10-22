@@ -6,7 +6,8 @@ const ROTULOS_INDICADORES = ['Equipamentos', 'Operacionais', 'Indisponíveis', '
 // Tudo exige sessão: cada teste entra como gestor pela entrada de demonstração (ligada por padrão no npm start).
 async function entrarComoGestor(page: Page) {
   await page.goto('/entrar');
-  await page.getByRole('button', { name: /^Gestor/ }).click();
+  // O nome do botão começa pela etiqueta "Recomendado para avaliar"; o papel vem depois.
+  await page.getByRole('button', { name: /Gestor/ }).click();
   await expect(page).not.toHaveURL(/\/entrar/);
 }
 
