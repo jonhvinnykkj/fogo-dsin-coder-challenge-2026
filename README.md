@@ -208,6 +208,25 @@ Invoke-RestMethod -Method Post -Uri http://localhost:3333/api/telemetria `
 
 As métricas aceitas dependem do tipo (ex.: radar = `fluxo`, `velocidadeMedia`, `infracoes`): a lista completa, com rótulo e unidade, está no campo `metricas` de `GET /api/tipos-equipamento`. Métrica que não existe para o tipo responde `400` dizendo quais valem. Valor fora da faixa da métrica (percentuais de 0 a 100, velocidades até 300 km/h…), posição de equipamento fixo ou hora com mais de 6 h de atraso também são recusados, e 30 recusas por minuto de um mesmo IP bloqueiam o IP (429) por um instante. Sem token, ou com o token de outro equipamento, a resposta é `401`.
 
+## Desempenho (medido)
+
+Medido em 23/10/2026 num Mac com Node 22, banco novo, Chrome sem janela pelo Playwright (o "notebook fraco" é a CPU do navegador 4× mais lenta, pelo próprio Chrome). Os números mudam de máquina para máquina; a ordem de grandeza é o que importa.
+
+| O quê | Resultado |
+|---|---|
+| Do zero até "no ar" (`npm start`: build + semente de 60 dias + servidor) | cerca de 4 s; a semente sozinha, 1,4 s |
+| Rotas da API | 1 a 2 ms; o primeiro cálculo das previsões, 131 ms (depois fica guardado por 1 min) |
+| Central ao vivo (CPU do navegador) | 2% a 1×, 5% a 60×; 60 quadros por segundo, nenhuma tarefa longa |
+| Abrir cada tela no notebook fraco | 0,1 a 0,5 s; Previsões mostra o resumo em 0,6 s e "Próximos 7 dias" em 0,5 s ao chegar nele |
+| Servidor depois de 30 min | 43 MB de memória; banco com 38 MB |
+| Interface entregue | 1,6 MB de JavaScript viram 0,54 MB (versões brotli/gzip geradas no build) |
+
+Como ficou assim:
+- **Arquivos da interface comprimidos no build** (`scripts/comprimir-build.mjs`, chamado pelo `vite.config.ts`): o servidor entrega a versão pronta conforme o navegador aceita, sem comprimir a cada pedido. A API e o tempo real (SSE) não são comprimidos: rodando na mesma máquina, comprimir só gastaria CPU.
+- **Cache certo para cada arquivo**: os arquivos com o código do build no nome (`/assets/index-abc123.js`) ficam guardados no navegador por um ano, porque nunca mudam; a página principal é sempre conferida, para um build novo aparecer na hora.
+- **Telas sob demanda**: cada tela é um arquivo separado, baixado só quando aberto; "Próximos 7 dias" só calcula quando a pessoa rola até ele.
+- **Previsões guardadas**: o cálculo pesado roda no máximo uma vez por minuto, e as telas leem o resultado pronto.
+
 ## Testes
 
 ```bash
