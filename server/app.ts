@@ -29,6 +29,13 @@ import { instalarSeguranca, type OpcoesSeguranca } from './seguranca/plugin';
 /** Nenhum corpo legítimo da API passa de alguns KB; 256 KB corta abuso sem atrapalhar. */
 const LIMITE_CORPO_KB = 256;
 const PASTA_WEB = fileURLToPath(new URL('../dist/web', import.meta.url));
+/** Arquivos do build com o hash no nome (/assets/index-abc123.js): o conteúdo nunca muda, o navegador guarda por um ano. */
+const CACHE_IMUTAVEL = 'public, max-age=31536000, immutable';
+
+/** index.html e o resto: o navegador sempre confere (ETag), para um build novo aparecer na hora. */
+export function cacheDoArquivo(caminho: string): string {
+  return /[\\/]assets[\\/]/.test(caminho) ? CACHE_IMUTAVEL : 'no-cache';
+}
 
 /** Primeira mensagem de cada campo; o caminho vira "caracteristicas.velocidadeMaxima". */
 function camposDoZod(erro: ZodError): Record<string, string> {
@@ -126,7 +133,8 @@ export async function criarApp(ctx: ContextoApp, seguranca: OpcoesSeguranca = {}
   documentarRotas(app);
 
   // Antes das rotas: os ganchos de sessão, permissão, LGPD e auditoria valem para todas.
-  await instalarSeguranca(app, { pastaWeb: PASTA_WEB, ...seguranca });
+  const pastaWeb = seguranca.pastaWeb ?? PASTA_WEB;
+  await instalarSeguranca(app, { ...seguranca, pastaWeb });
   await app.register(rotasAuth);
   await app.register(rotasAuditoria);
 
@@ -147,8 +155,17 @@ export async function criarApp(ctx: ContextoApp, seguranca: OpcoesSeguranca = {}
   // Interface compilada (npm run build): arquivos estáticos + fallback de SPA fora de /api. Caminho com extensão
   // (/assets/index-abc.js, .css, .ico…) é arquivo: se não existe, 404 — uma aba aberta antes de um novo build não recebe o
   // index.html no lugar do script.
-  const temInterface = existsSync(PASTA_WEB);
-  if (temInterface) await app.register(fastifyStatic, { root: PASTA_WEB });
+  const temInterface = existsSync(pastaWeb);
+  if (temInterface) {
+    await app.register(fastifyStatic, {
+      root: pastaWeb,
+      // Versões .br/.gz geradas no build (scripts/comprimir-build.mjs): entregues prontas conforme o Accept-Encoding,
+      // sem comprimir na hora. A API e o tempo real (SSE) não passam por aqui.
+      preCompressed: true,
+      cacheControl: false,
+      setHeaders: (reply, caminho) => reply.header('cache-control', cacheDoArquivo(caminho)),
+    });
+  }
   app.setNotFoundHandler((req, reply) => {
     const caminho = req.url.split('?')[0]!;
     const ehArquivo = /\.[a-z0-9]+$/i.test(caminho.slice(caminho.lastIndexOf('/') + 1));

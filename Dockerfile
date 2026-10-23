@@ -16,6 +16,8 @@ WORKDIR /app
 COPY package.json package-lock.json .npmrc ./
 RUN for i in 1 2 3 4 5; do npm ci && break; [ $i -lt 5 ] || exit 1; done
 COPY tsconfig.json vite.config.ts ./
+# O vite.config.ts gera, no fim do build, as versões .br/.gz que o servidor entrega prontas.
+COPY scripts/comprimir-build.mjs ./scripts/comprimir-build.mjs
 COPY shared ./shared
 COPY web ./web
 RUN npx vite build
