@@ -8,6 +8,10 @@ import { configDefaults, defineConfig } from 'vitest/config';
 // `server/preditivo/test-helpers.ts` semeie UMA vez e todos reaproveitem o mesmo banco.
 const TESTES_PREDITIVO = ['server/preditivo/**/*.test.ts', 'server/rotas/previsoes.test.ts'];
 
+// Os 5 s padrão do Vitest estouravam num notebook Windows comum com a suíte toda em paralelo (cada rodada
+// derrubava 2 a 5 testes diferentes, todos entre 5,0 e 5,6 s). 30 s dá folga sem esconder um teste travado.
+const TEMPO_POR_TESTE = 30_000;
+
 export default defineConfig({
   test: {
     projects: [
@@ -17,6 +21,7 @@ export default defineConfig({
           environment: 'node',
           include: ['server/**/*.test.ts', 'shared/**/*.test.ts', 'scripts/**/*.test.ts'],
           exclude: [...configDefaults.exclude, ...TESTES_PREDITIVO],
+          testTimeout: TEMPO_POR_TESTE,
         },
       },
       {
@@ -38,6 +43,7 @@ export default defineConfig({
           include: ['web/**/*.test.{ts,tsx}'],
           // Matchers do jest-dom (toHaveStyle, toBeInTheDocument) e limpeza do DOM entre testes.
           setupFiles: ['web/src/test/setup.ts'],
+          testTimeout: TEMPO_POR_TESTE,
         },
       },
     ],
