@@ -9,7 +9,7 @@ import { useEffect, useRef } from 'react';
 import { useMap } from 'react-leaflet';
 import { estaIndisponivel, ROTULO_SITUACAO, type SituacaoEquipamento } from '../../../shared/dominio';
 import type { EquipamentoMapa, SituacaoManutencao } from '../../../shared/modelos';
-import { rotuloCurtoDoTipo } from '../componentes/IconeTipo';
+import { rotuloCurtoDoTipo } from '../componentes/etiquetas/IconeTipo';
 import { iconeEquipamento, iconeGrupo, resumoDoGrupo } from './iconesMapa';
 import { compararMarcadores, contarManutencao, pedeAtencaoDeManutencao, piorSituacao, ROTULO_MANUTENCAO_NO_MAPA } from './regrasMapa';
 

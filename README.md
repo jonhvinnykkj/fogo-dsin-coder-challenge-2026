@@ -109,7 +109,17 @@ Para ver o ciclo inteiro, deixe a Central e o `/campo` lado a lado: o simulador 
 | Interface | React 19, Vite, TanStack Query, React Router, Leaflet (+ agrupamento e calor), Recharts |
 | Testes | Vitest (servidor, regras, previsões, interface) e Playwright (fumaça) |
 
-Código compartilhado entre servidor e interface fica em `shared/` (tipos, regras de classificação, validação, formatação pt-BR). O mapa de pastas está em [docs/GUIA-DO-TIME.md](docs/GUIA-DO-TIME.md).
+```
+server/    API Fastify: rotas → serviços → repositórios (SQL), tempo real, previsões, segurança, semente
+web/src/   interface React: paginas/ (uma por tela), componentes/ (por área), mapa/, api/, util/
+shared/    tipos e regras usados pelos dois lados
+scripts/   ferramentas do npm (checar Node e porta, comprimir o build, empacotar, token, senha)
+e2e/       teste de fumaça (Playwright)
+docs/      relatório, segurança, guia do time (índice em docs/README.md)
+video/     projeto do vídeo de demonstração (Remotion), fora do .zip
+```
+
+Código compartilhado entre servidor e interface fica em `shared/` (tipos, regras de classificação, validação, formatação pt-BR). O mapa de pastas completo está em [docs/GUIA-DO-TIME.md](docs/GUIA-DO-TIME.md).
 
 ## Dicionário de dados (resumo)
 

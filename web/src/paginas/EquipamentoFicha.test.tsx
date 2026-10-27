@@ -8,9 +8,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import EquipamentoFicha from './EquipamentoFicha';
 
 // Mapa e gráfico dependem de Leaflet/Recharts (sem layout no jsdom): viram marcadores simples.
-vi.mock('../componentes/MapaBase', () => ({ MapaBase: () => <div data-testid="mapa" /> }));
+vi.mock('../mapa/MapaBase', () => ({ MapaBase: () => <div data-testid="mapa" /> }));
 vi.mock('react-leaflet', () => ({ Marker: () => null }));
-vi.mock('../componentes/GraficoTelemetria', () => ({ GraficoTelemetria: () => <div data-testid="grafico" /> }));
+vi.mock('../componentes/equipamentos/GraficoTelemetria', () => ({ GraficoTelemetria: () => <div data-testid="grafico" /> }));
 
 const FURTADO = {
   id: 7, codigo: 'FOGO-RAD-0007', tipo: 'radar', numeroSerie: 'SN-7', marca: 'Perkons', modelo: 'SC-400', orgao: 'Secretaria de Mobilidade Urbana',

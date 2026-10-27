@@ -8,15 +8,15 @@ import {
 import { useCallback, useState } from 'react';
 import { formatarDataHora } from '../../../shared/formato';
 import { useAlertas, useBairros, usePrevisao } from '../api/consultas';
-import { CartaoBacktest } from '../componentes/CartaoBacktest';
-import { GradeRiscoSemana } from '../componentes/GradeRiscoSemana';
-import { GraficosTendencias } from '../componentes/GraficosTendencias';
-import { EXPLICACAO_ANOMALIAS, ListaAnomalias } from '../componentes/ListaAnomalias';
-import { ListaReforco } from '../componentes/ListaReforco';
-import { MapaRisco } from '../componentes/MapaRisco';
-import { RankingFalhas } from '../componentes/RankingFalhas';
-import { ResumoDoDia } from '../componentes/ResumoDoDia';
-import { SecaoPrevisao } from '../componentes/SecaoPrevisao';
+import { CartaoBacktest } from '../componentes/previsoes/CartaoBacktest';
+import { GradeRiscoSemana } from '../componentes/previsoes/GradeRiscoSemana';
+import { GraficosTendencias } from '../componentes/previsoes/GraficosTendencias';
+import { EXPLICACAO_ANOMALIAS, ListaAnomalias } from '../componentes/previsoes/ListaAnomalias';
+import { ListaReforco } from '../componentes/previsoes/ListaReforco';
+import { MapaRisco } from '../mapa/MapaRisco';
+import { RankingFalhas } from '../componentes/previsoes/RankingFalhas';
+import { ResumoDoDia } from '../componentes/previsoes/ResumoDoDia';
+import { SecaoPrevisao } from '../componentes/previsoes/SecaoPrevisao';
 import { useQuaseNaTela, useSecaoAtiva } from '../util/useSecoes';
 import estilos from './Previsoes.module.css';
 

@@ -4,7 +4,7 @@ import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { CHAVE_AGENTE_CAMPO } from '../campo/agenteSalvo';
+import { CHAVE_AGENTE_CAMPO } from '../componentes/campo/agenteSalvo';
 import { SessaoProvider } from '../sessao/Sessao';
 import Campo from './Campo';
 

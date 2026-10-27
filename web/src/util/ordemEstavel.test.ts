@@ -1,7 +1,7 @@
 // "Reconhecer" não pode mudar a posição do alerta na hora: o clique seguinte no mesmo lugar resolveria outro.
 import { describe, expect, it } from 'vitest';
 import type { Alerta } from '../../../shared/modelos';
-import { ordenarParaFeed } from '../componentes/EtiquetaAlerta';
+import { ordenarParaFeed } from '../componentes/etiquetas/EtiquetaAlerta';
 import { ordenarSemPular } from './ordemEstavel';
 
 const critica = (id: number, minutos: number, extra: Partial<Alerta> = {}) =>

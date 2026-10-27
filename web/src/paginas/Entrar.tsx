@@ -4,8 +4,8 @@ import { useState, type FormEvent } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { DESCRICAO_PAPEL, PAPEIS, ROTULO_PAPEL, type Papel, type UsuarioSessao } from '../../../shared/seguranca';
 import { mensagemDeErro } from '../api/cliente';
-import { Botao } from '../componentes/Botao';
-import { Campo } from '../componentes/Campo';
+import { Botao } from '../componentes/base/Botao';
+import { Campo } from '../componentes/base/Campo';
 import { useModoAcesso, useSessao } from '../sessao/Sessao';
 import estilos from './Entrar.module.css';
 
