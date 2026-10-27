@@ -13,6 +13,7 @@ describe('empacotar: o que entra no zip', () => {
   it('deixa de fora processo interno, o projeto do vídeo, cache de Python e o que se gera na máquina', () => {
     expect(arquivos.filter((a) => a.startsWith('docs/design/'))).toEqual([]);
     expect(arquivos.filter((a) => a.startsWith('video/'))).toEqual([]);
+    expect(arquivos.filter((a) => a.startsWith('docs/relatorio/'))).toEqual([]);
     expect(arquivos.filter((a) => /__pycache__|\.pyc$|\.DS_Store$|\.zip$|(^|\/)\.env/.test(a))).toEqual([]);
     expect(arquivos.filter((a) => /^(node_modules|dist|\.git)\//.test(a))).toEqual([]);
   });

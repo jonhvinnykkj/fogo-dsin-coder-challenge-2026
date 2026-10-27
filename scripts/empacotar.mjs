@@ -15,7 +15,8 @@ const LIMITE_BYTES = 50 * 1024 * 1024
 const PASTAS_FORA = new Set(['node_modules', 'dist', 'test-results', 'playwright-report', '.git', '.superpowers', '.impeccable', '.vscode', '.idea', '__pycache__'])
 // Caminhos exatos de fora. video/ é o projeto do vídeo de demonstração, não o sistema (o repositório guarda o código dele; o zip não).
 // docs/design/ é o registro de processo do time (plano e desenho), com ambiente e instruções internas: fica no repositório, não na entrega.
-const CAMINHOS_FORA = new Set(['video', join('docs', 'design')])
+// docs/relatorio/ é o gerador do relatório técnico (modelo, capturas e scripts): a entrega leva só o PDF pronto, em docs/.
+const CAMINHOS_FORA = new Set(['video', join('docs', 'design'), join('docs', 'relatorio')])
 // Arquivos de fora: lixo do sistema, zips, bancos e qualquer .env (.env, .env.local, .env.production…): o repositório vai ser público.
 const arquivoFora = (nome, rel) =>
   nome === '.DS_Store' || nome.endsWith('.pyc') || nome.endsWith('.zip') || nome === '.env' || nome.startsWith('.env.') || (rel.startsWith(`data${sep}`) && /\.db(-wal|-shm)?$/.test(nome))

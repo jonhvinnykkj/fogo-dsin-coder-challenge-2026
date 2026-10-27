@@ -1,0 +1,14 @@
+{
+ "totalEquipamentos": 350,
+ "operacionais": 287,
+ "indisponiveis": 42,
+ "naoInstalados": 11,
+ "desativados": 10,
+ "disponibilidadePct": 87.2,
+ "agentesEmAtividade": 21,
+ "agentesTotal": 80,
+ "alertasAbertos": 15,
+ "alertasCriticosAbertos": 0,
+ "manutencaoImediata": 30,
+ "manutencaoProxima7d": 18
+}

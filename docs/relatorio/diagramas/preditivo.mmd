@@ -1,0 +1,16 @@
+flowchart TB
+  H[("Histórico de 60 dias<br/>origem = historico")] --> BASE["Base comum<br/>8 últimas semanas"]
+  AO[("Eventos ao vivo<br/>e injetados")] -. "não entram" .-> BASE
+  CL[("Previsão do tempo<br/>da véspera")] --> RIS
+  BASE --> RIS["Risco por bairro<br/>e hora (24 h e 7 dias)"]
+  BASE --> FAL["Chance de falha<br/>em 7 dias"]
+  BASE --> TEN["Tendências"]
+  RIS --> REF["Reforço de agentes<br/>por região e turno"]
+  RIS --> BT["Teste retroativo<br/>14 dias × média simples"]
+  FAL --> ALP["Alerta preventivo<br/>falha provável ≥ 50%"]
+  RIS --> RES["Resumo do dia<br/>até 5 recomendações"]
+  REF --> RES
+  FAL --> RES
+  TEN --> RES
+  RES --> TELA["Tela Previsões e Boletim do dia"]
+  BT --> TELA

@@ -1,0 +1,454 @@
+{
+ "geradoEm": "2026-10-27T18:18:29.953Z",
+ "indiceBairros": [
+  {
+   "bairroId": 4,
+   "nome": "Centro",
+   "indice": 100,
+   "nivel": "critico"
+  },
+  {
+   "bairroId": 2,
+   "nome": "Banzato",
+   "indice": 86,
+   "nivel": "critico"
+  },
+  {
+   "bairroId": 43,
+   "nome": "Maria Izabel",
+   "indice": 84,
+   "nivel": "critico"
+  },
+  {
+   "bairroId": 19,
+   "nome": "Jardim Domingos de Leo",
+   "indice": 54,
+   "nivel": "alto"
+  },
+  {
+   "bairroId": 27,
+   "nome": "Jardim Ohara",
+   "indice": 44,
+   "nivel": "moderado"
+  },
+  {
+   "bairroId": 48,
+   "nome": "Palmital",
+   "indice": 41,
+   "nivel": "moderado"
+  },
+  {
+   "bairroId": 1,
+   "nome": "Alto Cafezal",
+   "indice": 41,
+   "nivel": "moderado"
+  },
+  {
+   "bairroId": 28,
+   "nome": "Jardim Parati",
+   "indice": 38,
+   "nivel": "moderado"
+  },
+  {
+   "bairroId": 31,
+   "nome": "Jardim Polyana",
+   "indice": 36,
+   "nivel": "moderado"
+  },
+  {
+   "bairroId": 21,
+   "nome": "Jardim Esplanada",
+   "indice": 34,
+   "nivel": "moderado"
+  },
+  {
+   "bairroId": 58,
+   "nome": "Somenzari",
+   "indice": 31,
+   "nivel": "moderado"
+  },
+  {
+   "bairroId": 13,
+   "nome": "Jardim Conquista",
+   "indice": 30,
+   "nivel": "moderado"
+  },
+  {
+   "bairroId": 12,
+   "nome": "Jardim Cavallari",
+   "indice": 24,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 41,
+   "nome": "Lorenzetti",
+   "indice": 23,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 44,
+   "nome": "Nova Marília",
+   "indice": 22,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 30,
+   "nome": "Jardim Planalto",
+   "indice": 22,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 62,
+   "nome": "Vila Mariana",
+   "indice": 21,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 57,
+   "nome": "Sítios de Recreio Céu Azul",
+   "indice": 21,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 15,
+   "nome": "Jardim D'Itália",
+   "indice": 18,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 56,
+   "nome": "Paulista",
+   "indice": 18,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 20,
+   "nome": "Jardim Eldorado",
+   "indice": 17,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 25,
+   "nome": "Jardim Maria Izabel",
+   "indice": 17,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 40,
+   "nome": "Jóquei Clube",
+   "indice": 17,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 65,
+   "nome": "Vila Tofolli",
+   "indice": 16,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 23,
+   "nome": "Jardim Itaipu",
+   "indice": 15,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 54,
+   "nome": "Parque Mirabilis",
+   "indice": 15,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 59,
+   "nome": "Vereador Eduardo Andrade Rei",
+   "indice": 14,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 24,
+   "nome": "Jardim Marajó",
+   "indice": 14,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 10,
+   "nome": "Jardim California",
+   "indice": 14,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 35,
+   "nome": "Jardim Teotônio Vilela",
+   "indice": 14,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 16,
+   "nome": "Jardim Damasco I",
+   "indice": 14,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 36,
+   "nome": "Jardim Tropical",
+   "indice": 13,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 60,
+   "nome": "Vila Argolo Ferrão",
+   "indice": 13,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 37,
+   "nome": "Jardim Universitário",
+   "indice": 13,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 33,
+   "nome": "Jardim Santa Paula",
+   "indice": 13,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 47,
+   "nome": "Núcleo Habitacional José Teruel Martinez",
+   "indice": 13,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 39,
+   "nome": "Jardim Virgínia",
+   "indice": 12,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 51,
+   "nome": "Parque das Vivendas",
+   "indice": 12,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 64,
+   "nome": "Vila Real",
+   "indice": 12,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 45,
+   "nome": "Núcleo Habitacional Bela Vista",
+   "indice": 12,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 5,
+   "nome": "Chico Mendes",
+   "indice": 11,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 29,
+   "nome": "Jardim Pérola",
+   "indice": 11,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 42,
+   "nome": "Luiz Homero Zaninotto",
+   "indice": 11,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 55,
+   "nome": "Parque São Jorge",
+   "indice": 10,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 22,
+   "nome": "Jardim Guarujá",
+   "indice": 10,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 53,
+   "nome": "Parque dos Ipês",
+   "indice": 10,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 9,
+   "nome": "Jardim Bandeirantes",
+   "indice": 9,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 52,
+   "nome": "Parque das Vivendas II",
+   "indice": 9,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 63,
+   "nome": "Vila Operária da Alimentação II",
+   "indice": 9,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 32,
+   "nome": "Jardim Portal do Sol",
+   "indice": 9,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 6,
+   "nome": "Expedicionário Alberto Herreira",
+   "indice": 9,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 46,
+   "nome": "Núcleo Habitacional Chico Mendes",
+   "indice": 9,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 7,
+   "nome": "Fragata",
+   "indice": 8,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 17,
+   "nome": "Jardim Damasco II",
+   "indice": 8,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 38,
+   "nome": "Jardim Veneza",
+   "indice": 8,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 18,
+   "nome": "Jardim das Pérolas",
+   "indice": 8,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 14,
+   "nome": "Jardim Continental",
+   "indice": 8,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 34,
+   "nome": "Jardim São Vicente de Paulo",
+   "indice": 8,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 11,
+   "nome": "Jardim Casadei",
+   "indice": 7,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 3,
+   "nome": "Cavalieri",
+   "indice": 6,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 49,
+   "nome": "Parque das Esmeraldas",
+   "indice": 6,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 8,
+   "nome": "Higienópolis",
+   "indice": 5,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 26,
+   "nome": "Jardim Morumbi",
+   "indice": 3,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 61,
+   "nome": "Vila Maria",
+   "indice": 3,
+   "nivel": "baixo"
+  },
+  {
+   "bairroId": 50,
+   "nome": "Parque das Esmeraldas II",
+   "indice": 3,
+   "nivel": "baixo"
+  }
+ ],
+ "recomendacoes": [
+  {
+   "titulo": "Reforce o patrulhamento no bairro Centro (terça à tarde)",
+   "detalhe": "O bairro Centro deve ter 29 ocorrências nas próximas 24 h, 6,3 vezes a média dos bairros. O pico é das 17h às 20h (6,7 ocorrências esperadas nessas 3 horas).",
+   "fonte": "risco",
+   "prioridade": "alta"
+  },
+  {
+   "titulo": "Mova 1 agente da Zona Leste para a região Centro (6h às 14h)",
+   "detalhe": "A região Centro deve ter 36,6 ocorrências na manhã de quarta (6h às 14h) para 6 agentes: 6,1 por agente, contra 2,6 na Zona Leste. Mande 1 agente da Zona Leste para a região Centro das 6h às 14h; a carga na região Centro cai para 5,2 por agente.",
+   "fonte": "reforco",
+   "prioridade": "alta"
+  },
+  {
+   "titulo": "Revise FOGO-CAM-0060 antes que pare (câmera, Jardim Continental)",
+   "detalhe": "73% de chance de falhar nos próximos 7 dias. Motivos: 10 horas com sinal fraco nas últimas 72 h; idade: 6,7 anos de uso; modelo pouco confiável (Vigilux VX-200).",
+   "fonte": "falhas",
+   "prioridade": "alta"
+  },
+  {
+   "titulo": "Revise FOGO-CAM-0026 antes que pare (câmera, Lorenzetti)",
+   "detalhe": "69% de chance de falhar nos próximos 7 dias. Motivos: 8 horas com sinal fraco nas últimas 72 h; idade: 7,3 anos de uso; modelo pouco confiável (Vigilux VX-200).",
+   "fonte": "falhas",
+   "prioridade": "alta"
+  },
+  {
+   "titulo": "Vigilux VX-200 falha 3,6 vezes mais que o modelo mediano",
+   "detalhe": "243 falhas por 100 equipamentos em 60 dias (frota de 21). Priorize a troca na próxima compra e reforce a manutenção desses equipamentos.",
+   "fonte": "tendencias",
+   "prioridade": "media"
+  }
+ ],
+ "explicacao": {
+  "oQuePreve": "O risco de cada bairro nas próximas 24 horas (índice de 0 a 100) e as 5 ações mais importantes do dia, tiradas das quatro previsões.",
+  "dadosUsados": [
+   "Mapa de risco das próximas 24 horas (ocorrências históricas, horário, chuva prevista e tendência)",
+   "Escala de agentes por turno e região",
+   "Chance de falha de cada equipamento nos próximos 7 dias",
+   "Tendências de disponibilidade, uso de patinetes e falhas por modelo"
+  ],
+  "comoAjuda": "Abre o dia com uma lista curta do que fazer, onde e quando, em ordem de prioridade, sem precisar abrir cada painel.",
+  "confiabilidade": [
+   {
+    "metrica": "Erro médio por bairro a cada 3 horas",
+    "valor": 0.5302,
+    "descricao": "Nos 14 dias antes de hoje, a previsão feita na véspera errou em média 0,53 ocorrência por bairro em cada bloco de 3 horas: 8,4% menos que repetir a média de cada bairro (0,58)."
+   },
+   {
+    "metrica": "Acerto dos 5 bairros mais arriscados à noite",
+    "valor": 3.8,
+    "descricao": "Entre 18h e 2h, dos 5 bairros apontados como mais arriscados, em média 3,8 estavam de fato entre os 5 com mais ocorrências (escolher pela média simples acertaria 3,6)."
+   },
+   {
+    "metrica": "Falhas entre os 10% de maior risco (%)",
+    "valor": 22,
+    "descricao": "Os 10% de equipamentos apontados como mais arriscados concentraram 22% das falhas da semana (ao acaso seriam 10%)."
+   }
+  ]
+ }
+}

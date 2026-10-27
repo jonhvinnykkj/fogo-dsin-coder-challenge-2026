@@ -1,0 +1,1973 @@
+{
+ "disponibilidadePorTipo": [
+  {
+   "tipo": "radar",
+   "serie": [
+    {
+     "data": "2026-09-28",
+     "pct": 86.7
+    },
+    {
+     "data": "2026-09-29",
+     "pct": 87
+    },
+    {
+     "data": "2026-09-30",
+     "pct": 86.1
+    },
+    {
+     "data": "2026-10-01",
+     "pct": 90.9
+    },
+    {
+     "data": "2026-10-02",
+     "pct": 94.6
+    },
+    {
+     "data": "2026-10-03",
+     "pct": 93.2
+    },
+    {
+     "data": "2026-10-04",
+     "pct": 92.8
+    },
+    {
+     "data": "2026-10-05",
+     "pct": 91.1
+    },
+    {
+     "data": "2026-10-06",
+     "pct": 94.7
+    },
+    {
+     "data": "2026-10-07",
+     "pct": 94.8
+    },
+    {
+     "data": "2026-10-08",
+     "pct": 94.6
+    },
+    {
+     "data": "2026-10-09",
+     "pct": 97.7
+    },
+    {
+     "data": "2026-10-10",
+     "pct": 96.8
+    },
+    {
+     "data": "2026-10-11",
+     "pct": 96.6
+    },
+    {
+     "data": "2026-10-12",
+     "pct": 95.5
+    },
+    {
+     "data": "2026-10-13",
+     "pct": 95
+    },
+    {
+     "data": "2026-10-14",
+     "pct": 95.5
+    },
+    {
+     "data": "2026-10-15",
+     "pct": 97.2
+    },
+    {
+     "data": "2026-10-16",
+     "pct": 97.7
+    },
+    {
+     "data": "2026-10-17",
+     "pct": 97.8
+    },
+    {
+     "data": "2026-10-18",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-19",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-20",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-21",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-22",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-23",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-24",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-25",
+     "pct": 98.2
+    },
+    {
+     "data": "2026-10-26",
+     "pct": 97.7
+    },
+    {
+     "data": "2026-10-27",
+     "pct": 98.6
+    }
+   ],
+   "projecao7d": 100
+  },
+  {
+   "tipo": "camera",
+   "serie": [
+    {
+     "data": "2026-09-28",
+     "pct": 85.1
+    },
+    {
+     "data": "2026-09-29",
+     "pct": 86
+    },
+    {
+     "data": "2026-09-30",
+     "pct": 86
+    },
+    {
+     "data": "2026-10-01",
+     "pct": 88.1
+    },
+    {
+     "data": "2026-10-02",
+     "pct": 84.4
+    },
+    {
+     "data": "2026-10-03",
+     "pct": 83.7
+    },
+    {
+     "data": "2026-10-04",
+     "pct": 84.6
+    },
+    {
+     "data": "2026-10-05",
+     "pct": 88.1
+    },
+    {
+     "data": "2026-10-06",
+     "pct": 91.7
+    },
+    {
+     "data": "2026-10-07",
+     "pct": 94.7
+    },
+    {
+     "data": "2026-10-08",
+     "pct": 94.9
+    },
+    {
+     "data": "2026-10-09",
+     "pct": 94.2
+    },
+    {
+     "data": "2026-10-10",
+     "pct": 95.5
+    },
+    {
+     "data": "2026-10-11",
+     "pct": 94.5
+    },
+    {
+     "data": "2026-10-12",
+     "pct": 92.2
+    },
+    {
+     "data": "2026-10-13",
+     "pct": 90.3
+    },
+    {
+     "data": "2026-10-14",
+     "pct": 93.2
+    },
+    {
+     "data": "2026-10-15",
+     "pct": 94.3
+    },
+    {
+     "data": "2026-10-16",
+     "pct": 94.6
+    },
+    {
+     "data": "2026-10-17",
+     "pct": 93.1
+    },
+    {
+     "data": "2026-10-18",
+     "pct": 92.1
+    },
+    {
+     "data": "2026-10-19",
+     "pct": 91.8
+    },
+    {
+     "data": "2026-10-20",
+     "pct": 89.8
+    },
+    {
+     "data": "2026-10-21",
+     "pct": 92
+    },
+    {
+     "data": "2026-10-22",
+     "pct": 91.5
+    },
+    {
+     "data": "2026-10-23",
+     "pct": 92.7
+    },
+    {
+     "data": "2026-10-24",
+     "pct": 88.3
+    },
+    {
+     "data": "2026-10-25",
+     "pct": 82.8
+    },
+    {
+     "data": "2026-10-26",
+     "pct": 79
+    },
+    {
+     "data": "2026-10-27",
+     "pct": 79.7
+    }
+   ],
+   "projecao7d": 89.6
+  },
+  {
+   "tipo": "balanca",
+   "serie": [
+    {
+     "data": "2026-09-28",
+     "pct": 100
+    },
+    {
+     "data": "2026-09-29",
+     "pct": 100
+    },
+    {
+     "data": "2026-09-30",
+     "pct": 77.1
+    },
+    {
+     "data": "2026-10-01",
+     "pct": 75
+    },
+    {
+     "data": "2026-10-02",
+     "pct": 75
+    },
+    {
+     "data": "2026-10-03",
+     "pct": 75
+    },
+    {
+     "data": "2026-10-04",
+     "pct": 96.9
+    },
+    {
+     "data": "2026-10-05",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-06",
+     "pct": 94.9
+    },
+    {
+     "data": "2026-10-07",
+     "pct": 75
+    },
+    {
+     "data": "2026-10-08",
+     "pct": 75
+    },
+    {
+     "data": "2026-10-09",
+     "pct": 75
+    },
+    {
+     "data": "2026-10-10",
+     "pct": 75
+    },
+    {
+     "data": "2026-10-11",
+     "pct": 82.2
+    },
+    {
+     "data": "2026-10-12",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-13",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-14",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-15",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-16",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-17",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-18",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-19",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-20",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-21",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-22",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-23",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-24",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-25",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-26",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-27",
+     "pct": 100
+    }
+   ],
+   "projecao7d": 100
+  },
+  {
+   "tipo": "fiscal_rotativo",
+   "serie": [
+    {
+     "data": "2026-09-28",
+     "pct": 100
+    },
+    {
+     "data": "2026-09-29",
+     "pct": 100
+    },
+    {
+     "data": "2026-09-30",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-01",
+     "pct": 94.2
+    },
+    {
+     "data": "2026-10-02",
+     "pct": 83.3
+    },
+    {
+     "data": "2026-10-03",
+     "pct": 93.9
+    },
+    {
+     "data": "2026-10-04",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-05",
+     "pct": 98.7
+    },
+    {
+     "data": "2026-10-06",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-07",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-08",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-09",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-10",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-11",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-12",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-13",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-14",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-15",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-16",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-17",
+     "pct": 99.1
+    },
+    {
+     "data": "2026-10-18",
+     "pct": 91.9
+    },
+    {
+     "data": "2026-10-19",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-20",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-21",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-22",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-23",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-24",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-25",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-26",
+     "pct": 95.5
+    },
+    {
+     "data": "2026-10-27",
+     "pct": 87.2
+    }
+   ],
+   "projecao7d": 98.3
+  },
+  {
+   "tipo": "cancela",
+   "serie": [
+    {
+     "data": "2026-09-28",
+     "pct": 100
+    },
+    {
+     "data": "2026-09-29",
+     "pct": 100
+    },
+    {
+     "data": "2026-09-30",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-01",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-02",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-03",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-04",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-05",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-06",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-07",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-08",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-09",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-10",
+     "pct": 93.5
+    },
+    {
+     "data": "2026-10-11",
+     "pct": 88.9
+    },
+    {
+     "data": "2026-10-12",
+     "pct": 88.9
+    },
+    {
+     "data": "2026-10-13",
+     "pct": 97.3
+    },
+    {
+     "data": "2026-10-14",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-15",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-16",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-17",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-18",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-19",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-20",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-21",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-22",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-23",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-24",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-25",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-26",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-27",
+     "pct": 100
+    }
+   ],
+   "projecao7d": 99.3
+  },
+  {
+   "tipo": "transporte",
+   "serie": [
+    {
+     "data": "2026-09-28",
+     "pct": 99.7
+    },
+    {
+     "data": "2026-09-29",
+     "pct": 100
+    },
+    {
+     "data": "2026-09-30",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-01",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-02",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-03",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-04",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-05",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-06",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-07",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-08",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-09",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-10",
+     "pct": 97.4
+    },
+    {
+     "data": "2026-10-11",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-12",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-13",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-14",
+     "pct": 97.6
+    },
+    {
+     "data": "2026-10-15",
+     "pct": 96.6
+    },
+    {
+     "data": "2026-10-16",
+     "pct": 99.2
+    },
+    {
+     "data": "2026-10-17",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-18",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-19",
+     "pct": 99.9
+    },
+    {
+     "data": "2026-10-20",
+     "pct": 96.9
+    },
+    {
+     "data": "2026-10-21",
+     "pct": 95.9
+    },
+    {
+     "data": "2026-10-22",
+     "pct": 90.1
+    },
+    {
+     "data": "2026-10-23",
+     "pct": 88.4
+    },
+    {
+     "data": "2026-10-24",
+     "pct": 86.5
+    },
+    {
+     "data": "2026-10-25",
+     "pct": 84.5
+    },
+    {
+     "data": "2026-10-26",
+     "pct": 87.6
+    },
+    {
+     "data": "2026-10-27",
+     "pct": 86.8
+    }
+   ],
+   "projecao7d": 87.5
+  },
+  {
+   "tipo": "totem_rotativo",
+   "serie": [
+    {
+     "data": "2026-09-28",
+     "pct": 100
+    },
+    {
+     "data": "2026-09-29",
+     "pct": 100
+    },
+    {
+     "data": "2026-09-30",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-01",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-02",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-03",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-04",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-05",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-06",
+     "pct": 99.5
+    },
+    {
+     "data": "2026-10-07",
+     "pct": 94.1
+    },
+    {
+     "data": "2026-10-08",
+     "pct": 94.1
+    },
+    {
+     "data": "2026-10-09",
+     "pct": 94.1
+    },
+    {
+     "data": "2026-10-10",
+     "pct": 94.1
+    },
+    {
+     "data": "2026-10-11",
+     "pct": 99.3
+    },
+    {
+     "data": "2026-10-12",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-13",
+     "pct": 94.7
+    },
+    {
+     "data": "2026-10-14",
+     "pct": 90.9
+    },
+    {
+     "data": "2026-10-15",
+     "pct": 88.8
+    },
+    {
+     "data": "2026-10-16",
+     "pct": 92.9
+    },
+    {
+     "data": "2026-10-17",
+     "pct": 83
+    },
+    {
+     "data": "2026-10-18",
+     "pct": 77.9
+    },
+    {
+     "data": "2026-10-19",
+     "pct": 77.1
+    },
+    {
+     "data": "2026-10-20",
+     "pct": 79.9
+    },
+    {
+     "data": "2026-10-21",
+     "pct": 81.7
+    },
+    {
+     "data": "2026-10-22",
+     "pct": 82.4
+    },
+    {
+     "data": "2026-10-23",
+     "pct": 87.7
+    },
+    {
+     "data": "2026-10-24",
+     "pct": 90.2
+    },
+    {
+     "data": "2026-10-25",
+     "pct": 89.2
+    },
+    {
+     "data": "2026-10-26",
+     "pct": 96.3
+    },
+    {
+     "data": "2026-10-27",
+     "pct": 98.1
+    }
+   ],
+   "projecao7d": 81
+  },
+  {
+   "tipo": "patinete",
+   "serie": [
+    {
+     "data": "2026-09-28",
+     "pct": 92.9
+    },
+    {
+     "data": "2026-09-29",
+     "pct": 93.4
+    },
+    {
+     "data": "2026-09-30",
+     "pct": 95
+    },
+    {
+     "data": "2026-10-01",
+     "pct": 94.4
+    },
+    {
+     "data": "2026-10-02",
+     "pct": 92.6
+    },
+    {
+     "data": "2026-10-03",
+     "pct": 92.8
+    },
+    {
+     "data": "2026-10-04",
+     "pct": 94.9
+    },
+    {
+     "data": "2026-10-05",
+     "pct": 93.2
+    },
+    {
+     "data": "2026-10-06",
+     "pct": 90
+    },
+    {
+     "data": "2026-10-07",
+     "pct": 87
+    },
+    {
+     "data": "2026-10-08",
+     "pct": 88.3
+    },
+    {
+     "data": "2026-10-09",
+     "pct": 89
+    },
+    {
+     "data": "2026-10-10",
+     "pct": 90
+    },
+    {
+     "data": "2026-10-11",
+     "pct": 91.1
+    },
+    {
+     "data": "2026-10-12",
+     "pct": 91.3
+    },
+    {
+     "data": "2026-10-13",
+     "pct": 91.2
+    },
+    {
+     "data": "2026-10-14",
+     "pct": 88.2
+    },
+    {
+     "data": "2026-10-15",
+     "pct": 89.3
+    },
+    {
+     "data": "2026-10-16",
+     "pct": 91.7
+    },
+    {
+     "data": "2026-10-17",
+     "pct": 90.1
+    },
+    {
+     "data": "2026-10-18",
+     "pct": 91.8
+    },
+    {
+     "data": "2026-10-19",
+     "pct": 90.7
+    },
+    {
+     "data": "2026-10-20",
+     "pct": 92.2
+    },
+    {
+     "data": "2026-10-21",
+     "pct": 94.6
+    },
+    {
+     "data": "2026-10-22",
+     "pct": 90.5
+    },
+    {
+     "data": "2026-10-23",
+     "pct": 90.3
+    },
+    {
+     "data": "2026-10-24",
+     "pct": 83.9
+    },
+    {
+     "data": "2026-10-25",
+     "pct": 78.2
+    },
+    {
+     "data": "2026-10-26",
+     "pct": 75.7
+    },
+    {
+     "data": "2026-10-27",
+     "pct": 76.9
+    }
+   ],
+   "projecao7d": 81.9
+  },
+  {
+   "tipo": "moto_agente",
+   "serie": [
+    {
+     "data": "2026-09-28",
+     "pct": 100
+    },
+    {
+     "data": "2026-09-29",
+     "pct": 100
+    },
+    {
+     "data": "2026-09-30",
+     "pct": 99.2
+    },
+    {
+     "data": "2026-10-01",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-02",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-03",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-04",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-05",
+     "pct": 93.6
+    },
+    {
+     "data": "2026-10-06",
+     "pct": 99.9
+    },
+    {
+     "data": "2026-10-07",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-08",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-09",
+     "pct": 98.5
+    },
+    {
+     "data": "2026-10-10",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-11",
+     "pct": 95.2
+    },
+    {
+     "data": "2026-10-12",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-13",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-14",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-15",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-16",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-17",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-18",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-19",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-20",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-21",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-22",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-23",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-24",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-25",
+     "pct": 90.7
+    },
+    {
+     "data": "2026-10-26",
+     "pct": 92.1
+    },
+    {
+     "data": "2026-10-27",
+     "pct": 92.9
+    }
+   ],
+   "projecao7d": 96.3
+  },
+  {
+   "tipo": "viatura",
+   "serie": [
+    {
+     "data": "2026-09-28",
+     "pct": 99.2
+    },
+    {
+     "data": "2026-09-29",
+     "pct": 97.9
+    },
+    {
+     "data": "2026-09-30",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-01",
+     "pct": 99.7
+    },
+    {
+     "data": "2026-10-02",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-03",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-04",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-05",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-06",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-07",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-08",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-09",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-10",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-11",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-12",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-13",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-14",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-15",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-16",
+     "pct": 99.3
+    },
+    {
+     "data": "2026-10-17",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-18",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-19",
+     "pct": 99.5
+    },
+    {
+     "data": "2026-10-20",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-21",
+     "pct": 93.8
+    },
+    {
+     "data": "2026-10-22",
+     "pct": 93.6
+    },
+    {
+     "data": "2026-10-23",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-24",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-25",
+     "pct": 99.6
+    },
+    {
+     "data": "2026-10-26",
+     "pct": 88
+    },
+    {
+     "data": "2026-10-27",
+     "pct": 80
+    }
+   ],
+   "projecao7d": 93.3
+  },
+  {
+   "tipo": "semaforo",
+   "serie": [
+    {
+     "data": "2026-09-28",
+     "pct": 93.7
+    },
+    {
+     "data": "2026-09-29",
+     "pct": 93.8
+    },
+    {
+     "data": "2026-09-30",
+     "pct": 97.4
+    },
+    {
+     "data": "2026-10-01",
+     "pct": 97.9
+    },
+    {
+     "data": "2026-10-02",
+     "pct": 99.4
+    },
+    {
+     "data": "2026-10-03",
+     "pct": 99.9
+    },
+    {
+     "data": "2026-10-04",
+     "pct": 99.1
+    },
+    {
+     "data": "2026-10-05",
+     "pct": 97.9
+    },
+    {
+     "data": "2026-10-06",
+     "pct": 97.4
+    },
+    {
+     "data": "2026-10-07",
+     "pct": 93.8
+    },
+    {
+     "data": "2026-10-08",
+     "pct": 95.7
+    },
+    {
+     "data": "2026-10-09",
+     "pct": 97.6
+    },
+    {
+     "data": "2026-10-10",
+     "pct": 97.9
+    },
+    {
+     "data": "2026-10-11",
+     "pct": 97
+    },
+    {
+     "data": "2026-10-12",
+     "pct": 92.6
+    },
+    {
+     "data": "2026-10-13",
+     "pct": 93.5
+    },
+    {
+     "data": "2026-10-14",
+     "pct": 93.2
+    },
+    {
+     "data": "2026-10-15",
+     "pct": 91.2
+    },
+    {
+     "data": "2026-10-16",
+     "pct": 91.6
+    },
+    {
+     "data": "2026-10-17",
+     "pct": 88.3
+    },
+    {
+     "data": "2026-10-18",
+     "pct": 91.6
+    },
+    {
+     "data": "2026-10-19",
+     "pct": 93.4
+    },
+    {
+     "data": "2026-10-20",
+     "pct": 95
+    },
+    {
+     "data": "2026-10-21",
+     "pct": 96.4
+    },
+    {
+     "data": "2026-10-22",
+     "pct": 97.9
+    },
+    {
+     "data": "2026-10-23",
+     "pct": 97.5
+    },
+    {
+     "data": "2026-10-24",
+     "pct": 92.7
+    },
+    {
+     "data": "2026-10-25",
+     "pct": 91.4
+    },
+    {
+     "data": "2026-10-26",
+     "pct": 87.9
+    },
+    {
+     "data": "2026-10-27",
+     "pct": 87.5
+    }
+   ],
+   "projecao7d": 89.9
+  },
+  {
+   "tipo": "painel_mensagem",
+   "serie": [
+    {
+     "data": "2026-09-28",
+     "pct": 100
+    },
+    {
+     "data": "2026-09-29",
+     "pct": 100
+    },
+    {
+     "data": "2026-09-30",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-01",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-02",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-03",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-04",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-05",
+     "pct": 98.9
+    },
+    {
+     "data": "2026-10-06",
+     "pct": 87.5
+    },
+    {
+     "data": "2026-10-07",
+     "pct": 87.5
+    },
+    {
+     "data": "2026-10-08",
+     "pct": 88.6
+    },
+    {
+     "data": "2026-10-09",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-10",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-11",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-12",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-13",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-14",
+     "pct": 92.9
+    },
+    {
+     "data": "2026-10-15",
+     "pct": 87.5
+    },
+    {
+     "data": "2026-10-16",
+     "pct": 98.8
+    },
+    {
+     "data": "2026-10-17",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-18",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-19",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-20",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-21",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-22",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-23",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-24",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-25",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-26",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-27",
+     "pct": 94.5
+    }
+   ],
+   "projecao7d": 98.7
+  },
+  {
+   "tipo": "sensor_alagamento",
+   "serie": [
+    {
+     "data": "2026-09-28",
+     "pct": 100
+    },
+    {
+     "data": "2026-09-29",
+     "pct": 100
+    },
+    {
+     "data": "2026-09-30",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-01",
+     "pct": 98
+    },
+    {
+     "data": "2026-10-02",
+     "pct": 93.3
+    },
+    {
+     "data": "2026-10-03",
+     "pct": 93.7
+    },
+    {
+     "data": "2026-10-04",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-05",
+     "pct": 99.4
+    },
+    {
+     "data": "2026-10-06",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-07",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-08",
+     "pct": 100
+    },
+    {
+     "data": "2026-10-09",
+     "pct": 95.4
+    },
+    {
+     "data": "2026-10-10",
+     "pct": 93
+    },
+    {
+     "data": "2026-10-11",
+     "pct": 88.1
+    },
+    {
+     "data": "2026-10-12",
+     "pct": 86.7
+    },
+    {
+     "data": "2026-10-13",
+     "pct": 92.7
+    },
+    {
+     "data": "2026-10-14",
+     "pct": 93.3
+    },
+    {
+     "data": "2026-10-15",
+     "pct": 93.3
+    },
+    {
+     "data": "2026-10-16",
+     "pct": 88.5
+    },
+    {
+     "data": "2026-10-17",
+     "pct": 86.9
+    },
+    {
+     "data": "2026-10-18",
+     "pct": 87.4
+    },
+    {
+     "data": "2026-10-19",
+     "pct": 90.4
+    },
+    {
+     "data": "2026-10-20",
+     "pct": 93.3
+    },
+    {
+     "data": "2026-10-21",
+     "pct": 96.3
+    },
+    {
+     "data": "2026-10-22",
+     "pct": 98.1
+    },
+    {
+     "data": "2026-10-23",
+     "pct": 93.3
+    },
+    {
+     "data": "2026-10-24",
+     "pct": 93.3
+    },
+    {
+     "data": "2026-10-25",
+     "pct": 93.3
+    },
+    {
+     "data": "2026-10-26",
+     "pct": 93.3
+    },
+    {
+     "data": "2026-10-27",
+     "pct": 93.3
+    }
+   ],
+   "projecao7d": 89.1
+  }
+ ],
+ "testeProjecao": {
+  "erroReta": 4.41,
+  "erroUltimo": 3.93,
+  "erroMedia": 4.39,
+  "projecoes": 312
+ },
+ "usoPatinetesPorBairro": [
+  {
+   "bairroId": 1,
+   "nome": "Alto Cafezal",
+   "mediaDiaria": 25.2,
+   "variacaoPct": -6.6
+  },
+  {
+   "bairroId": 2,
+   "nome": "Banzato",
+   "mediaDiaria": 24.2,
+   "variacaoPct": -22.4
+  },
+  {
+   "bairroId": 48,
+   "nome": "Palmital",
+   "mediaDiaria": 23.3,
+   "variacaoPct": -35.7
+  },
+  {
+   "bairroId": 4,
+   "nome": "Centro",
+   "mediaDiaria": 19.2,
+   "variacaoPct": -30.5
+  },
+  {
+   "bairroId": 7,
+   "nome": "Fragata",
+   "mediaDiaria": 14.8,
+   "variacaoPct": -8.9
+  },
+  {
+   "bairroId": 10,
+   "nome": "Jardim California",
+   "mediaDiaria": 12.6,
+   "variacaoPct": 13.6
+  },
+  {
+   "bairroId": 58,
+   "nome": "Somenzari",
+   "mediaDiaria": 11.9,
+   "variacaoPct": -15.1
+  },
+  {
+   "bairroId": 8,
+   "nome": "Higienópolis",
+   "mediaDiaria": 10.6,
+   "variacaoPct": -11.5
+  },
+  {
+   "bairroId": 3,
+   "nome": "Cavalieri",
+   "mediaDiaria": 10.4,
+   "variacaoPct": -29.4
+  },
+  {
+   "bairroId": 36,
+   "nome": "Jardim Tropical",
+   "mediaDiaria": 9,
+   "variacaoPct": -34.7
+  },
+  {
+   "bairroId": 37,
+   "nome": "Jardim Universitário",
+   "mediaDiaria": 8.7,
+   "variacaoPct": -19
+  },
+  {
+   "bairroId": 43,
+   "nome": "Maria Izabel",
+   "mediaDiaria": 3.6,
+   "variacaoPct": -18.7
+  }
+ ],
+ "falhasPorModelo": [
+  {
+   "marca": "Vigilux",
+   "modelo": "VX-200",
+   "falhasPor100": 242.9,
+   "frota": 21
+  },
+  {
+   "marca": "Xiaomi",
+   "modelo": "Scooter 4 Pro",
+   "falhasPor100": 120,
+   "frota": 20
+  },
+  {
+   "marca": "Pumatronix",
+   "modelo": "ITS-450",
+   "falhasPor100": 107.1,
+   "frota": 14
+  },
+  {
+   "marca": "Okai",
+   "modelo": "ES400",
+   "falhasPor100": 105.6,
+   "frota": 18
+  },
+  {
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "falhasPor100": 100,
+   "frota": 21
+  },
+  {
+   "marca": "Taxlog",
+   "modelo": "AutoPark 2",
+   "falhasPor100": 100,
+   "frota": 5
+  },
+  {
+   "marca": "Volare",
+   "modelo": "W9 Escolar",
+   "falhasPor100": 100,
+   "frota": 5
+  },
+  {
+   "marca": "Toledo",
+   "modelo": "PW-9000 WIM",
+   "falhasPor100": 100,
+   "frota": 3
+  },
+  {
+   "marca": "BYD",
+   "modelo": "Dolphin Mini",
+   "falhasPor100": 100,
+   "frota": 2
+  },
+  {
+   "marca": "Kistler",
+   "modelo": "Lineas 9195",
+   "falhasPor100": 100,
+   "frota": 1
+  },
+  {
+   "marca": "Intelbras",
+   "modelo": "VIP 3230",
+   "falhasPor100": 94.1,
+   "frota": 17
+  },
+  {
+   "marca": "Axis",
+   "modelo": "Q1798-LE",
+   "falhasPor100": 85.7,
+   "frota": 7
+  },
+  {
+   "marca": "Digiflex",
+   "modelo": "PMV-48",
+   "falhasPor100": 85.7,
+   "frota": 7
+  },
+  {
+   "marca": "Digicon",
+   "modelo": "DT-500",
+   "falhasPor100": 83.3,
+   "frota": 12
+  },
+  {
+   "marca": "Chevrolet",
+   "modelo": "Spin Premier",
+   "falhasPor100": 83.3,
+   "frota": 6
+  },
+  {
+   "marca": "Digicon",
+   "modelo": "Contrail 4",
+   "falhasPor100": 78.6,
+   "frota": 14
+  },
+  {
+   "marca": "Nice",
+   "modelo": "Wil 6",
+   "falhasPor100": 75,
+   "frota": 4
+  },
+  {
+   "marca": "Honda",
+   "modelo": "CG 160 Fan",
+   "falhasPor100": 71.4,
+   "frota": 7
+  },
+  {
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "falhasPor100": 69.6,
+   "frota": 23
+  },
+  {
+   "marca": "Hikvision",
+   "modelo": "DS-2DE4425 PTZ",
+   "falhasPor100": 66.7,
+   "frota": 15
+  },
+  {
+   "marca": "Perkons",
+   "modelo": "PK-7000",
+   "falhasPor100": 66.7,
+   "frota": 15
+  },
+  {
+   "marca": "Renault",
+   "modelo": "Master Escolar",
+   "falhasPor100": 66.7,
+   "frota": 3
+  },
+  {
+   "marca": "Velsis",
+   "modelo": "VR-3 Sentinel",
+   "falhasPor100": 64.7,
+   "frota": 17
+  },
+  {
+   "marca": "Hidromet",
+   "modelo": "HN-30",
+   "falhasPor100": 62.5,
+   "frota": 8
+  },
+  {
+   "marca": "Siemens",
+   "modelo": "Sitraffic sX",
+   "falhasPor100": 50,
+   "frota": 14
+  },
+  {
+   "marca": "Honda",
+   "modelo": "XRE 300",
+   "falhasPor100": 50,
+   "frota": 10
+  },
+  {
+   "marca": "Toyota",
+   "modelo": "Hilux SW4",
+   "falhasPor100": 50,
+   "frota": 6
+  },
+  {
+   "marca": "Renault",
+   "modelo": "Kwid E-Tech",
+   "falhasPor100": 50,
+   "frota": 4
+  },
+  {
+   "marca": "Mercedes-Benz",
+   "modelo": "Sprinter 416",
+   "falhasPor100": 50,
+   "frota": 4
+  },
+  {
+   "marca": "Yamaha",
+   "modelo": "XTZ 250 Lander",
+   "falhasPor100": 50,
+   "frota": 4
+  },
+  {
+   "marca": "Renault",
+   "modelo": "Duster",
+   "falhasPor100": 50,
+   "frota": 4
+  },
+  {
+   "marca": "Chevrolet",
+   "modelo": "Spin 1.8",
+   "falhasPor100": 40,
+   "frota": 5
+  },
+  {
+   "marca": "Came",
+   "modelo": "Gard 4",
+   "falhasPor100": 33.3,
+   "frota": 3
+  },
+  {
+   "marca": "PPA",
+   "modelo": "Barreira BR-6",
+   "falhasPor100": 33.3,
+   "frota": 3
+  },
+  {
+   "marca": "Toyota",
+   "modelo": "Corolla Cross",
+   "falhasPor100": 28.6,
+   "frota": 7
+  },
+  {
+   "marca": "Senix",
+   "modelo": "ToughSonic 14",
+   "falhasPor100": 14.3,
+   "frota": 7
+  },
+  {
+   "marca": "Luminex",
+   "modelo": "LX-PMV 3",
+   "falhasPor100": 0,
+   "frota": 2
+  },
+  {
+   "marca": "Yamaha",
+   "modelo": "Factor 150",
+   "falhasPor100": 0,
+   "frota": 1
+  }
+ ],
+ "explicacao": {
+  "oQuePreve": "Para onde caminha a disponibilidade de cada tipo de equipamento (projeção para daqui a 7 dias), como evolui o uso dos patinetes em cada bairro e quais marcas e modelos mais falham.",
+  "dadosUsados": [
+   "Mudanças de situação dos equipamentos nos últimos 30 dias (operação, falha, manutenção, furto)",
+   "Telemetria horária dos patinetes: parte de cada hora em uso",
+   "292 falhas registradas nos últimos 60 dias, por marca e modelo"
+  ],
+  "comoAjuda": "Antecipa quedas de disponibilidade, mostra onde faltam ou sobram patinetes e aponta o que trocar na próxima compra: o Vigilux VX-200 teve 243 falhas por 100 equipamentos, contra 68 do modelo mediano.",
+  "confiabilidade": [
+   {
+    "metrica": "Erro da projeção de 7 dias (pontos percentuais)",
+    "valor": 4.41,
+    "descricao": "Em 312 projeções refeitas no passado (cada tipo, cada dia possível), a reta errou em média 4,4 pontos percentuais; repetir o último valor errou 3,9 pontos percentuais e repetir a média dos 30 dias, 4,4 pontos percentuais. Use a projeção para ver a direção, não o número exato."
+   },
+   {
+    "metrica": "Falhas analisadas por marca e modelo",
+    "valor": 292,
+    "descricao": "Taxas calculadas sobre 292 falhas; modelos com frota pequena (menos de 5 equipamentos) variam muito de um mês para outro. A taxa pode passar de 100 por 100 equipamentos porque conta falhas, não equipamentos: o mesmo equipamento pode falhar mais de uma vez em 60 dias."
+   }
+  ]
+ }
+}

@@ -1,0 +1,16 @@
+sequenceDiagram
+  autonumber
+  actor G as Gestor (Central)
+  participant S as Servidor
+  participant B as SQLite
+  actor A as Agente (Modo Campo)
+  G->>S: injeta acidente
+  S->>B: cria a ocorrência e<br/>escolhe o agente livre<br/>mais próximo
+  S->>B: abre alerta crítico
+  S-->>G: SSE: alerta
+  S-->>A: SSE: novo despacho
+  A->>S: "Cheguei ao local"
+  S->>B: grava a chegada<br/>e a auditoria
+  A->>S: "Concluir ocorrência"
+  S->>B: encerra a ocorrência<br/>e resolve o alerta
+  S-->>G: SSE: alerta resolvido

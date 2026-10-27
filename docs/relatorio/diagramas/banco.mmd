@@ -1,0 +1,20 @@
+erDiagram
+  BAIRROS ||--o{ EQUIPAMENTOS : "contém"
+  BAIRROS ||--o{ AGENTES : "sedia a base"
+  BAIRROS ||--o{ OCORRENCIAS : "local"
+  EQUIPAMENTOS ||--o{ HISTORICO_SITUACAO : "registra"
+  EQUIPAMENTOS ||--o{ TELEMETRIA_HORA : "envia"
+  EQUIPAMENTOS ||--o{ MANUTENCOES : "recebe"
+  EQUIPAMENTOS |o--o{ ALERTAS : "origina"
+  AGENTES |o--o{ ALERTAS : "citado em"
+  EQUIPAMENTOS |o--o| AGENTES : "veículo de"
+  AGENTES |o--o{ OCORRENCIAS : "atende"
+  AGENTES |o--o| USUARIOS : "vinculado a"
+  USUARIOS ||--o{ SESSOES : "abre"
+  USUARIOS |o..o{ AUDITORIA : "gera"
+  CLIMA_DIA {
+    text data PK
+  }
+  META {
+    text chave PK
+  }

@@ -1,0 +1,590 @@
+[
+ {
+  "id": "radar",
+  "rotulo": "Radar de fiscalização",
+  "sigla": "RAD",
+  "movel": false,
+  "icone": "Camera",
+  "orgaoPadrao": "Secretaria de Mobilidade Urbana",
+  "campos": [
+   {
+    "chave": "modalidade",
+    "rotulo": "Modalidade",
+    "tipo": "opcao",
+    "opcoes": [
+     "velocidade",
+     "avanço de semáforo",
+     "conversão proibida",
+     "retorno proibido",
+     "parada sobre faixa"
+    ],
+    "obrigatorio": true
+   },
+   {
+    "chave": "velocidadeMaxima",
+    "rotulo": "Velocidade máxima",
+    "tipo": "numero",
+    "min": 10,
+    "max": 120,
+    "obrigatorio": false,
+    "unidade": "km/h"
+   },
+   {
+    "chave": "faixas",
+    "rotulo": "Faixas monitoradas",
+    "tipo": "numero",
+    "min": 1,
+    "max": 6,
+    "obrigatorio": true
+   },
+   {
+    "chave": "sentido",
+    "rotulo": "Sentido",
+    "tipo": "texto",
+    "obrigatorio": true
+   }
+  ],
+  "metricas": [
+   {
+    "chave": "fluxo",
+    "rotulo": "Fluxo de veículos",
+    "unidade": "veículos/h"
+   },
+   {
+    "chave": "velocidadeMedia",
+    "rotulo": "Velocidade média da via",
+    "unidade": "km/h"
+   },
+   {
+    "chave": "infracoes",
+    "rotulo": "Infrações registradas",
+    "unidade": "infrações/h"
+   }
+  ]
+ },
+ {
+  "id": "camera",
+  "rotulo": "Câmera de videomonitoramento",
+  "sigla": "CAM",
+  "movel": false,
+  "icone": "VideoCamera",
+  "orgaoPadrao": "Guarda Civil Municipal",
+  "campos": [
+   {
+    "chave": "resolucao",
+    "rotulo": "Resolução",
+    "tipo": "opcao",
+    "opcoes": [
+     "720p",
+     "1080p",
+     "4K"
+    ],
+    "obrigatorio": true
+   },
+   {
+    "chave": "visaoNoturna",
+    "rotulo": "Visão noturna",
+    "tipo": "booleano",
+    "obrigatorio": true
+   },
+   {
+    "chave": "colorida",
+    "rotulo": "Imagem colorida",
+    "tipo": "booleano",
+    "obrigatorio": true,
+    "dica": "Desmarcado = preto e branco"
+   },
+   {
+    "chave": "ptz",
+    "rotulo": "Movimento PTZ",
+    "tipo": "booleano",
+    "obrigatorio": true
+   },
+   {
+    "chave": "angulo",
+    "rotulo": "Ângulo de visão",
+    "tipo": "numero",
+    "min": 10,
+    "max": 360,
+    "obrigatorio": true,
+    "unidade": "graus"
+   },
+   {
+    "chave": "armazenamentoDias",
+    "rotulo": "Armazenamento",
+    "tipo": "numero",
+    "min": 1,
+    "max": 365,
+    "obrigatorio": true,
+    "unidade": "dias"
+   }
+  ],
+  "metricas": [
+   {
+    "chave": "online",
+    "rotulo": "Conectado",
+    "unidade": "%"
+   },
+   {
+    "chave": "fps",
+    "rotulo": "Quadros por segundo",
+    "unidade": "qps"
+   }
+  ]
+ },
+ {
+  "id": "balanca",
+  "rotulo": "Balança de caminhão",
+  "sigla": "BAL",
+  "movel": false,
+  "icone": "Scales",
+  "orgaoPadrao": "Secretaria de Mobilidade Urbana",
+  "campos": [
+   {
+    "chave": "capacidadeT",
+    "rotulo": "Capacidade",
+    "tipo": "numero",
+    "min": 1,
+    "max": 200,
+    "obrigatorio": true,
+    "unidade": "t"
+   },
+   {
+    "chave": "toleranciaPct",
+    "rotulo": "Tolerância",
+    "tipo": "numero",
+    "min": 0,
+    "max": 20,
+    "obrigatorio": true,
+    "unidade": "%"
+   },
+   {
+    "chave": "eixosLidos",
+    "rotulo": "Eixos lidos",
+    "tipo": "numero",
+    "min": 2,
+    "max": 9,
+    "obrigatorio": true
+   }
+  ],
+  "metricas": [
+   {
+    "chave": "pesagens",
+    "rotulo": "Pesagens",
+    "unidade": "pesagens/h"
+   },
+   {
+    "chave": "excessoPeso",
+    "rotulo": "Excessos de peso",
+    "unidade": "excessos/h"
+   }
+  ]
+ },
+ {
+  "id": "fiscal_rotativo",
+  "rotulo": "Veículo de fiscalização do rotativo",
+  "sigla": "FIS",
+  "movel": true,
+  "icone": "Car",
+  "orgaoPadrao": "Concessionária do Rotativo",
+  "campos": [
+   {
+    "chave": "autonomiaKm",
+    "rotulo": "Autonomia",
+    "tipo": "numero",
+    "min": 10,
+    "max": 500,
+    "obrigatorio": true,
+    "unidade": "km"
+   },
+   {
+    "chave": "camerasOcr",
+    "rotulo": "Câmeras de leitura de placa",
+    "tipo": "numero",
+    "min": 1,
+    "max": 8,
+    "obrigatorio": true
+   },
+   {
+    "chave": "rota",
+    "rotulo": "Rota de patrulha",
+    "tipo": "texto",
+    "obrigatorio": true
+   }
+  ],
+  "metricas": [
+   {
+    "chave": "placasLidas",
+    "rotulo": "Placas lidas",
+    "unidade": "placas/h"
+   },
+   {
+    "chave": "kmRodados",
+    "rotulo": "Distância percorrida",
+    "unidade": "km"
+   }
+  ]
+ },
+ {
+  "id": "cancela",
+  "rotulo": "Cancela automatizada",
+  "sigla": "CAN",
+  "movel": false,
+  "icone": "Barricade",
+  "orgaoPadrao": "Secretaria de Mobilidade Urbana",
+  "campos": [
+   {
+    "chave": "tipoAcesso",
+    "rotulo": "Tipo de acesso",
+    "tipo": "opcao",
+    "opcoes": [
+     "tag",
+     "ticket",
+     "placa"
+    ],
+    "obrigatorio": true
+   },
+   {
+    "chave": "local",
+    "rotulo": "Local",
+    "tipo": "opcao",
+    "opcoes": [
+     "estacionamento",
+     "terminal"
+    ],
+    "obrigatorio": true
+   }
+  ],
+  "metricas": [
+   {
+    "chave": "aberturas",
+    "rotulo": "Aberturas",
+    "unidade": "aberturas/h"
+   }
+  ]
+ },
+ {
+  "id": "transporte",
+  "rotulo": "Veículo de transporte cadastrado",
+  "sigla": "TRA",
+  "movel": true,
+  "icone": "Taxi",
+  "orgaoPadrao": "Secretaria de Mobilidade Urbana",
+  "campos": [
+   {
+    "chave": "categoria",
+    "rotulo": "Categoria",
+    "tipo": "opcao",
+    "opcoes": [
+     "táxi",
+     "mototáxi",
+     "escolar"
+    ],
+    "obrigatorio": true
+   },
+   {
+    "chave": "placa",
+    "rotulo": "Placa",
+    "tipo": "texto",
+    "obrigatorio": true
+   },
+   {
+    "chave": "capacidade",
+    "rotulo": "Capacidade",
+    "tipo": "numero",
+    "min": 1,
+    "max": 60,
+    "obrigatorio": true,
+    "unidade": "passageiros"
+   },
+   {
+    "chave": "permissionario",
+    "rotulo": "Permissionário",
+    "tipo": "texto",
+    "obrigatorio": true
+   }
+  ],
+  "metricas": [
+   {
+    "chave": "velocidade",
+    "rotulo": "Velocidade média em movimento",
+    "unidade": "km/h"
+   },
+   {
+    "chave": "kmRodados",
+    "rotulo": "Distância percorrida",
+    "unidade": "km"
+   }
+  ]
+ },
+ {
+  "id": "totem_rotativo",
+  "rotulo": "Totem de autoatendimento do rotativo",
+  "sigla": "TOT",
+  "movel": false,
+  "icone": "Cardholder",
+  "orgaoPadrao": "Concessionária do Rotativo",
+  "campos": [
+   {
+    "chave": "meiosPagamento",
+    "rotulo": "Meios de pagamento",
+    "tipo": "texto",
+    "obrigatorio": true,
+    "dica": "Ex.: cartão, Pix"
+   },
+   {
+    "chave": "impressora",
+    "rotulo": "Possui impressora",
+    "tipo": "booleano",
+    "obrigatorio": true
+   },
+   {
+    "chave": "telaAcessivel",
+    "rotulo": "Tela acessível",
+    "tipo": "booleano",
+    "obrigatorio": true
+   }
+  ],
+  "metricas": [
+   {
+    "chave": "transacoes",
+    "rotulo": "Transações",
+    "unidade": "transações/h"
+   },
+   {
+    "chave": "online",
+    "rotulo": "Conectado",
+    "unidade": "%"
+   }
+  ]
+ },
+ {
+  "id": "patinete",
+  "rotulo": "Patinete elétrico compartilhado",
+  "sigla": "PAT",
+  "movel": true,
+  "icone": "PersonSimpleBike",
+  "orgaoPadrao": "Operadora de Patinetes",
+  "campos": [
+   {
+    "chave": "operadora",
+    "rotulo": "Operadora",
+    "tipo": "texto",
+    "obrigatorio": true
+   },
+   {
+    "chave": "autonomiaKm",
+    "rotulo": "Autonomia",
+    "tipo": "numero",
+    "min": 5,
+    "max": 100,
+    "obrigatorio": true,
+    "unidade": "km"
+   },
+   {
+    "chave": "bateriaPct",
+    "rotulo": "Bateria",
+    "tipo": "numero",
+    "min": 0,
+    "max": 100,
+    "obrigatorio": true,
+    "unidade": "%"
+   }
+  ],
+  "metricas": [
+   {
+    "chave": "bateria",
+    "rotulo": "Bateria",
+    "unidade": "%"
+   },
+   {
+    "chave": "emUso",
+    "rotulo": "Tempo em uso",
+    "unidade": "%"
+   }
+  ]
+ },
+ {
+  "id": "moto_agente",
+  "rotulo": "Moto de agente de trânsito",
+  "sigla": "MOT",
+  "movel": true,
+  "icone": "Motorcycle",
+  "orgaoPadrao": "Secretaria de Mobilidade Urbana",
+  "campos": [
+   {
+    "chave": "placa",
+    "rotulo": "Placa",
+    "tipo": "texto",
+    "obrigatorio": true
+   },
+   {
+    "chave": "cilindrada",
+    "rotulo": "Cilindrada",
+    "tipo": "numero",
+    "min": 50,
+    "max": 1200,
+    "obrigatorio": true,
+    "unidade": "cc"
+   }
+  ],
+  "metricas": [
+   {
+    "chave": "velocidade",
+    "rotulo": "Velocidade média em movimento",
+    "unidade": "km/h"
+   },
+   {
+    "chave": "kmRodados",
+    "rotulo": "Distância percorrida",
+    "unidade": "km"
+   }
+  ]
+ },
+ {
+  "id": "viatura",
+  "rotulo": "Viatura (Guarda Municipal ou PM)",
+  "sigla": "VTR",
+  "movel": true,
+  "icone": "Siren",
+  "orgaoPadrao": "Guarda Civil Municipal",
+  "campos": [
+   {
+    "chave": "placa",
+    "rotulo": "Placa",
+    "tipo": "texto",
+    "obrigatorio": true
+   },
+   {
+    "chave": "orgaoViatura",
+    "rotulo": "Órgão",
+    "tipo": "opcao",
+    "opcoes": [
+     "Guarda Civil Municipal",
+     "Polícia Militar"
+    ],
+    "obrigatorio": true
+   },
+   {
+    "chave": "prefixo",
+    "rotulo": "Prefixo",
+    "tipo": "texto",
+    "obrigatorio": true
+   }
+  ],
+  "metricas": [
+   {
+    "chave": "velocidade",
+    "rotulo": "Velocidade média em movimento",
+    "unidade": "km/h"
+   },
+   {
+    "chave": "kmRodados",
+    "rotulo": "Distância percorrida",
+    "unidade": "km"
+   }
+  ]
+ },
+ {
+  "id": "semaforo",
+  "rotulo": "Semáforo inteligente",
+  "sigla": "SEM",
+  "movel": false,
+  "icone": "TrafficSignal",
+  "orgaoPadrao": "Secretaria de Mobilidade Urbana",
+  "campos": [
+   {
+    "chave": "fases",
+    "rotulo": "Fases",
+    "tipo": "numero",
+    "min": 2,
+    "max": 8,
+    "obrigatorio": true
+   },
+   {
+    "chave": "botoeira",
+    "rotulo": "Botoeira para pedestre",
+    "tipo": "booleano",
+    "obrigatorio": true
+   },
+   {
+    "chave": "sincronizado",
+    "rotulo": "Sincronizado com a rede",
+    "tipo": "booleano",
+    "obrigatorio": true
+   }
+  ],
+  "metricas": [
+   {
+    "chave": "online",
+    "rotulo": "Conectado",
+    "unidade": "%"
+   },
+   {
+    "chave": "falhasFase",
+    "rotulo": "Falhas de fase",
+    "unidade": "falhas/h"
+   }
+  ]
+ },
+ {
+  "id": "painel_mensagem",
+  "rotulo": "Painel de mensagem variável",
+  "sigla": "PMV",
+  "movel": false,
+  "icone": "Monitor",
+  "orgaoPadrao": "Secretaria de Mobilidade Urbana",
+  "campos": [
+   {
+    "chave": "tamanho",
+    "rotulo": "Tamanho",
+    "tipo": "texto",
+    "obrigatorio": true,
+    "dica": "Ex.: 3 × 1 m"
+   },
+   {
+    "chave": "cores",
+    "rotulo": "Cores",
+    "tipo": "opcao",
+    "opcoes": [
+     "monocromático",
+     "colorido"
+    ],
+    "obrigatorio": true
+   }
+  ],
+  "metricas": [
+   {
+    "chave": "online",
+    "rotulo": "Conectado",
+    "unidade": "%"
+   }
+  ]
+ },
+ {
+  "id": "sensor_alagamento",
+  "rotulo": "Sensor de alagamento",
+  "sigla": "ALG",
+  "movel": false,
+  "icone": "Drop",
+  "orgaoPadrao": "Defesa Civil",
+  "campos": [
+   {
+    "chave": "alturaAlertaCm",
+    "rotulo": "Altura de alerta",
+    "tipo": "numero",
+    "min": 1,
+    "max": 300,
+    "obrigatorio": true,
+    "unidade": "cm"
+   }
+  ],
+  "metricas": [
+   {
+    "chave": "nivelCm",
+    "rotulo": "Nível da água",
+    "unidade": "cm"
+   }
+  ]
+ }
+]

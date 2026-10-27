@@ -1,0 +1,6322 @@
+{
+ "geradoEm": "2026-10-27T18:18:29.866Z",
+ "itens": [
+  {
+   "equipamentoId": 132,
+   "codigo": "FOGO-CAM-0060",
+   "tipo": "camera",
+   "marca": "Vigilux",
+   "modelo": "VX-200",
+   "bairroNome": "Jardim Continental",
+   "probabilidade": 0.7299,
+   "fatores": [
+    {
+     "nome": "10 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 4.33
+    },
+    {
+     "nome": "Idade: 6,7 anos de uso",
+     "contribuicao": 2.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Vigilux VX-200)",
+     "contribuicao": 1.68
+    }
+   ]
+  },
+  {
+   "equipamentoId": 53,
+   "codigo": "FOGO-CAM-0026",
+   "tipo": "camera",
+   "marca": "Vigilux",
+   "modelo": "VX-200",
+   "bairroNome": "Lorenzetti",
+   "probabilidade": 0.6878,
+   "fatores": [
+    {
+     "nome": "8 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 3.67
+    },
+    {
+     "nome": "Idade: 7,3 anos de uso",
+     "contribuicao": 2.45
+    },
+    {
+     "nome": "Modelo pouco confiável (Vigilux VX-200)",
+     "contribuicao": 1.68
+    }
+   ]
+  },
+  {
+   "equipamentoId": 2,
+   "codigo": "FOGO-CAM-0001",
+   "tipo": "camera",
+   "marca": "Vigilux",
+   "modelo": "VX-200",
+   "bairroNome": "Higienópolis",
+   "probabilidade": 0.5864,
+   "fatores": [
+    {
+     "nome": "7 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 3.33
+    },
+    {
+     "nome": "Idade: 5,2 anos de uso",
+     "contribuicao": 2.05
+    },
+    {
+     "nome": "Modelo pouco confiável (Vigilux VX-200)",
+     "contribuicao": 1.68
+    }
+   ]
+  },
+  {
+   "equipamentoId": 131,
+   "codigo": "FOGO-CAM-0059",
+   "tipo": "camera",
+   "marca": "Vigilux",
+   "modelo": "VX-200",
+   "bairroNome": "Jardim Cavallari",
+   "probabilidade": 0.5334,
+   "fatores": [
+    {
+     "nome": "Idade: 7,6 anos de uso",
+     "contribuicao": 2.52
+    },
+    {
+     "nome": "4 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Vigilux VX-200)",
+     "contribuicao": 1.68
+    }
+   ]
+  },
+  {
+   "equipamentoId": 26,
+   "codigo": "FOGO-CAM-0011",
+   "tipo": "camera",
+   "marca": "Vigilux",
+   "modelo": "VX-200",
+   "bairroNome": "Vila Tofolli",
+   "probabilidade": 0.5165,
+   "fatores": [
+    {
+     "nome": "Idade: 7,0 anos de uso",
+     "contribuicao": 2.41
+    },
+    {
+     "nome": "4 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Vigilux VX-200)",
+     "contribuicao": 1.68
+    }
+   ]
+  },
+  {
+   "equipamentoId": 41,
+   "codigo": "FOGO-CAM-0020",
+   "tipo": "camera",
+   "marca": "Vigilux",
+   "modelo": "VX-200",
+   "bairroNome": "Jardim D'Itália",
+   "probabilidade": 0.4584,
+   "fatores": [
+    {
+     "nome": "5 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2.67
+    },
+    {
+     "nome": "Idade: 3,9 anos de uso",
+     "contribuicao": 1.78
+    },
+    {
+     "nome": "Modelo pouco confiável (Vigilux VX-200)",
+     "contribuicao": 1.68
+    }
+   ]
+  },
+  {
+   "equipamentoId": 22,
+   "codigo": "FOGO-CAM-0009",
+   "tipo": "camera",
+   "marca": "Vigilux",
+   "modelo": "VX-200",
+   "bairroNome": "Expedicionário Alberto Herreira",
+   "probabilidade": 0.3443,
+   "fatores": [
+    {
+     "nome": "Idade: 4,8 anos de uso",
+     "contribuicao": 1.96
+    },
+    {
+     "nome": "Modelo pouco confiável (Vigilux VX-200)",
+     "contribuicao": 1.68
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    }
+   ]
+  },
+  {
+   "equipamentoId": 38,
+   "codigo": "FOGO-CAM-0017",
+   "tipo": "camera",
+   "marca": "Vigilux",
+   "modelo": "VX-200",
+   "bairroNome": "Jardim Itaipu",
+   "probabilidade": 0.3336,
+   "fatores": [
+    {
+     "nome": "5 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2.67
+    },
+    {
+     "nome": "Modelo pouco confiável (Vigilux VX-200)",
+     "contribuicao": 1.68
+    },
+    {
+     "nome": "Idade: 0,9 anos de uso",
+     "contribuicao": 1.18
+    }
+   ]
+  },
+  {
+   "equipamentoId": 43,
+   "codigo": "FOGO-CAM-0022",
+   "tipo": "camera",
+   "marca": "Vigilux",
+   "modelo": "VX-200",
+   "bairroNome": "Palmital",
+   "probabilidade": 0.3302,
+   "fatores": [
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Modelo pouco confiável (Vigilux VX-200)",
+     "contribuicao": 1.68
+    },
+    {
+     "nome": "Idade: 2,7 anos de uso",
+     "contribuicao": 1.55
+    }
+   ]
+  },
+  {
+   "equipamentoId": 115,
+   "codigo": "FOGO-CAM-0043",
+   "tipo": "camera",
+   "marca": "Vigilux",
+   "modelo": "VX-200",
+   "bairroNome": "Centro",
+   "probabilidade": 0.2983,
+   "fatores": [
+    {
+     "nome": "Idade: 5,3 anos de uso",
+     "contribuicao": 2.05
+    },
+    {
+     "nome": "Modelo pouco confiável (Vigilux VX-200)",
+     "contribuicao": 1.68
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 48,
+   "codigo": "FOGO-CAM-0024",
+   "tipo": "camera",
+   "marca": "Vigilux",
+   "modelo": "VX-200",
+   "bairroNome": "Jardim Esplanada",
+   "probabilidade": 0.2879,
+   "fatores": [
+    {
+     "nome": "4 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Vigilux VX-200)",
+     "contribuicao": 1.68
+    },
+    {
+     "nome": "Idade: 0,6 anos de uso",
+     "contribuicao": 1.12
+    }
+   ]
+  },
+  {
+   "equipamentoId": 118,
+   "codigo": "FOGO-CAM-0046",
+   "tipo": "camera",
+   "marca": "Axis",
+   "modelo": "Q1798-LE",
+   "bairroNome": "Expedicionário Alberto Herreira",
+   "probabilidade": 0.28,
+   "fatores": [
+    {
+     "nome": "Idade: 7,1 anos de uso",
+     "contribuicao": 2.42
+    },
+    {
+     "nome": "Manutenção atrasada há 26 dias",
+     "contribuicao": 1.87
+    },
+    {
+     "nome": "Modelo confiável (Axis Q1798-LE)",
+     "contribuicao": 0.71
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 24,
+   "codigo": "FOGO-CAM-0010",
+   "tipo": "camera",
+   "marca": "Vigilux",
+   "modelo": "VX-200",
+   "bairroNome": "Parque dos Ipês",
+   "probabilidade": 0.2462,
+   "fatores": [
+    {
+     "nome": "Modelo pouco confiável (Vigilux VX-200)",
+     "contribuicao": 1.68
+    },
+    {
+     "nome": "Idade: 3,2 anos de uso",
+     "contribuicao": 1.64
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 52,
+   "codigo": "FOGO-CAM-0025",
+   "tipo": "camera",
+   "marca": "Vigilux",
+   "modelo": "VX-200",
+   "bairroNome": "Jardim Ohara",
+   "probabilidade": 0.2415,
+   "fatores": [
+    {
+     "nome": "Modelo pouco confiável (Vigilux VX-200)",
+     "contribuicao": 1.68
+    },
+    {
+     "nome": "Idade: 3,0 anos de uso",
+     "contribuicao": 1.6
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 65,
+   "codigo": "FOGO-CAM-0030",
+   "tipo": "camera",
+   "marca": "Intelbras",
+   "modelo": "VIP 3230",
+   "bairroNome": "Jardim Teotônio Vilela",
+   "probabilidade": 0.2373,
+   "fatores": [
+    {
+     "nome": "Idade: 7,3 anos de uso",
+     "contribuicao": 2.46
+    },
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Modelo confiável (Intelbras VIP 3230)",
+     "contribuicao": 0.72
+    }
+   ]
+  },
+  {
+   "equipamentoId": 120,
+   "codigo": "FOGO-CAM-0048",
+   "tipo": "camera",
+   "marca": "Intelbras",
+   "modelo": "VIP 3230",
+   "bairroNome": "Jardim Planalto",
+   "probabilidade": 0.236,
+   "fatores": [
+    {
+     "nome": "Idade: 7,2 anos de uso",
+     "contribuicao": 2.44
+    },
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Modelo confiável (Intelbras VIP 3230)",
+     "contribuicao": 0.72
+    }
+   ]
+  },
+  {
+   "equipamentoId": 97,
+   "codigo": "FOGO-RAD-0043",
+   "tipo": "radar",
+   "marca": "Pumatronix",
+   "modelo": "ITS-450",
+   "bairroNome": "Lorenzetti",
+   "probabilidade": 0.2306,
+   "fatores": [
+    {
+     "nome": "Idade: 6,8 anos de uso",
+     "contribuicao": 2.36
+    },
+    {
+     "nome": "4 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Pumatronix ITS-450)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 80,
+   "codigo": "FOGO-RAD-0026",
+   "tipo": "radar",
+   "marca": "Pumatronix",
+   "modelo": "ITS-450",
+   "bairroNome": "Jardim Eldorado",
+   "probabilidade": 0.2282,
+   "fatores": [
+    {
+     "nome": "4 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2.33
+    },
+    {
+     "nome": "Idade: 6,7 anos de uso",
+     "contribuicao": 2.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Pumatronix ITS-450)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 168,
+   "codigo": "FOGO-PAT-0003",
+   "tipo": "patinete",
+   "marca": "Okai",
+   "modelo": "ES400",
+   "bairroNome": "Higienópolis",
+   "probabilidade": 0.2136,
+   "fatores": [
+    {
+     "nome": "4 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2.33
+    },
+    {
+     "nome": "Idade: 1,6 anos de uso",
+     "contribuicao": 1.32
+    },
+    {
+     "nome": "Modelo na média do tipo (Okai ES400)",
+     "contribuicao": 0.98
+    }
+   ]
+  },
+  {
+   "equipamentoId": 4,
+   "codigo": "FOGO-RAD-0001",
+   "tipo": "radar",
+   "marca": "Pumatronix",
+   "modelo": "ITS-450",
+   "bairroNome": "Parque das Vivendas II",
+   "probabilidade": 0.2129,
+   "fatores": [
+    {
+     "nome": "Idade: 7,6 anos de uso",
+     "contribuicao": 2.51
+    },
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Modelo pouco confiável (Pumatronix ITS-450)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 177,
+   "codigo": "FOGO-PAT-0012",
+   "tipo": "patinete",
+   "marca": "Xiaomi",
+   "modelo": "Scooter 4 Pro",
+   "bairroNome": "Fragata",
+   "probabilidade": 0.2063,
+   "fatores": [
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Idade: 1,6 anos de uso",
+     "contribuicao": 1.32
+    },
+    {
+     "nome": "Modelo na média do tipo (Xiaomi Scooter 4 Pro)",
+     "contribuicao": 1.09
+    }
+   ]
+  },
+  {
+   "equipamentoId": 214,
+   "codigo": "FOGO-PAT-0049",
+   "tipo": "patinete",
+   "marca": "Xiaomi",
+   "modelo": "Scooter 4 Pro",
+   "bairroNome": "Fragata",
+   "probabilidade": 0.2003,
+   "fatores": [
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Idade: 1,4 anos de uso",
+     "contribuicao": 1.27
+    },
+    {
+     "nome": "Modelo na média do tipo (Xiaomi Scooter 4 Pro)",
+     "contribuicao": 1.09
+    }
+   ]
+  },
+  {
+   "equipamentoId": 123,
+   "codigo": "FOGO-CAM-0051",
+   "tipo": "camera",
+   "marca": "Vigilux",
+   "modelo": "VX-200",
+   "bairroNome": "Jardim Esplanada",
+   "probabilidade": 0.1993,
+   "fatores": [
+    {
+     "nome": "Idade: 3,6 anos de uso",
+     "contribuicao": 1.72
+    },
+    {
+     "nome": "Modelo pouco confiável (Vigilux VX-200)",
+     "contribuicao": 1.68
+    }
+   ]
+  },
+  {
+   "equipamentoId": 174,
+   "codigo": "FOGO-PAT-0009",
+   "tipo": "patinete",
+   "marca": "Xiaomi",
+   "modelo": "Scooter 4 Pro",
+   "bairroNome": "Jardim California",
+   "probabilidade": 0.1973,
+   "fatores": [
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Idade: 1,3 anos de uso",
+     "contribuicao": 1.25
+    },
+    {
+     "nome": "Modelo na média do tipo (Xiaomi Scooter 4 Pro)",
+     "contribuicao": 1.09
+    }
+   ]
+  },
+  {
+   "equipamentoId": 84,
+   "codigo": "FOGO-RAD-0030",
+   "tipo": "radar",
+   "marca": "Pumatronix",
+   "modelo": "ITS-450",
+   "bairroNome": "Jardim Ohara",
+   "probabilidade": 0.1896,
+   "fatores": [
+    {
+     "nome": "Idade: 6,0 anos de uso",
+     "contribuicao": 2.21
+    },
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Modelo pouco confiável (Pumatronix ITS-450)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 176,
+   "codigo": "FOGO-PAT-0011",
+   "tipo": "patinete",
+   "marca": "Xiaomi",
+   "modelo": "Scooter 4 Pro",
+   "bairroNome": "Palmital",
+   "probabilidade": 0.1859,
+   "fatores": [
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Idade: 0,9 anos de uso",
+     "contribuicao": 1.17
+    },
+    {
+     "nome": "Modelo na média do tipo (Xiaomi Scooter 4 Pro)",
+     "contribuicao": 1.09
+    }
+   ]
+  },
+  {
+   "equipamentoId": 268,
+   "codigo": "FOGO-PMV-0005",
+   "tipo": "painel_mensagem",
+   "marca": "Digiflex",
+   "modelo": "PMV-48",
+   "bairroNome": "Jardim Esplanada",
+   "probabilidade": 0.1857,
+   "fatores": [
+    {
+     "nome": "Idade: 6,1 anos de uso",
+     "contribuicao": 2.22
+    },
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Modelo pouco confiável (Digiflex PMV-48)",
+     "contribuicao": 1.17
+    }
+   ]
+  },
+  {
+   "equipamentoId": 319,
+   "codigo": "FOGO-TRA-0031",
+   "tipo": "transporte",
+   "marca": "Volare",
+   "modelo": "W9 Escolar",
+   "bairroNome": "Vereador Eduardo Andrade Rei",
+   "probabilidade": 0.1832,
+   "fatores": [
+    {
+     "nome": "5 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2.67
+    },
+    {
+     "nome": "Idade: 2,7 anos de uso",
+     "contribuicao": 1.54
+    },
+    {
+     "nome": "Modelo pouco confiável (Volare W9 Escolar)",
+     "contribuicao": 1.38
+    }
+   ]
+  },
+  {
+   "equipamentoId": 249,
+   "codigo": "FOGO-TOT-0004",
+   "tipo": "totem_rotativo",
+   "marca": "Digicon",
+   "modelo": "DT-500",
+   "bairroNome": "Banzato",
+   "probabilidade": 0.1826,
+   "fatores": [
+    {
+     "nome": "Idade: 8,0 anos de uso",
+     "contribuicao": 2.6
+    },
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Modelo na média do tipo (Digicon DT-500)",
+     "contribuicao": 0.96
+    }
+   ]
+  },
+  {
+   "equipamentoId": 144,
+   "codigo": "FOGO-SEM-0034",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Vila Real",
+   "probabilidade": 0.1797,
+   "fatores": [
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Manutenção atrasada há 23 dias",
+     "contribuicao": 1.77
+    },
+    {
+     "nome": "Idade: 3,7 anos de uso",
+     "contribuicao": 1.75
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 159,
+   "codigo": "FOGO-SEM-0049",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Centro",
+   "probabilidade": 0.1751,
+   "fatores": [
+    {
+     "nome": "Idade: 7,9 anos de uso",
+     "contribuicao": 2.57
+    },
+    {
+     "nome": "4 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 213,
+   "codigo": "FOGO-PAT-0048",
+   "tipo": "patinete",
+   "marca": "Xiaomi",
+   "modelo": "Scooter 4 Pro",
+   "bairroNome": "Higienópolis",
+   "probabilidade": 0.1749,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 1,6 anos de uso",
+     "contribuicao": 1.32
+    },
+    {
+     "nome": "Modelo na média do tipo (Xiaomi Scooter 4 Pro)",
+     "contribuicao": 1.09
+    }
+   ]
+  },
+  {
+   "equipamentoId": 153,
+   "codigo": "FOGO-SEM-0043",
+   "tipo": "semaforo",
+   "marca": "Digicon",
+   "modelo": "Contrail 4",
+   "bairroNome": "Alto Cafezal",
+   "probabilidade": 0.1739,
+   "fatores": [
+    {
+     "nome": "4 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2.33
+    },
+    {
+     "nome": "Idade: 6,6 anos de uso",
+     "contribuicao": 2.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Digicon Contrail 4)",
+     "contribuicao": 1.14
+    }
+   ]
+  },
+  {
+   "equipamentoId": 126,
+   "codigo": "FOGO-CAM-0054",
+   "tipo": "camera",
+   "marca": "Vigilux",
+   "modelo": "VX-200",
+   "bairroNome": "Centro",
+   "probabilidade": 0.1665,
+   "fatores": [
+    {
+     "nome": "Modelo pouco confiável (Vigilux VX-200)",
+     "contribuicao": 1.68
+    },
+    {
+     "nome": "Idade: 2,0 anos de uso",
+     "contribuicao": 1.41
+    }
+   ]
+  },
+  {
+   "equipamentoId": 228,
+   "codigo": "FOGO-BAL-0003",
+   "tipo": "balanca",
+   "marca": "Toledo",
+   "modelo": "PW-9000 WIM",
+   "bairroNome": "Jardim Tropical",
+   "probabilidade": 0.1649,
+   "fatores": [
+    {
+     "nome": "Idade: 7,9 anos de uso",
+     "contribuicao": 2.57
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo na média do tipo (Toledo PW-9000 WIM)",
+     "contribuicao": 1
+    }
+   ]
+  },
+  {
+   "equipamentoId": 350,
+   "codigo": "FOGO-VTR-0016",
+   "tipo": "viatura",
+   "marca": "Chevrolet",
+   "modelo": "Spin Premier",
+   "bairroNome": "Palmital",
+   "probabilidade": 0.164,
+   "fatores": [
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Idade: 4,8 anos de uso",
+     "contribuicao": 1.95
+    },
+    {
+     "nome": "Modelo pouco confiável (Chevrolet Spin Premier)",
+     "contribuicao": 1.19
+    }
+   ]
+  },
+  {
+   "equipamentoId": 6,
+   "codigo": "FOGO-CAM-0003",
+   "tipo": "camera",
+   "marca": "Hikvision",
+   "modelo": "DS-2DE4425 PTZ",
+   "bairroNome": "Parque das Vivendas",
+   "probabilidade": 0.1625,
+   "fatores": [
+    {
+     "nome": "Idade: 7,6 anos de uso",
+     "contribuicao": 2.53
+    },
+    {
+     "nome": "Modelo confiável (Hikvision DS-2DE4425 PTZ)",
+     "contribuicao": 0.55
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    }
+   ]
+  },
+  {
+   "equipamentoId": 208,
+   "codigo": "FOGO-PAT-0043",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Centro",
+   "probabilidade": 0.1618,
+   "fatores": [
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Idade: 0,9 anos de uso",
+     "contribuicao": 1.18
+    },
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    }
+   ]
+  },
+  {
+   "equipamentoId": 109,
+   "codigo": "FOGO-CAM-0037",
+   "tipo": "camera",
+   "marca": "Hikvision",
+   "modelo": "DS-2DE4425 PTZ",
+   "bairroNome": "Centro",
+   "probabilidade": 0.1595,
+   "fatores": [
+    {
+     "nome": "Idade: 7,4 anos de uso",
+     "contribuicao": 2.48
+    },
+    {
+     "nome": "Modelo confiável (Hikvision DS-2DE4425 PTZ)",
+     "contribuicao": 0.55
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    }
+   ]
+  },
+  {
+   "equipamentoId": 190,
+   "codigo": "FOGO-PAT-0025",
+   "tipo": "patinete",
+   "marca": "Xiaomi",
+   "modelo": "Scooter 4 Pro",
+   "bairroNome": "Higienópolis",
+   "probabilidade": 0.158,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 0,9 anos de uso",
+     "contribuicao": 1.18
+    },
+    {
+     "nome": "Modelo na média do tipo (Xiaomi Scooter 4 Pro)",
+     "contribuicao": 1.09
+    }
+   ]
+  },
+  {
+   "equipamentoId": 181,
+   "codigo": "FOGO-PAT-0016",
+   "tipo": "patinete",
+   "marca": "Xiaomi",
+   "modelo": "Scooter 4 Pro",
+   "bairroNome": "Somenzari",
+   "probabilidade": 0.157,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 0,8 anos de uso",
+     "contribuicao": 1.17
+    },
+    {
+     "nome": "Modelo na média do tipo (Xiaomi Scooter 4 Pro)",
+     "contribuicao": 1.09
+    }
+   ]
+  },
+  {
+   "equipamentoId": 202,
+   "codigo": "FOGO-PAT-0037",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Cavalieri",
+   "probabilidade": 0.1566,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 1,8 anos de uso",
+     "contribuicao": 1.37
+    },
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    }
+   ]
+  },
+  {
+   "equipamentoId": 185,
+   "codigo": "FOGO-PAT-0020",
+   "tipo": "patinete",
+   "marca": "Okai",
+   "modelo": "ES400",
+   "bairroNome": "Alto Cafezal",
+   "probabilidade": 0.1563,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 1,5 anos de uso",
+     "contribuicao": 1.3
+    },
+    {
+     "nome": "Modelo na média do tipo (Okai ES400)",
+     "contribuicao": 0.98
+    }
+   ]
+  },
+  {
+   "equipamentoId": 119,
+   "codigo": "FOGO-CAM-0047",
+   "tipo": "camera",
+   "marca": "Intelbras",
+   "modelo": "VIP 3230",
+   "bairroNome": "Jardim Parati",
+   "probabilidade": 0.1538,
+   "fatores": [
+    {
+     "nome": "Idade: 6,4 anos de uso",
+     "contribuicao": 2.28
+    },
+    {
+     "nome": "Modelo confiável (Intelbras VIP 3230)",
+     "contribuicao": 0.72
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 317,
+   "codigo": "FOGO-TRA-0029",
+   "tipo": "transporte",
+   "marca": "Volare",
+   "modelo": "W9 Escolar",
+   "bairroNome": "Jardim Bandeirantes",
+   "probabilidade": 0.1525,
+   "fatores": [
+    {
+     "nome": "Idade: 5,1 anos de uso",
+     "contribuicao": 2.01
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo pouco confiável (Volare W9 Escolar)",
+     "contribuicao": 1.38
+    }
+   ]
+  },
+  {
+   "equipamentoId": 102,
+   "codigo": "FOGO-RAD-0048",
+   "tipo": "radar",
+   "marca": "Velsis",
+   "modelo": "VR-3 Sentinel",
+   "bairroNome": "Palmital",
+   "probabilidade": 0.1523,
+   "fatores": [
+    {
+     "nome": "5 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2.67
+    },
+    {
+     "nome": "Idade: 4,8 anos de uso",
+     "contribuicao": 1.95
+    },
+    {
+     "nome": "Modelo confiável (Velsis VR-3 Sentinel)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 122,
+   "codigo": "FOGO-CAM-0050",
+   "tipo": "camera",
+   "marca": "Intelbras",
+   "modelo": "VIP 3230",
+   "bairroNome": "Alto Cafezal",
+   "probabilidade": 0.1512,
+   "fatores": [
+    {
+     "nome": "Idade: 6,2 anos de uso",
+     "contribuicao": 2.23
+    },
+    {
+     "nome": "Modelo confiável (Intelbras VIP 3230)",
+     "contribuicao": 0.72
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 195,
+   "codigo": "FOGO-PAT-0030",
+   "tipo": "patinete",
+   "marca": "Okai",
+   "modelo": "ES400",
+   "bairroNome": "Fragata",
+   "probabilidade": 0.1508,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 1,3 anos de uso",
+     "contribuicao": 1.25
+    },
+    {
+     "nome": "Modelo na média do tipo (Okai ES400)",
+     "contribuicao": 0.98
+    }
+   ]
+  },
+  {
+   "equipamentoId": 50,
+   "codigo": "FOGO-RAD-0011",
+   "tipo": "radar",
+   "marca": "Velsis",
+   "modelo": "VR-3 Sentinel",
+   "bairroNome": "Jardim Cavallari",
+   "probabilidade": 0.1507,
+   "fatores": [
+    {
+     "nome": "Idade: 7,9 anos de uso",
+     "contribuicao": 2.58
+    },
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Modelo confiável (Velsis VR-3 Sentinel)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 173,
+   "codigo": "FOGO-PAT-0008",
+   "tipo": "patinete",
+   "marca": "Xiaomi",
+   "modelo": "Scooter 4 Pro",
+   "bairroNome": "Somenzari",
+   "probabilidade": 0.1506,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 0,6 anos de uso",
+     "contribuicao": 1.12
+    },
+    {
+     "nome": "Modelo na média do tipo (Xiaomi Scooter 4 Pro)",
+     "contribuicao": 1.09
+    }
+   ]
+  },
+  {
+   "equipamentoId": 110,
+   "codigo": "FOGO-CAM-0038",
+   "tipo": "camera",
+   "marca": "Axis",
+   "modelo": "Q1798-LE",
+   "bairroNome": "Sítios de Recreio Céu Azul",
+   "probabilidade": 0.1504,
+   "fatores": [
+    {
+     "nome": "Idade: 6,2 anos de uso",
+     "contribuicao": 2.24
+    },
+    {
+     "nome": "Modelo confiável (Axis Q1798-LE)",
+     "contribuicao": 0.71
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 72,
+   "codigo": "FOGO-RAD-0018",
+   "tipo": "radar",
+   "marca": "Pumatronix",
+   "modelo": "ITS-450",
+   "bairroNome": "Centro",
+   "probabilidade": 0.1501,
+   "fatores": [
+    {
+     "nome": "Idade: 7,8 anos de uso",
+     "contribuicao": 2.56
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Pumatronix ITS-450)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 44,
+   "codigo": "FOGO-CAM-0023",
+   "tipo": "camera",
+   "marca": "Hikvision",
+   "modelo": "DS-2DE4425 PTZ",
+   "bairroNome": "Somenzari",
+   "probabilidade": 0.149,
+   "fatores": [
+    {
+     "nome": "Idade: 6,5 anos de uso",
+     "contribuicao": 2.3
+    },
+    {
+     "nome": "Modelo confiável (Hikvision DS-2DE4425 PTZ)",
+     "contribuicao": 0.55
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    }
+   ]
+  },
+  {
+   "equipamentoId": 90,
+   "codigo": "FOGO-RAD-0036",
+   "tipo": "radar",
+   "marca": "Perkons",
+   "modelo": "PK-7000",
+   "bairroNome": "Jardim Portal do Sol",
+   "probabilidade": 0.1485,
+   "fatores": [
+    {
+     "nome": "Idade: 7,3 anos de uso",
+     "contribuicao": 2.47
+    },
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Modelo confiável (Perkons PK-7000)",
+     "contribuicao": 0.88
+    }
+   ]
+  },
+  {
+   "equipamentoId": 224,
+   "codigo": "FOGO-PAT-0059",
+   "tipo": "patinete",
+   "marca": "Xiaomi",
+   "modelo": "Scooter 4 Pro",
+   "bairroNome": "Somenzari",
+   "probabilidade": 0.1473,
+   "fatores": [
+    {
+     "nome": "Idade: 1,8 anos de uso",
+     "contribuicao": 1.36
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Xiaomi Scooter 4 Pro)",
+     "contribuicao": 1.09
+    }
+   ]
+  },
+  {
+   "equipamentoId": 47,
+   "codigo": "FOGO-RAD-0009",
+   "tipo": "radar",
+   "marca": "Perkons",
+   "modelo": "PK-7000",
+   "bairroNome": "Vereador Eduardo Andrade Rei",
+   "probabilidade": 0.1414,
+   "fatores": [
+    {
+     "nome": "4 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2.33
+    },
+    {
+     "nome": "Idade: 5,0 anos de uso",
+     "contribuicao": 2.01
+    },
+    {
+     "nome": "Modelo confiável (Perkons PK-7000)",
+     "contribuicao": 0.88
+    }
+   ]
+  },
+  {
+   "equipamentoId": 250,
+   "codigo": "FOGO-TOT-0005",
+   "tipo": "totem_rotativo",
+   "marca": "Taxlog",
+   "modelo": "AutoPark 2",
+   "bairroNome": "Centro",
+   "probabilidade": 0.1396,
+   "fatores": [
+    {
+     "nome": "Idade: 7,9 anos de uso",
+     "contribuicao": 2.57
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Taxlog AutoPark 2)",
+     "contribuicao": 1.08
+    }
+   ]
+  },
+  {
+   "equipamentoId": 63,
+   "codigo": "FOGO-CAM-0028",
+   "tipo": "camera",
+   "marca": "Intelbras",
+   "modelo": "VIP 3230",
+   "bairroNome": "Jardim Domingos de Leo",
+   "probabilidade": 0.1394,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 3,2 anos de uso",
+     "contribuicao": 1.64
+    },
+    {
+     "nome": "Modelo confiável (Intelbras VIP 3230)",
+     "contribuicao": 0.72
+    }
+   ]
+  },
+  {
+   "equipamentoId": 207,
+   "codigo": "FOGO-PAT-0042",
+   "tipo": "patinete",
+   "marca": "Xiaomi",
+   "modelo": "Scooter 4 Pro",
+   "bairroNome": "Jardim California",
+   "probabilidade": 0.1366,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Idade: 1,3 anos de uso",
+     "contribuicao": 1.26
+    },
+    {
+     "nome": "Modelo na média do tipo (Xiaomi Scooter 4 Pro)",
+     "contribuicao": 1.09
+    }
+   ]
+  },
+  {
+   "equipamentoId": 54,
+   "codigo": "FOGO-SEM-0017",
+   "tipo": "semaforo",
+   "marca": "Siemens",
+   "modelo": "Sitraffic sX",
+   "bairroNome": "Maria Izabel",
+   "probabilidade": 0.1365,
+   "fatores": [
+    {
+     "nome": "Manutenção atrasada há 47 dias",
+     "contribuicao": 2.57
+    },
+    {
+     "nome": "Idade: 6,4 anos de uso",
+     "contribuicao": 2.28
+    },
+    {
+     "nome": "Modelo confiável (Siemens Sitraffic sX)",
+     "contribuicao": 0.81
+    }
+   ]
+  },
+  {
+   "equipamentoId": 40,
+   "codigo": "FOGO-CAM-0019",
+   "tipo": "camera",
+   "marca": "Intelbras",
+   "modelo": "VIP 3230",
+   "bairroNome": "Banzato",
+   "probabilidade": 0.1352,
+   "fatores": [
+    {
+     "nome": "Idade: 4,9 anos de uso",
+     "contribuicao": 1.98
+    },
+    {
+     "nome": "Modelo confiável (Intelbras VIP 3230)",
+     "contribuicao": 0.72
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 179,
+   "codigo": "FOGO-PAT-0014",
+   "tipo": "patinete",
+   "marca": "Okai",
+   "modelo": "ES400",
+   "bairroNome": "Alto Cafezal",
+   "probabilidade": 0.135,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 0,6 anos de uso",
+     "contribuicao": 1.11
+    },
+    {
+     "nome": "Modelo na média do tipo (Okai ES400)",
+     "contribuicao": 0.98
+    }
+   ]
+  },
+  {
+   "equipamentoId": 198,
+   "codigo": "FOGO-PAT-0033",
+   "tipo": "patinete",
+   "marca": "Okai",
+   "modelo": "ES400",
+   "bairroNome": "Fragata",
+   "probabilidade": 0.1319,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Manutenção atrasada há 9 dias",
+     "contribuicao": 1.3
+    },
+    {
+     "nome": "Modelo na média do tipo (Okai ES400)",
+     "contribuicao": 0.98
+    }
+   ]
+  },
+  {
+   "equipamentoId": 313,
+   "codigo": "FOGO-TRA-0025",
+   "tipo": "transporte",
+   "marca": "Mercedes-Benz",
+   "modelo": "Sprinter 416",
+   "bairroNome": "Jardim Pérola",
+   "probabilidade": 0.1312,
+   "fatores": [
+    {
+     "nome": "4 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2.33
+    },
+    {
+     "nome": "Idade: 3,8 anos de uso",
+     "contribuicao": 1.76
+    },
+    {
+     "nome": "Modelo na média do tipo (Mercedes-Benz Sprinter 416)",
+     "contribuicao": 0.95
+    }
+   ]
+  },
+  {
+   "equipamentoId": 223,
+   "codigo": "FOGO-PAT-0058",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Alto Cafezal",
+   "probabilidade": 0.1303,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 0,6 anos de uso",
+     "contribuicao": 1.12
+    },
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    }
+   ]
+  },
+  {
+   "equipamentoId": 111,
+   "codigo": "FOGO-CAM-0039",
+   "tipo": "camera",
+   "marca": "Hikvision",
+   "modelo": "DS-2DE4425 PTZ",
+   "bairroNome": "Centro",
+   "probabilidade": 0.1296,
+   "fatores": [
+    {
+     "nome": "Idade: 7,4 anos de uso",
+     "contribuicao": 2.48
+    },
+    {
+     "nome": "Modelo confiável (Hikvision DS-2DE4425 PTZ)",
+     "contribuicao": 0.55
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 171,
+   "codigo": "FOGO-PAT-0006",
+   "tipo": "patinete",
+   "marca": "Xiaomi",
+   "modelo": "Scooter 4 Pro",
+   "bairroNome": "Centro",
+   "probabilidade": 0.1285,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Idade: 0,9 anos de uso",
+     "contribuicao": 1.18
+    },
+    {
+     "nome": "Modelo na média do tipo (Xiaomi Scooter 4 Pro)",
+     "contribuicao": 1.09
+    }
+   ]
+  },
+  {
+   "equipamentoId": 18,
+   "codigo": "FOGO-CAM-0007",
+   "tipo": "camera",
+   "marca": "Hikvision",
+   "modelo": "DS-2DE4425 PTZ",
+   "bairroNome": "Jardim São Vicente de Paulo",
+   "probabilidade": 0.1276,
+   "fatores": [
+    {
+     "nome": "Idade: 7,2 anos de uso",
+     "contribuicao": 2.43
+    },
+    {
+     "nome": "Modelo confiável (Hikvision DS-2DE4425 PTZ)",
+     "contribuicao": 0.55
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 7,
+   "codigo": "FOGO-RAD-0002",
+   "tipo": "radar",
+   "marca": "Velsis",
+   "modelo": "VR-3 Sentinel",
+   "bairroNome": "Jardim Guarujá",
+   "probabilidade": 0.1272,
+   "fatores": [
+    {
+     "nome": "Idade: 7,9 anos de uso",
+     "contribuicao": 2.57
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo confiável (Velsis VR-3 Sentinel)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 334,
+   "codigo": "FOGO-MOT-0014",
+   "tipo": "moto_agente",
+   "marca": "Yamaha",
+   "modelo": "XTZ 250 Lander",
+   "bairroNome": "Jardim Domingos de Leo",
+   "probabilidade": 0.1266,
+   "fatores": [
+    {
+     "nome": "4 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2.33
+    },
+    {
+     "nome": "Idade: 4,4 anos de uso",
+     "contribuicao": 1.87
+    },
+    {
+     "nome": "Modelo na média do tipo (Yamaha XTZ 250 Lander)",
+     "contribuicao": 1
+    }
+   ]
+  },
+  {
+   "equipamentoId": 246,
+   "codigo": "FOGO-TOT-0001",
+   "tipo": "totem_rotativo",
+   "marca": "Digicon",
+   "modelo": "DT-500",
+   "bairroNome": "Centro",
+   "probabilidade": 0.1262,
+   "fatores": [
+    {
+     "nome": "Idade: 5,4 anos de uso",
+     "contribuicao": 2.08
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo na média do tipo (Digicon DT-500)",
+     "contribuicao": 0.96
+    }
+   ]
+  },
+  {
+   "equipamentoId": 265,
+   "codigo": "FOGO-PMV-0002",
+   "tipo": "painel_mensagem",
+   "marca": "Digiflex",
+   "modelo": "PMV-48",
+   "bairroNome": "Somenzari",
+   "probabilidade": 0.1249,
+   "fatores": [
+    {
+     "nome": "Idade: 5,8 anos de uso",
+     "contribuicao": 2.17
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Digiflex PMV-48)",
+     "contribuicao": 1.17
+    }
+   ]
+  },
+  {
+   "equipamentoId": 29,
+   "codigo": "FOGO-CAM-0012",
+   "tipo": "camera",
+   "marca": "Intelbras",
+   "modelo": "VIP 3230",
+   "bairroNome": "Centro",
+   "probabilidade": 0.1248,
+   "fatores": [
+    {
+     "nome": "Idade: 4,1 anos de uso",
+     "contribuicao": 1.82
+    },
+    {
+     "nome": "Modelo confiável (Intelbras VIP 3230)",
+     "contribuicao": 0.72
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 212,
+   "codigo": "FOGO-PAT-0047",
+   "tipo": "patinete",
+   "marca": "Xiaomi",
+   "modelo": "Scooter 4 Pro",
+   "bairroNome": "Banzato",
+   "probabilidade": 0.1245,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Idade: 0,7 anos de uso",
+     "contribuicao": 1.14
+    },
+    {
+     "nome": "Modelo na média do tipo (Xiaomi Scooter 4 Pro)",
+     "contribuicao": 1.09
+    }
+   ]
+  },
+  {
+   "equipamentoId": 229,
+   "codigo": "FOGO-BAL-0004",
+   "tipo": "balanca",
+   "marca": "Toledo",
+   "modelo": "PW-9000 WIM",
+   "bairroNome": "Jardim Maria Izabel",
+   "probabilidade": 0.1239,
+   "fatores": [
+    {
+     "nome": "Idade: 6,8 anos de uso",
+     "contribuicao": 2.36
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Toledo PW-9000 WIM)",
+     "contribuicao": 1
+    }
+   ]
+  },
+  {
+   "equipamentoId": 254,
+   "codigo": "FOGO-TOT-0009",
+   "tipo": "totem_rotativo",
+   "marca": "Digicon",
+   "modelo": "DT-500",
+   "bairroNome": "Centro",
+   "probabilidade": 0.122,
+   "fatores": [
+    {
+     "nome": "Idade: 5,1 anos de uso",
+     "contribuicao": 2.01
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo na média do tipo (Digicon DT-500)",
+     "contribuicao": 0.96
+    }
+   ]
+  },
+  {
+   "equipamentoId": 261,
+   "codigo": "FOGO-TOT-0016",
+   "tipo": "totem_rotativo",
+   "marca": "Digicon",
+   "modelo": "DT-500",
+   "bairroNome": "Centro",
+   "probabilidade": 0.121,
+   "fatores": [
+    {
+     "nome": "Idade: 5,0 anos de uso",
+     "contribuicao": 1.99
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo na média do tipo (Digicon DT-500)",
+     "contribuicao": 0.96
+    }
+   ]
+  },
+  {
+   "equipamentoId": 197,
+   "codigo": "FOGO-PAT-0032",
+   "tipo": "patinete",
+   "marca": "Okai",
+   "modelo": "ES400",
+   "bairroNome": "Banzato",
+   "probabilidade": 0.1205,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Idade: 1,2 anos de uso",
+     "contribuicao": 1.23
+    },
+    {
+     "nome": "Modelo na média do tipo (Okai ES400)",
+     "contribuicao": 0.98
+    }
+   ]
+  },
+  {
+   "equipamentoId": 225,
+   "codigo": "FOGO-PAT-0060",
+   "tipo": "patinete",
+   "marca": "Okai",
+   "modelo": "ES400",
+   "bairroNome": "Palmital",
+   "probabilidade": 0.1204,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Idade: 1,1 anos de uso",
+     "contribuicao": 1.23
+    },
+    {
+     "nome": "Modelo na média do tipo (Okai ES400)",
+     "contribuicao": 0.98
+    }
+   ]
+  },
+  {
+   "equipamentoId": 106,
+   "codigo": "FOGO-CAM-0034",
+   "tipo": "camera",
+   "marca": "Axis",
+   "modelo": "Q1798-LE",
+   "bairroNome": "Centro",
+   "probabilidade": 0.1192,
+   "fatores": [
+    {
+     "nome": "Idade: 6,6 anos de uso",
+     "contribuicao": 2.33
+    },
+    {
+     "nome": "Modelo confiável (Axis Q1798-LE)",
+     "contribuicao": 0.71
+    }
+   ]
+  },
+  {
+   "equipamentoId": 272,
+   "codigo": "FOGO-PMV-0009",
+   "tipo": "painel_mensagem",
+   "marca": "Digiflex",
+   "modelo": "PMV-48",
+   "bairroNome": "Jardim Damasco I",
+   "probabilidade": 0.1192,
+   "fatores": [
+    {
+     "nome": "Idade: 5,3 anos de uso",
+     "contribuicao": 2.06
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Digiflex PMV-48)",
+     "contribuicao": 1.17
+    }
+   ]
+  },
+  {
+   "equipamentoId": 19,
+   "codigo": "FOGO-RAD-0006",
+   "tipo": "radar",
+   "marca": "Pumatronix",
+   "modelo": "ITS-450",
+   "bairroNome": "Sítios de Recreio Céu Azul",
+   "probabilidade": 0.119,
+   "fatores": [
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Idade: 1,7 anos de uso",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Pumatronix ITS-450)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 172,
+   "codigo": "FOGO-PAT-0007",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Palmital",
+   "probabilidade": 0.1189,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    }
+   ]
+  },
+  {
+   "equipamentoId": 164,
+   "codigo": "FOGO-SEM-0054",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Jardim Ohara",
+   "probabilidade": 0.1172,
+   "fatores": [
+    {
+     "nome": "Manutenção atrasada há 26 dias",
+     "contribuicao": 1.87
+    },
+    {
+     "nome": "Idade: 2,8 anos de uso",
+     "contribuicao": 1.56
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 167,
+   "codigo": "FOGO-PAT-0002",
+   "tipo": "patinete",
+   "marca": "Xiaomi",
+   "modelo": "Scooter 4 Pro",
+   "bairroNome": "Banzato",
+   "probabilidade": 0.1171,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Xiaomi Scooter 4 Pro)",
+     "contribuicao": 1.09
+    },
+    {
+     "nome": "Idade: 0,3 anos de uso",
+     "contribuicao": 1.07
+    }
+   ]
+  },
+  {
+   "equipamentoId": 245,
+   "codigo": "FOGO-CAN-0010",
+   "tipo": "cancela",
+   "marca": "Nice",
+   "modelo": "Wil 6",
+   "bairroNome": "Jardim Cavallari",
+   "probabilidade": 0.1154,
+   "fatores": [
+    {
+     "nome": "Idade: 7,2 anos de uso",
+     "contribuicao": 2.44
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo pouco confiável (Nice Wil 6)",
+     "contribuicao": 1.2
+    }
+   ]
+  },
+  {
+   "equipamentoId": 199,
+   "codigo": "FOGO-PAT-0034",
+   "tipo": "patinete",
+   "marca": "Xiaomi",
+   "modelo": "Scooter 4 Pro",
+   "bairroNome": "Jardim Tropical",
+   "probabilidade": 0.1143,
+   "fatores": [
+    {
+     "nome": "Idade: 1,9 anos de uso",
+     "contribuicao": 1.39
+    },
+    {
+     "nome": "Modelo na média do tipo (Xiaomi Scooter 4 Pro)",
+     "contribuicao": 1.09
+    }
+   ]
+  },
+  {
+   "equipamentoId": 69,
+   "codigo": "FOGO-RAD-0015",
+   "tipo": "radar",
+   "marca": "Pumatronix",
+   "modelo": "ITS-450",
+   "bairroNome": "Núcleo Habitacional José Teruel Martinez",
+   "probabilidade": 0.1139,
+   "fatores": [
+    {
+     "nome": "Idade: 4,5 anos de uso",
+     "contribuicao": 1.91
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Pumatronix ITS-450)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 186,
+   "codigo": "FOGO-PAT-0021",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Jardim Universitário",
+   "probabilidade": 0.1134,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Idade: 1,0 ano de uso",
+     "contribuicao": 1.21
+    },
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    }
+   ]
+  },
+  {
+   "equipamentoId": 248,
+   "codigo": "FOGO-TOT-0003",
+   "tipo": "totem_rotativo",
+   "marca": "Taxlog",
+   "modelo": "AutoPark 2",
+   "bairroNome": "Centro",
+   "probabilidade": 0.1126,
+   "fatores": [
+    {
+     "nome": "Idade: 5,2 anos de uso",
+     "contribuicao": 2.05
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Taxlog AutoPark 2)",
+     "contribuicao": 1.08
+    }
+   ]
+  },
+  {
+   "equipamentoId": 320,
+   "codigo": "FOGO-TRA-0032",
+   "tipo": "transporte",
+   "marca": "Mercedes-Benz",
+   "modelo": "Sprinter 416",
+   "bairroNome": "Jardim Maria Izabel",
+   "probabilidade": 0.1119,
+   "fatores": [
+    {
+     "nome": "Idade: 5,4 anos de uso",
+     "contribuicao": 2.08
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo na média do tipo (Mercedes-Benz Sprinter 416)",
+     "contribuicao": 0.95
+    }
+   ]
+  },
+  {
+   "equipamentoId": 307,
+   "codigo": "FOGO-TRA-0019",
+   "tipo": "transporte",
+   "marca": "Honda",
+   "modelo": "CG 160 Fan",
+   "bairroNome": "Jardim Itaipu",
+   "probabilidade": 0.1115,
+   "fatores": [
+    {
+     "nome": "Idade: 5,7 anos de uso",
+     "contribuicao": 2.14
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Honda CG 160 Fan)",
+     "contribuicao": 1.15
+    }
+   ]
+  },
+  {
+   "equipamentoId": 158,
+   "codigo": "FOGO-SEM-0048",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Jóquei Clube",
+   "probabilidade": 0.1105,
+   "fatores": [
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Idade: 4,1 anos de uso",
+     "contribuicao": 1.83
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 302,
+   "codigo": "FOGO-TRA-0014",
+   "tipo": "transporte",
+   "marca": "Honda",
+   "modelo": "CG 160 Fan",
+   "bairroNome": "Sítios de Recreio Céu Azul",
+   "probabilidade": 0.1098,
+   "fatores": [
+    {
+     "nome": "Idade: 5,5 anos de uso",
+     "contribuicao": 2.11
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Honda CG 160 Fan)",
+     "contribuicao": 1.15
+    }
+   ]
+  },
+  {
+   "equipamentoId": 104,
+   "codigo": "FOGO-CAM-0032",
+   "tipo": "camera",
+   "marca": "Intelbras",
+   "modelo": "VIP 3230",
+   "bairroNome": "Jardim Ohara",
+   "probabilidade": 0.1089,
+   "fatores": [
+    {
+     "nome": "Idade: 5,5 anos de uso",
+     "contribuicao": 2.09
+    },
+    {
+     "nome": "Modelo confiável (Intelbras VIP 3230)",
+     "contribuicao": 0.72
+    }
+   ]
+  },
+  {
+   "equipamentoId": 349,
+   "codigo": "FOGO-VTR-0015",
+   "tipo": "viatura",
+   "marca": "Chevrolet",
+   "modelo": "Spin Premier",
+   "bairroNome": "Núcleo Habitacional José Teruel Martinez",
+   "probabilidade": 0.1075,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 2,4 anos de uso",
+     "contribuicao": 1.49
+    },
+    {
+     "nome": "Modelo pouco confiável (Chevrolet Spin Premier)",
+     "contribuicao": 1.19
+    }
+   ]
+  },
+  {
+   "equipamentoId": 279,
+   "codigo": "FOGO-ALG-0007",
+   "tipo": "sensor_alagamento",
+   "marca": "Hidromet",
+   "modelo": "HN-30",
+   "bairroNome": "Jardim Parati",
+   "probabilidade": 0.1063,
+   "fatores": [
+    {
+     "nome": "Idade: 5,1 anos de uso",
+     "contribuicao": 2.01
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo pouco confiável (Hidromet HN-30)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 321,
+   "codigo": "FOGO-MOT-0001",
+   "tipo": "moto_agente",
+   "marca": "Honda",
+   "modelo": "XRE 300",
+   "bairroNome": "Jardim Polyana",
+   "probabilidade": 0.1056,
+   "fatores": [
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Idade: 4,0 anos de uso",
+     "contribuicao": 1.8
+    },
+    {
+     "nome": "Modelo na média do tipo (Honda XRE 300)",
+     "contribuicao": 1
+    }
+   ]
+  },
+  {
+   "equipamentoId": 283,
+   "codigo": "FOGO-ALG-0011",
+   "tipo": "sensor_alagamento",
+   "marca": "Hidromet",
+   "modelo": "HN-30",
+   "bairroNome": "Jardim Parati",
+   "probabilidade": 0.1048,
+   "fatores": [
+    {
+     "nome": "Idade: 4,9 anos de uso",
+     "contribuicao": 1.98
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo pouco confiável (Hidromet HN-30)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 260,
+   "codigo": "FOGO-TOT-0015",
+   "tipo": "totem_rotativo",
+   "marca": "Digicon",
+   "modelo": "DT-500",
+   "bairroNome": "Somenzari",
+   "probabilidade": 0.1041,
+   "fatores": [
+    {
+     "nome": "Idade: 5,6 anos de uso",
+     "contribuicao": 2.12
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Digicon DT-500)",
+     "contribuicao": 0.96
+    }
+   ]
+  },
+  {
+   "equipamentoId": 9,
+   "codigo": "FOGO-CAM-0005",
+   "tipo": "camera",
+   "marca": "Axis",
+   "modelo": "Q1798-LE",
+   "bairroNome": "Jardim Veneza",
+   "probabilidade": 0.1039,
+   "fatores": [
+    {
+     "nome": "Idade: 2,5 anos de uso",
+     "contribuicao": 1.51
+    },
+    {
+     "nome": "Modelo confiável (Axis Q1798-LE)",
+     "contribuicao": 0.71
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 301,
+   "codigo": "FOGO-TRA-0013",
+   "tipo": "transporte",
+   "marca": "Honda",
+   "modelo": "CG 160 Fan",
+   "bairroNome": "Vila Mariana",
+   "probabilidade": 0.1039,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 3,0 anos de uso",
+     "contribuicao": 1.59
+    },
+    {
+     "nome": "Modelo pouco confiável (Honda CG 160 Fan)",
+     "contribuicao": 1.15
+    }
+   ]
+  },
+  {
+   "equipamentoId": 235,
+   "codigo": "FOGO-FIS-0006",
+   "tipo": "fiscal_rotativo",
+   "marca": "Renault",
+   "modelo": "Kwid E-Tech",
+   "bairroNome": "Banzato",
+   "probabilidade": 0.1035,
+   "fatores": [
+    {
+     "nome": "Idade: 6,0 anos de uso",
+     "contribuicao": 2.19
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo confiável (Renault Kwid E-Tech)",
+     "contribuicao": 0.88
+    }
+   ]
+  },
+  {
+   "equipamentoId": 148,
+   "codigo": "FOGO-SEM-0038",
+   "tipo": "semaforo",
+   "marca": "Siemens",
+   "modelo": "Sitraffic sX",
+   "bairroNome": "Jardim Veneza",
+   "probabilidade": 0.1026,
+   "fatores": [
+    {
+     "nome": "Idade: 7,9 anos de uso",
+     "contribuicao": 2.59
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo confiável (Siemens Sitraffic sX)",
+     "contribuicao": 0.81
+    }
+   ]
+  },
+  {
+   "equipamentoId": 121,
+   "codigo": "FOGO-CAM-0049",
+   "tipo": "camera",
+   "marca": "Intelbras",
+   "modelo": "VIP 3230",
+   "bairroNome": "Nova Marília",
+   "probabilidade": 0.1018,
+   "fatores": [
+    {
+     "nome": "Idade: 2,3 anos de uso",
+     "contribuicao": 1.46
+    },
+    {
+     "nome": "Modelo confiável (Intelbras VIP 3230)",
+     "contribuicao": 0.72
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 128,
+   "codigo": "FOGO-CAM-0056",
+   "tipo": "camera",
+   "marca": "Intelbras",
+   "modelo": "VIP 3230",
+   "bairroNome": "Jardim São Vicente de Paulo",
+   "probabilidade": 0.1015,
+   "fatores": [
+    {
+     "nome": "Idade: 2,3 anos de uso",
+     "contribuicao": 1.46
+    },
+    {
+     "nome": "Modelo confiável (Intelbras VIP 3230)",
+     "contribuicao": 0.72
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 247,
+   "codigo": "FOGO-TOT-0002",
+   "tipo": "totem_rotativo",
+   "marca": "Digicon",
+   "modelo": "DT-500",
+   "bairroNome": "Palmital",
+   "probabilidade": 0.1014,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 3,3 anos de uso",
+     "contribuicao": 1.65
+    },
+    {
+     "nome": "Modelo na média do tipo (Digicon DT-500)",
+     "contribuicao": 0.96
+    }
+   ]
+  },
+  {
+   "equipamentoId": 220,
+   "codigo": "FOGO-PAT-0055",
+   "tipo": "patinete",
+   "marca": "Okai",
+   "modelo": "ES400",
+   "bairroNome": "Maria Izabel",
+   "probabilidade": 0.1006,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Okai ES400)",
+     "contribuicao": 0.98
+    }
+   ]
+  },
+  {
+   "equipamentoId": 311,
+   "codigo": "FOGO-TRA-0023",
+   "tipo": "transporte",
+   "marca": "Volare",
+   "modelo": "W9 Escolar",
+   "bairroNome": "Parque São Jorge",
+   "probabilidade": 0.1002,
+   "fatores": [
+    {
+     "nome": "Idade: 5,7 anos de uso",
+     "contribuicao": 2.14
+    },
+    {
+     "nome": "Modelo pouco confiável (Volare W9 Escolar)",
+     "contribuicao": 1.38
+    }
+   ]
+  },
+  {
+   "equipamentoId": 163,
+   "codigo": "FOGO-SEM-0053",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Jardim Pérola",
+   "probabilidade": 0.1001,
+   "fatores": [
+    {
+     "nome": "Idade: 7,3 anos de uso",
+     "contribuicao": 2.46
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 45,
+   "codigo": "FOGO-SEM-0014",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Jardim Parati",
+   "probabilidade": 0.099,
+   "fatores": [
+    {
+     "nome": "Idade: 4,7 anos de uso",
+     "contribuicao": 1.95
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 312,
+   "codigo": "FOGO-TRA-0024",
+   "tipo": "transporte",
+   "marca": "Renault",
+   "modelo": "Master Escolar",
+   "bairroNome": "Jardim Ohara",
+   "probabilidade": 0.099,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 3,2 anos de uso",
+     "contribuicao": 1.63
+    },
+    {
+     "nome": "Modelo na média do tipo (Renault Master Escolar)",
+     "contribuicao": 1.07
+    }
+   ]
+  },
+  {
+   "equipamentoId": 211,
+   "codigo": "FOGO-PAT-0046",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Fragata",
+   "probabilidade": 0.0988,
+   "fatores": [
+    {
+     "nome": "Idade: 2,0 anos de uso",
+     "contribuicao": 1.39
+    },
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    }
+   ]
+  },
+  {
+   "equipamentoId": 221,
+   "codigo": "FOGO-PAT-0056",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Jardim Tropical",
+   "probabilidade": 0.0987,
+   "fatores": [
+    {
+     "nome": "Idade: 2,0 anos de uso",
+     "contribuicao": 1.39
+    },
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    }
+   ]
+  },
+  {
+   "equipamentoId": 107,
+   "codigo": "FOGO-CAM-0035",
+   "tipo": "camera",
+   "marca": "Hikvision",
+   "modelo": "DS-2DE4425 PTZ",
+   "bairroNome": "Maria Izabel",
+   "probabilidade": 0.0979,
+   "fatores": [
+    {
+     "nome": "Idade: 4,2 anos de uso",
+     "contribuicao": 1.84
+    },
+    {
+     "nome": "Modelo confiável (Hikvision DS-2DE4425 PTZ)",
+     "contribuicao": 0.55
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 294,
+   "codigo": "FOGO-TRA-0006",
+   "tipo": "transporte",
+   "marca": "Chevrolet",
+   "modelo": "Spin 1.8",
+   "bairroNome": "Lorenzetti",
+   "probabilidade": 0.0976,
+   "fatores": [
+    {
+     "nome": "Idade: 5,0 anos de uso",
+     "contribuicao": 2
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo confiável (Chevrolet Spin 1.8)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 124,
+   "codigo": "FOGO-CAM-0052",
+   "tipo": "camera",
+   "marca": "Intelbras",
+   "modelo": "VIP 3230",
+   "bairroNome": "Jardim Domingos de Leo",
+   "probabilidade": 0.0969,
+   "fatores": [
+    {
+     "nome": "Modelo confiável (Intelbras VIP 3230)",
+     "contribuicao": 0.72
+    },
+    {
+     "nome": "Idade: 1,9 anos de uso",
+     "contribuicao": 1.39
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 141,
+   "codigo": "FOGO-SEM-0031",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Banzato",
+   "probabilidade": 0.0966,
+   "fatores": [
+    {
+     "nome": "Idade: 6,9 anos de uso",
+     "contribuicao": 2.37
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 68,
+   "codigo": "FOGO-RAD-0014",
+   "tipo": "radar",
+   "marca": "Perkons",
+   "modelo": "PK-7000",
+   "bairroNome": "Jardim São Vicente de Paulo",
+   "probabilidade": 0.0965,
+   "fatores": [
+    {
+     "nome": "Idade: 4,3 anos de uso",
+     "contribuicao": 1.87
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo confiável (Perkons PK-7000)",
+     "contribuicao": 0.88
+    }
+   ]
+  },
+  {
+   "equipamentoId": 108,
+   "codigo": "FOGO-CAM-0036",
+   "tipo": "camera",
+   "marca": "Intelbras",
+   "modelo": "VIP 3230",
+   "bairroNome": "Jardim Ohara",
+   "probabilidade": 0.0964,
+   "fatores": [
+    {
+     "nome": "Idade: 4,2 anos de uso",
+     "contribuicao": 1.84
+    },
+    {
+     "nome": "Modelo confiável (Intelbras VIP 3230)",
+     "contribuicao": 0.72
+    }
+   ]
+  },
+  {
+   "equipamentoId": 76,
+   "codigo": "FOGO-RAD-0022",
+   "tipo": "radar",
+   "marca": "Pumatronix",
+   "modelo": "ITS-450",
+   "bairroNome": "Banzato",
+   "probabilidade": 0.0963,
+   "fatores": [
+    {
+     "nome": "Idade: 3,0 anos de uso",
+     "contribuicao": 1.6
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Pumatronix ITS-450)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 227,
+   "codigo": "FOGO-BAL-0002",
+   "tipo": "balanca",
+   "marca": "Toledo",
+   "modelo": "PW-9000 WIM",
+   "bairroNome": "Jardim Ohara",
+   "probabilidade": 0.0961,
+   "fatores": [
+    {
+     "nome": "Idade: 4,0 anos de uso",
+     "contribuicao": 1.8
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Toledo PW-9000 WIM)",
+     "contribuicao": 1
+    }
+   ]
+  },
+  {
+   "equipamentoId": 253,
+   "codigo": "FOGO-TOT-0008",
+   "tipo": "totem_rotativo",
+   "marca": "Taxlog",
+   "modelo": "AutoPark 2",
+   "bairroNome": "Banzato",
+   "probabilidade": 0.0942,
+   "fatores": [
+    {
+     "nome": "Idade: 3,5 anos de uso",
+     "contribuicao": 1.69
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Taxlog AutoPark 2)",
+     "contribuicao": 1.08
+    }
+   ]
+  },
+  {
+   "equipamentoId": 222,
+   "codigo": "FOGO-PAT-0057",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Centro",
+   "probabilidade": 0.094,
+   "fatores": [
+    {
+     "nome": "Idade: 1,6 anos de uso",
+     "contribuicao": 1.32
+    },
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    }
+   ]
+  },
+  {
+   "equipamentoId": 101,
+   "codigo": "FOGO-RAD-0047",
+   "tipo": "radar",
+   "marca": "Velsis",
+   "modelo": "VR-3 Sentinel",
+   "bairroNome": "Jardim Domingos de Leo",
+   "probabilidade": 0.0939,
+   "fatores": [
+    {
+     "nome": "Idade: 3,0 anos de uso",
+     "contribuicao": 1.59
+    },
+    {
+     "nome": "Manutenção atrasada há 14 dias",
+     "contribuicao": 1.47
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo confiável (Velsis VR-3 Sentinel)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 88,
+   "codigo": "FOGO-RAD-0034",
+   "tipo": "radar",
+   "marca": "Perkons",
+   "modelo": "PK-7000",
+   "bairroNome": "Jardim Guarujá",
+   "probabilidade": 0.0939,
+   "fatores": [
+    {
+     "nome": "Idade: 6,4 anos de uso",
+     "contribuicao": 2.27
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo confiável (Perkons PK-7000)",
+     "contribuicao": 0.88
+    }
+   ]
+  },
+  {
+   "equipamentoId": 73,
+   "codigo": "FOGO-RAD-0019",
+   "tipo": "radar",
+   "marca": "Pumatronix",
+   "modelo": "ITS-450",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0932,
+   "fatores": [
+    {
+     "nome": "Idade: 2,7 anos de uso",
+     "contribuicao": 1.54
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Pumatronix ITS-450)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 219,
+   "codigo": "FOGO-PAT-0054",
+   "tipo": "patinete",
+   "marca": "Okai",
+   "modelo": "ES400",
+   "bairroNome": "Alto Cafezal",
+   "probabilidade": 0.0924,
+   "fatores": [
+    {
+     "nome": "Idade: 1,2 anos de uso",
+     "contribuicao": 1.24
+    },
+    {
+     "nome": "Modelo na média do tipo (Okai ES400)",
+     "contribuicao": 0.98
+    }
+   ]
+  },
+  {
+   "equipamentoId": 129,
+   "codigo": "FOGO-CAM-0057",
+   "tipo": "camera",
+   "marca": "Hikvision",
+   "modelo": "DS-2DE4425 PTZ",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0919,
+   "fatores": [
+    {
+     "nome": "Idade: 6,5 anos de uso",
+     "contribuicao": 2.29
+    },
+    {
+     "nome": "Modelo confiável (Hikvision DS-2DE4425 PTZ)",
+     "contribuicao": 0.55
+    }
+   ]
+  },
+  {
+   "equipamentoId": 333,
+   "codigo": "FOGO-MOT-0013",
+   "tipo": "moto_agente",
+   "marca": "Honda",
+   "modelo": "XRE 300",
+   "bairroNome": "Jardim Polyana",
+   "probabilidade": 0.0918,
+   "fatores": [
+    {
+     "nome": "Idade: 4,3 anos de uso",
+     "contribuicao": 1.86
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo na média do tipo (Honda XRE 300)",
+     "contribuicao": 1
+    }
+   ]
+  },
+  {
+   "equipamentoId": 154,
+   "codigo": "FOGO-SEM-0044",
+   "tipo": "semaforo",
+   "marca": "Digicon",
+   "modelo": "Contrail 4",
+   "bairroNome": "Jardim Maria Izabel",
+   "probabilidade": 0.0906,
+   "fatores": [
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Idade: 1,8 anos de uso",
+     "contribuicao": 1.35
+    },
+    {
+     "nome": "Modelo pouco confiável (Digicon Contrail 4)",
+     "contribuicao": 1.14
+    }
+   ]
+  },
+  {
+   "equipamentoId": 189,
+   "codigo": "FOGO-PAT-0024",
+   "tipo": "patinete",
+   "marca": "Okai",
+   "modelo": "ES400",
+   "bairroNome": "Palmital",
+   "probabilidade": 0.0906,
+   "fatores": [
+    {
+     "nome": "Idade: 1,1 anos de uso",
+     "contribuicao": 1.21
+    },
+    {
+     "nome": "Modelo na média do tipo (Okai ES400)",
+     "contribuicao": 0.98
+    }
+   ]
+  },
+  {
+   "equipamentoId": 231,
+   "codigo": "FOGO-FIS-0002",
+   "tipo": "fiscal_rotativo",
+   "marca": "Renault",
+   "modelo": "Kwid E-Tech",
+   "bairroNome": "Centro",
+   "probabilidade": 0.09,
+   "fatores": [
+    {
+     "nome": "Idade: 4,5 anos de uso",
+     "contribuicao": 1.89
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo confiável (Renault Kwid E-Tech)",
+     "contribuicao": 0.88
+    }
+   ]
+  },
+  {
+   "equipamentoId": 81,
+   "codigo": "FOGO-RAD-0027",
+   "tipo": "radar",
+   "marca": "Pumatronix",
+   "modelo": "ITS-450",
+   "bairroNome": "Parque dos Ipês",
+   "probabilidade": 0.0893,
+   "fatores": [
+    {
+     "nome": "Idade: 4,8 anos de uso",
+     "contribuicao": 1.96
+    },
+    {
+     "nome": "Modelo pouco confiável (Pumatronix ITS-450)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 92,
+   "codigo": "FOGO-RAD-0038",
+   "tipo": "radar",
+   "marca": "Perkons",
+   "modelo": "PK-7000",
+   "bairroNome": "Banzato",
+   "probabilidade": 0.0892,
+   "fatores": [
+    {
+     "nome": "Idade: 5,8 anos de uso",
+     "contribuicao": 2.15
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo confiável (Perkons PK-7000)",
+     "contribuicao": 0.88
+    }
+   ]
+  },
+  {
+   "equipamentoId": 347,
+   "codigo": "FOGO-VTR-0013",
+   "tipo": "viatura",
+   "marca": "Chevrolet",
+   "modelo": "Spin Premier",
+   "bairroNome": "Jardim Veneza",
+   "probabilidade": 0.0892,
+   "fatores": [
+    {
+     "nome": "Idade: 5,2 anos de uso",
+     "contribuicao": 2.04
+    },
+    {
+     "nome": "Modelo pouco confiável (Chevrolet Spin Premier)",
+     "contribuicao": 1.19
+    }
+   ]
+  },
+  {
+   "equipamentoId": 243,
+   "codigo": "FOGO-CAN-0008",
+   "tipo": "cancela",
+   "marca": "Nice",
+   "modelo": "Wil 6",
+   "bairroNome": "Banzato",
+   "probabilidade": 0.0888,
+   "fatores": [
+    {
+     "nome": "Idade: 4,2 anos de uso",
+     "contribuicao": 1.85
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo pouco confiável (Nice Wil 6)",
+     "contribuicao": 1.2
+    }
+   ]
+  },
+  {
+   "equipamentoId": 20,
+   "codigo": "FOGO-RAD-0007",
+   "tipo": "radar",
+   "marca": "Velsis",
+   "modelo": "VR-3 Sentinel",
+   "bairroNome": "Jardim Virgínia",
+   "probabilidade": 0.0887,
+   "fatores": [
+    {
+     "nome": "Idade: 6,0 anos de uso",
+     "contribuicao": 2.2
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo confiável (Velsis VR-3 Sentinel)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 87,
+   "codigo": "FOGO-RAD-0033",
+   "tipo": "radar",
+   "marca": "Velsis",
+   "modelo": "VR-3 Sentinel",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0885,
+   "fatores": [
+    {
+     "nome": "Idade: 6,0 anos de uso",
+     "contribuicao": 2.19
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo confiável (Velsis VR-3 Sentinel)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 218,
+   "codigo": "FOGO-PAT-0053",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Cavalieri",
+   "probabilidade": 0.0882,
+   "fatores": [
+    {
+     "nome": "Idade: 1,2 anos de uso",
+     "contribuicao": 1.24
+    },
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    }
+   ]
+  },
+  {
+   "equipamentoId": 86,
+   "codigo": "FOGO-RAD-0032",
+   "tipo": "radar",
+   "marca": "Velsis",
+   "modelo": "VR-3 Sentinel",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0881,
+   "fatores": [
+    {
+     "nome": "Idade: 5,9 anos de uso",
+     "contribuicao": 2.18
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo confiável (Velsis VR-3 Sentinel)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 28,
+   "codigo": "FOGO-SEM-0009",
+   "tipo": "semaforo",
+   "marca": "Siemens",
+   "modelo": "Sitraffic sX",
+   "bairroNome": "Chico Mendes",
+   "probabilidade": 0.0881,
+   "fatores": [
+    {
+     "nome": "Idade: 6,0 anos de uso",
+     "contribuicao": 2.2
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo confiável (Siemens Sitraffic sX)",
+     "contribuicao": 0.81
+    }
+   ]
+  },
+  {
+   "equipamentoId": 216,
+   "codigo": "FOGO-PAT-0051",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Jardim California",
+   "probabilidade": 0.0875,
+   "fatores": [
+    {
+     "nome": "Idade: 1,1 anos de uso",
+     "contribuicao": 1.23
+    },
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    }
+   ]
+  },
+  {
+   "equipamentoId": 16,
+   "codigo": "FOGO-RAD-0004",
+   "tipo": "radar",
+   "marca": "Velsis",
+   "modelo": "VR-3 Sentinel",
+   "bairroNome": "Jardim Morumbi",
+   "probabilidade": 0.0864,
+   "fatores": [
+    {
+     "nome": "Idade: 5,7 anos de uso",
+     "contribuicao": 2.14
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo confiável (Velsis VR-3 Sentinel)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 188,
+   "codigo": "FOGO-PAT-0023",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Alto Cafezal",
+   "probabilidade": 0.0862,
+   "fatores": [
+    {
+     "nome": "Idade: 1,0 ano de uso",
+     "contribuicao": 1.21
+    },
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    }
+   ]
+  },
+  {
+   "equipamentoId": 184,
+   "codigo": "FOGO-PAT-0019",
+   "tipo": "patinete",
+   "marca": "Okai",
+   "modelo": "ES400",
+   "bairroNome": "Jardim California",
+   "probabilidade": 0.0861,
+   "fatores": [
+    {
+     "nome": "Idade: 0,8 anos de uso",
+     "contribuicao": 1.15
+    },
+    {
+     "nome": "Modelo na média do tipo (Okai ES400)",
+     "contribuicao": 0.98
+    }
+   ]
+  },
+  {
+   "equipamentoId": 112,
+   "codigo": "FOGO-CAM-0040",
+   "tipo": "camera",
+   "marca": "Hikvision",
+   "modelo": "DS-2DE4425 PTZ",
+   "bairroNome": "Jardim Cavallari",
+   "probabilidade": 0.0859,
+   "fatores": [
+    {
+     "nome": "Modelo confiável (Hikvision DS-2DE4425 PTZ)",
+     "contribuicao": 0.55
+    },
+    {
+     "nome": "Idade: 3,0 anos de uso",
+     "contribuicao": 1.6
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 206,
+   "codigo": "FOGO-PAT-0041",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Jardim California",
+   "probabilidade": 0.0854,
+   "fatores": [
+    {
+     "nome": "Idade: 1,0 ano de uso",
+     "contribuicao": 1.2
+    },
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    }
+   ]
+  },
+  {
+   "equipamentoId": 316,
+   "codigo": "FOGO-TRA-0028",
+   "tipo": "transporte",
+   "marca": "Volare",
+   "modelo": "W9 Escolar",
+   "bairroNome": "Jardim Polyana",
+   "probabilidade": 0.0853,
+   "fatores": [
+    {
+     "nome": "Modelo pouco confiável (Volare W9 Escolar)",
+     "contribuicao": 1.38
+    },
+    {
+     "nome": "Idade: 1,8 anos de uso",
+     "contribuicao": 1.35
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 256,
+   "codigo": "FOGO-TOT-0011",
+   "tipo": "totem_rotativo",
+   "marca": "Digicon",
+   "modelo": "DT-500",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0853,
+   "fatores": [
+    {
+     "nome": "Idade: 6,5 anos de uso",
+     "contribuicao": 2.3
+    },
+    {
+     "nome": "Modelo na média do tipo (Digicon DT-500)",
+     "contribuicao": 0.96
+    }
+   ]
+  },
+  {
+   "equipamentoId": 133,
+   "codigo": "FOGO-CAM-0061",
+   "tipo": "camera",
+   "marca": "Axis",
+   "modelo": "Q1798-LE",
+   "bairroNome": "Jardim Tropical",
+   "probabilidade": 0.0851,
+   "fatores": [
+    {
+     "nome": "Idade: 3,2 anos de uso",
+     "contribuicao": 1.63
+    },
+    {
+     "nome": "Modelo confiável (Axis Q1798-LE)",
+     "contribuicao": 0.71
+    }
+   ]
+  },
+  {
+   "equipamentoId": 210,
+   "codigo": "FOGO-PAT-0045",
+   "tipo": "patinete",
+   "marca": "Okai",
+   "modelo": "ES400",
+   "bairroNome": "Banzato",
+   "probabilidade": 0.0847,
+   "fatores": [
+    {
+     "nome": "Idade: 0,7 anos de uso",
+     "contribuicao": 1.13
+    },
+    {
+     "nome": "Modelo na média do tipo (Okai ES400)",
+     "contribuicao": 0.98
+    }
+   ]
+  },
+  {
+   "equipamentoId": 180,
+   "codigo": "FOGO-PAT-0015",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Higienópolis",
+   "probabilidade": 0.0847,
+   "fatores": [
+    {
+     "nome": "Idade: 0,9 anos de uso",
+     "contribuicao": 1.19
+    },
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    }
+   ]
+  },
+  {
+   "equipamentoId": 55,
+   "codigo": "FOGO-SEM-0018",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Jardim Conquista",
+   "probabilidade": 0.0847,
+   "fatores": [
+    {
+     "nome": "Idade: 5,3 anos de uso",
+     "contribuicao": 2.07
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 342,
+   "codigo": "FOGO-VTR-0008",
+   "tipo": "viatura",
+   "marca": "Renault",
+   "modelo": "Duster",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0841,
+   "fatores": [
+    {
+     "nome": "Idade: 4,4 anos de uso",
+     "contribuicao": 1.87
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Renault Duster)",
+     "contribuicao": 0.91
+    }
+   ]
+  },
+  {
+   "equipamentoId": 215,
+   "codigo": "FOGO-PAT-0050",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Alto Cafezal",
+   "probabilidade": 0.0839,
+   "fatores": [
+    {
+     "nome": "Idade: 0,9 anos de uso",
+     "contribuicao": 1.17
+    },
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    }
+   ]
+  },
+  {
+   "equipamentoId": 83,
+   "codigo": "FOGO-RAD-0029",
+   "tipo": "radar",
+   "marca": "Velsis",
+   "modelo": "VR-3 Sentinel",
+   "bairroNome": "Banzato",
+   "probabilidade": 0.0837,
+   "fatores": [
+    {
+     "nome": "Idade: 5,3 anos de uso",
+     "contribuicao": 2.07
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo confiável (Velsis VR-3 Sentinel)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 170,
+   "codigo": "FOGO-PAT-0005",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Cavalieri",
+   "probabilidade": 0.0837,
+   "fatores": [
+    {
+     "nome": "Idade: 0,9 anos de uso",
+     "contribuicao": 1.17
+    },
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    }
+   ]
+  },
+  {
+   "equipamentoId": 160,
+   "codigo": "FOGO-SEM-0050",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0835,
+   "fatores": [
+    {
+     "nome": "Idade: 2,5 anos de uso",
+     "contribuicao": 1.49
+    },
+    {
+     "nome": "Manutenção atrasada há 11 dias",
+     "contribuicao": 1.37
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 305,
+   "codigo": "FOGO-TRA-0017",
+   "tipo": "transporte",
+   "marca": "Honda",
+   "modelo": "CG 160 Fan",
+   "bairroNome": "Vila Mariana",
+   "probabilidade": 0.0816,
+   "fatores": [
+    {
+     "nome": "Idade: 2,7 anos de uso",
+     "contribuicao": 1.54
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Honda CG 160 Fan)",
+     "contribuicao": 1.15
+    }
+   ]
+  },
+  {
+   "equipamentoId": 62,
+   "codigo": "FOGO-SEM-0024",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Jardim Casadei",
+   "probabilidade": 0.0815,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 3,0 anos de uso",
+     "contribuicao": 1.59
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 10,
+   "codigo": "FOGO-CAM-0006",
+   "tipo": "camera",
+   "marca": "Intelbras",
+   "modelo": "VIP 3230",
+   "bairroNome": "Jardim Santa Paula",
+   "probabilidade": 0.0815,
+   "fatores": [
+    {
+     "nome": "Idade: 2,7 anos de uso",
+     "contribuicao": 1.54
+    },
+    {
+     "nome": "Modelo confiável (Intelbras VIP 3230)",
+     "contribuicao": 0.72
+    }
+   ]
+  },
+  {
+   "equipamentoId": 156,
+   "codigo": "FOGO-SEM-0046",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0808,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 2,9 anos de uso",
+     "contribuicao": 1.58
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 336,
+   "codigo": "FOGO-VTR-0002",
+   "tipo": "viatura",
+   "marca": "Chevrolet",
+   "modelo": "Spin Premier",
+   "bairroNome": "Nova Marília",
+   "probabilidade": 0.0805,
+   "fatores": [
+    {
+     "nome": "Idade: 4,1 anos de uso",
+     "contribuicao": 1.83
+    },
+    {
+     "nome": "Modelo pouco confiável (Chevrolet Spin Premier)",
+     "contribuicao": 1.19
+    }
+   ]
+  },
+  {
+   "equipamentoId": 175,
+   "codigo": "FOGO-PAT-0010",
+   "tipo": "patinete",
+   "marca": "Okai",
+   "modelo": "ES400",
+   "bairroNome": "Palmital",
+   "probabilidade": 0.0802,
+   "fatores": [
+    {
+     "nome": "Idade: 0,3 anos de uso",
+     "contribuicao": 1.07
+    },
+    {
+     "nome": "Modelo na média do tipo (Okai ES400)",
+     "contribuicao": 0.98
+    }
+   ]
+  },
+  {
+   "equipamentoId": 262,
+   "codigo": "FOGO-TOT-0017",
+   "tipo": "totem_rotativo",
+   "marca": "Digicon",
+   "modelo": "DT-500",
+   "bairroNome": "Palmital",
+   "probabilidade": 0.0791,
+   "fatores": [
+    {
+     "nome": "Idade: 3,0 anos de uso",
+     "contribuicao": 1.59
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Digicon DT-500)",
+     "contribuicao": 0.96
+    }
+   ]
+  },
+  {
+   "equipamentoId": 82,
+   "codigo": "FOGO-RAD-0028",
+   "tipo": "radar",
+   "marca": "Velsis",
+   "modelo": "VR-3 Sentinel",
+   "bairroNome": "Jardim Teotônio Vilela",
+   "probabilidade": 0.079,
+   "fatores": [
+    {
+     "nome": "Idade: 8,0 anos de uso",
+     "contribuicao": 2.6
+    },
+    {
+     "nome": "Modelo confiável (Velsis VR-3 Sentinel)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 57,
+   "codigo": "FOGO-SEM-0019",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Parque Mirabilis",
+   "probabilidade": 0.0789,
+   "fatores": [
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Idade: 1,4 anos de uso",
+     "contribuicao": 1.28
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 93,
+   "codigo": "FOGO-RAD-0039",
+   "tipo": "radar",
+   "marca": "Perkons",
+   "modelo": "PK-7000",
+   "bairroNome": "Jóquei Clube",
+   "probabilidade": 0.0785,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 2,5 anos de uso",
+     "contribuicao": 1.51
+    },
+    {
+     "nome": "Modelo confiável (Perkons PK-7000)",
+     "contribuicao": 0.88
+    }
+   ]
+  },
+  {
+   "equipamentoId": 147,
+   "codigo": "FOGO-SEM-0037",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Vila Operária da Alimentação II",
+   "probabilidade": 0.0774,
+   "fatores": [
+    {
+     "nome": "Idade: 4,4 anos de uso",
+     "contribuicao": 1.88
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 203,
+   "codigo": "FOGO-PAT-0038",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Jardim Universitário",
+   "probabilidade": 0.077,
+   "fatores": [
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    },
+    {
+     "nome": "Idade: 0,4 anos de uso",
+     "contribuicao": 1.07
+    }
+   ]
+  },
+  {
+   "equipamentoId": 226,
+   "codigo": "FOGO-BAL-0001",
+   "tipo": "balanca",
+   "marca": "Kistler",
+   "modelo": "Lineas 9195",
+   "bairroNome": "Jardim Ohara",
+   "probabilidade": 0.0769,
+   "fatores": [
+    {
+     "nome": "Idade: 2,1 anos de uso",
+     "contribuicao": 1.43
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Kistler Lineas 9195)",
+     "contribuicao": 1
+    }
+   ]
+  },
+  {
+   "equipamentoId": 230,
+   "codigo": "FOGO-FIS-0001",
+   "tipo": "fiscal_rotativo",
+   "marca": "BYD",
+   "modelo": "Dolphin Mini",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0759,
+   "fatores": [
+    {
+     "nome": "Idade: 5,1 anos de uso",
+     "contribuicao": 2.02
+    },
+    {
+     "nome": "Modelo pouco confiável (BYD Dolphin Mini)",
+     "contribuicao": 1.15
+    }
+   ]
+  },
+  {
+   "equipamentoId": 143,
+   "codigo": "FOGO-SEM-0033",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Núcleo Habitacional Bela Vista",
+   "probabilidade": 0.0753,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 2,3 anos de uso",
+     "contribuicao": 1.46
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 183,
+   "codigo": "FOGO-PAT-0018",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Banzato",
+   "probabilidade": 0.0751,
+   "fatores": [
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    }
+   ]
+  },
+  {
+   "equipamentoId": 151,
+   "codigo": "FOGO-SEM-0041",
+   "tipo": "semaforo",
+   "marca": "Digicon",
+   "modelo": "Contrail 4",
+   "bairroNome": "Jardim Ohara",
+   "probabilidade": 0.0749,
+   "fatores": [
+    {
+     "nome": "Idade: 3,3 anos de uso",
+     "contribuicao": 1.66
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Digicon Contrail 4)",
+     "contribuicao": 1.14
+    }
+   ]
+  },
+  {
+   "equipamentoId": 271,
+   "codigo": "FOGO-PMV-0008",
+   "tipo": "painel_mensagem",
+   "marca": "Digiflex",
+   "modelo": "PMV-48",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0748,
+   "fatores": [
+    {
+     "nome": "Idade: 3,4 anos de uso",
+     "contribuicao": 1.68
+    },
+    {
+     "nome": "Modelo pouco confiável (Digiflex PMV-48)",
+     "contribuicao": 1.17
+    }
+   ]
+  },
+  {
+   "equipamentoId": 338,
+   "codigo": "FOGO-VTR-0004",
+   "tipo": "viatura",
+   "marca": "Chevrolet",
+   "modelo": "Spin Premier",
+   "bairroNome": "Palmital",
+   "probabilidade": 0.0748,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo pouco confiável (Chevrolet Spin Premier)",
+     "contribuicao": 1.19
+    }
+   ]
+  },
+  {
+   "equipamentoId": 142,
+   "codigo": "FOGO-SEM-0032",
+   "tipo": "semaforo",
+   "marca": "Siemens",
+   "modelo": "Sitraffic sX",
+   "bairroNome": "Parque das Vivendas",
+   "probabilidade": 0.0747,
+   "fatores": [
+    {
+     "nome": "3 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 2
+    },
+    {
+     "nome": "Idade: 2,7 anos de uso",
+     "contribuicao": 1.55
+    },
+    {
+     "nome": "Modelo confiável (Siemens Sitraffic sX)",
+     "contribuicao": 0.81
+    }
+   ]
+  },
+  {
+   "equipamentoId": 5,
+   "codigo": "FOGO-SEM-0002",
+   "tipo": "semaforo",
+   "marca": "Siemens",
+   "modelo": "Sitraffic sX",
+   "bairroNome": "Nova Marília",
+   "probabilidade": 0.0747,
+   "fatores": [
+    {
+     "nome": "Idade: 4,3 anos de uso",
+     "contribuicao": 1.85
+    },
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo confiável (Siemens Sitraffic sX)",
+     "contribuicao": 0.81
+    }
+   ]
+  },
+  {
+   "equipamentoId": 74,
+   "codigo": "FOGO-RAD-0020",
+   "tipo": "radar",
+   "marca": "Perkons",
+   "modelo": "PK-7000",
+   "bairroNome": "Maria Izabel",
+   "probabilidade": 0.0746,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 2,1 anos de uso",
+     "contribuicao": 1.43
+    },
+    {
+     "nome": "Modelo confiável (Perkons PK-7000)",
+     "contribuicao": 0.88
+    }
+   ]
+  },
+  {
+   "equipamentoId": 165,
+   "codigo": "FOGO-SEM-0055",
+   "tipo": "semaforo",
+   "marca": "Digicon",
+   "modelo": "Contrail 4",
+   "bairroNome": "Jardim Domingos de Leo",
+   "probabilidade": 0.0741,
+   "fatores": [
+    {
+     "nome": "Idade: 6,0 anos de uso",
+     "contribuicao": 2.19
+    },
+    {
+     "nome": "Modelo pouco confiável (Digicon Contrail 4)",
+     "contribuicao": 1.14
+    }
+   ]
+  },
+  {
+   "equipamentoId": 259,
+   "codigo": "FOGO-TOT-0014",
+   "tipo": "totem_rotativo",
+   "marca": "Digicon",
+   "modelo": "DT-500",
+   "bairroNome": "Centro",
+   "probabilidade": 0.074,
+   "fatores": [
+    {
+     "nome": "Idade: 2,4 anos de uso",
+     "contribuicao": 1.49
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Digicon DT-500)",
+     "contribuicao": 0.96
+    }
+   ]
+  },
+  {
+   "equipamentoId": 31,
+   "codigo": "FOGO-CAM-0013",
+   "tipo": "camera",
+   "marca": "Hikvision",
+   "modelo": "DS-2DE4425 PTZ",
+   "bairroNome": "Jardim Universitário",
+   "probabilidade": 0.0737,
+   "fatores": [
+    {
+     "nome": "Modelo confiável (Hikvision DS-2DE4425 PTZ)",
+     "contribuicao": 0.55
+    },
+    {
+     "nome": "Idade: 1,8 anos de uso",
+     "contribuicao": 1.37
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 234,
+   "codigo": "FOGO-FIS-0005",
+   "tipo": "fiscal_rotativo",
+   "marca": "Renault",
+   "modelo": "Kwid E-Tech",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0737,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 2,7 anos de uso",
+     "contribuicao": 1.54
+    },
+    {
+     "nome": "Modelo confiável (Renault Kwid E-Tech)",
+     "contribuicao": 0.88
+    }
+   ]
+  },
+  {
+   "equipamentoId": 56,
+   "codigo": "FOGO-CAM-0027",
+   "tipo": "camera",
+   "marca": "Intelbras",
+   "modelo": "VIP 3230",
+   "bairroNome": "Jardim Maria Izabel",
+   "probabilidade": 0.0735,
+   "fatores": [
+    {
+     "nome": "Modelo confiável (Intelbras VIP 3230)",
+     "contribuicao": 0.72
+    },
+    {
+     "nome": "Idade: 1,9 anos de uso",
+     "contribuicao": 1.39
+    }
+   ]
+  },
+  {
+   "equipamentoId": 34,
+   "codigo": "FOGO-CAM-0015",
+   "tipo": "camera",
+   "marca": "Intelbras",
+   "modelo": "VIP 3230",
+   "bairroNome": "Jardim Polyana",
+   "probabilidade": 0.0732,
+   "fatores": [
+    {
+     "nome": "Modelo confiável (Intelbras VIP 3230)",
+     "contribuicao": 0.72
+    },
+    {
+     "nome": "Idade: 1,9 anos de uso",
+     "contribuicao": 1.38
+    }
+   ]
+  },
+  {
+   "equipamentoId": 100,
+   "codigo": "FOGO-RAD-0046",
+   "tipo": "radar",
+   "marca": "Perkons",
+   "modelo": "PK-7000",
+   "bairroNome": "Jardim Veneza",
+   "probabilidade": 0.0729,
+   "fatores": [
+    {
+     "nome": "Idade: 3,7 anos de uso",
+     "contribuicao": 1.74
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo confiável (Perkons PK-7000)",
+     "contribuicao": 0.88
+    }
+   ]
+  },
+  {
+   "equipamentoId": 194,
+   "codigo": "FOGO-PAT-0029",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Jardim Universitário",
+   "probabilidade": 0.0725,
+   "fatores": [
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    }
+   ]
+  },
+  {
+   "equipamentoId": 113,
+   "codigo": "FOGO-CAM-0041",
+   "tipo": "camera",
+   "marca": "Hikvision",
+   "modelo": "DS-2DE4425 PTZ",
+   "bairroNome": "Alto Cafezal",
+   "probabilidade": 0.0724,
+   "fatores": [
+    {
+     "nome": "Modelo confiável (Hikvision DS-2DE4425 PTZ)",
+     "contribuicao": 0.55
+    },
+    {
+     "nome": "Idade: 1,7 anos de uso",
+     "contribuicao": 1.34
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 169,
+   "codigo": "FOGO-PAT-0004",
+   "tipo": "patinete",
+   "marca": "Segway-Ninebot",
+   "modelo": "Max G30",
+   "bairroNome": "Jardim California",
+   "probabilidade": 0.0722,
+   "fatores": [
+    {
+     "nome": "Modelo na média do tipo (Segway-Ninebot Max G30)",
+     "contribuicao": 0.93
+    }
+   ]
+  },
+  {
+   "equipamentoId": 327,
+   "codigo": "FOGO-MOT-0007",
+   "tipo": "moto_agente",
+   "marca": "Honda",
+   "modelo": "XRE 300",
+   "bairroNome": "Jardim Ohara",
+   "probabilidade": 0.0721,
+   "fatores": [
+    {
+     "nome": "Idade: 4,1 anos de uso",
+     "contribuicao": 1.81
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Honda XRE 300)",
+     "contribuicao": 1
+    }
+   ]
+  },
+  {
+   "equipamentoId": 330,
+   "codigo": "FOGO-MOT-0010",
+   "tipo": "moto_agente",
+   "marca": "Honda",
+   "modelo": "XRE 300",
+   "bairroNome": "Jardim Polyana",
+   "probabilidade": 0.0717,
+   "fatores": [
+    {
+     "nome": "Idade: 4,0 anos de uso",
+     "contribuicao": 1.8
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Honda XRE 300)",
+     "contribuicao": 1
+    }
+   ]
+  },
+  {
+   "equipamentoId": 278,
+   "codigo": "FOGO-ALG-0006",
+   "tipo": "sensor_alagamento",
+   "marca": "Hidromet",
+   "modelo": "HN-30",
+   "bairroNome": "Jardim Ohara",
+   "probabilidade": 0.071,
+   "fatores": [
+    {
+     "nome": "Idade: 3,2 anos de uso",
+     "contribuicao": 1.65
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Hidromet HN-30)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 255,
+   "codigo": "FOGO-TOT-0010",
+   "tipo": "totem_rotativo",
+   "marca": "Taxlog",
+   "modelo": "AutoPark 2",
+   "bairroNome": "Palmital",
+   "probabilidade": 0.0709,
+   "fatores": [
+    {
+     "nome": "Idade: 3,4 anos de uso",
+     "contribuicao": 1.68
+    },
+    {
+     "nome": "Modelo na média do tipo (Taxlog AutoPark 2)",
+     "contribuicao": 1.08
+    }
+   ]
+  },
+  {
+   "equipamentoId": 17,
+   "codigo": "FOGO-RAD-0005",
+   "tipo": "radar",
+   "marca": "Velsis",
+   "modelo": "VR-3 Sentinel",
+   "bairroNome": "Parque das Esmeraldas II",
+   "probabilidade": 0.0709,
+   "fatores": [
+    {
+     "nome": "Idade: 3,7 anos de uso",
+     "contribuicao": 1.74
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo confiável (Velsis VR-3 Sentinel)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 309,
+   "codigo": "FOGO-TRA-0021",
+   "tipo": "transporte",
+   "marca": "Mercedes-Benz",
+   "modelo": "Sprinter 416",
+   "bairroNome": "Vila Mariana",
+   "probabilidade": 0.0709,
+   "fatores": [
+    {
+     "nome": "Idade: 5,8 anos de uso",
+     "contribuicao": 2.15
+    },
+    {
+     "nome": "Modelo na média do tipo (Mercedes-Benz Sprinter 416)",
+     "contribuicao": 0.95
+    }
+   ]
+  },
+  {
+   "equipamentoId": 325,
+   "codigo": "FOGO-MOT-0005",
+   "tipo": "moto_agente",
+   "marca": "Honda",
+   "modelo": "XRE 300",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0704,
+   "fatores": [
+    {
+     "nome": "Idade: 3,8 anos de uso",
+     "contribuicao": 1.77
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Honda XRE 300)",
+     "contribuicao": 1
+    }
+   ]
+  },
+  {
+   "equipamentoId": 337,
+   "codigo": "FOGO-VTR-0003",
+   "tipo": "viatura",
+   "marca": "Renault",
+   "modelo": "Duster",
+   "bairroNome": "Palmital",
+   "probabilidade": 0.0703,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 1,2 anos de uso",
+     "contribuicao": 1.24
+    },
+    {
+     "nome": "Modelo na média do tipo (Renault Duster)",
+     "contribuicao": 0.91
+    }
+   ]
+  },
+  {
+   "equipamentoId": 70,
+   "codigo": "FOGO-RAD-0016",
+   "tipo": "radar",
+   "marca": "Pumatronix",
+   "modelo": "ITS-450",
+   "bairroNome": "Jardim Morumbi",
+   "probabilidade": 0.07,
+   "fatores": [
+    {
+     "nome": "Idade: 2,6 anos de uso",
+     "contribuicao": 1.52
+    },
+    {
+     "nome": "Modelo pouco confiável (Pumatronix ITS-450)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 291,
+   "codigo": "FOGO-TRA-0003",
+   "tipo": "transporte",
+   "marca": "Chevrolet",
+   "modelo": "Spin 1.8",
+   "bairroNome": "Palmital",
+   "probabilidade": 0.0696,
+   "fatores": [
+    {
+     "nome": "Idade: 3,8 anos de uso",
+     "contribuicao": 1.75
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo confiável (Chevrolet Spin 1.8)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 275,
+   "codigo": "FOGO-ALG-0003",
+   "tipo": "sensor_alagamento",
+   "marca": "Hidromet",
+   "modelo": "HN-30",
+   "bairroNome": "Lorenzetti",
+   "probabilidade": 0.0678,
+   "fatores": [
+    {
+     "nome": "Idade: 5,5 anos de uso",
+     "contribuicao": 2.1
+    },
+    {
+     "nome": "Modelo pouco confiável (Hidromet HN-30)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 146,
+   "codigo": "FOGO-SEM-0036",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Jardim Ohara",
+   "probabilidade": 0.0673,
+   "fatores": [
+    {
+     "nome": "Idade: 5,9 anos de uso",
+     "contribuicao": 2.17
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 32,
+   "codigo": "FOGO-SEM-0011",
+   "tipo": "semaforo",
+   "marca": "Digicon",
+   "modelo": "Contrail 4",
+   "bairroNome": "Núcleo Habitacional José Teruel Martinez",
+   "probabilidade": 0.0668,
+   "fatores": [
+    {
+     "nome": "Idade: 4,8 anos de uso",
+     "contribuicao": 1.97
+    },
+    {
+     "nome": "Modelo pouco confiável (Digicon Contrail 4)",
+     "contribuicao": 1.14
+    }
+   ]
+  },
+  {
+   "equipamentoId": 66,
+   "codigo": "FOGO-RAD-0012",
+   "tipo": "radar",
+   "marca": "Pumatronix",
+   "modelo": "ITS-450",
+   "bairroNome": "Jardim Ohara",
+   "probabilidade": 0.0665,
+   "fatores": [
+    {
+     "nome": "Idade: 2,2 anos de uso",
+     "contribuicao": 1.45
+    },
+    {
+     "nome": "Modelo pouco confiável (Pumatronix ITS-450)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 242,
+   "codigo": "FOGO-CAN-0007",
+   "tipo": "cancela",
+   "marca": "Nice",
+   "modelo": "Wil 6",
+   "bairroNome": "Alto Cafezal",
+   "probabilidade": 0.0655,
+   "fatores": [
+    {
+     "nome": "Idade: 6,2 anos de uso",
+     "contribuicao": 2.24
+    },
+    {
+     "nome": "Modelo pouco confiável (Nice Wil 6)",
+     "contribuicao": 1.2
+    }
+   ]
+  },
+  {
+   "equipamentoId": 341,
+   "codigo": "FOGO-VTR-0007",
+   "tipo": "viatura",
+   "marca": "Toyota",
+   "modelo": "Hilux SW4",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0652,
+   "fatores": [
+    {
+     "nome": "Idade: 4,8 anos de uso",
+     "contribuicao": 1.96
+    },
+    {
+     "nome": "Modelo confiável (Toyota Hilux SW4)",
+     "contribuicao": 0.89
+    }
+   ]
+  },
+  {
+   "equipamentoId": 46,
+   "codigo": "FOGO-SEM-0015",
+   "tipo": "semaforo",
+   "marca": "Digicon",
+   "modelo": "Contrail 4",
+   "bairroNome": "Núcleo Habitacional Chico Mendes",
+   "probabilidade": 0.0652,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 0,8 anos de uso",
+     "contribuicao": 1.15
+    },
+    {
+     "nome": "Modelo pouco confiável (Digicon Contrail 4)",
+     "contribuicao": 1.14
+    }
+   ]
+  },
+  {
+   "equipamentoId": 135,
+   "codigo": "FOGO-SEM-0025",
+   "tipo": "semaforo",
+   "marca": "Digicon",
+   "modelo": "Contrail 4",
+   "bairroNome": "Vila Mariana",
+   "probabilidade": 0.0649,
+   "fatores": [
+    {
+     "nome": "Idade: 4,5 anos de uso",
+     "contribuicao": 1.91
+    },
+    {
+     "nome": "Modelo pouco confiável (Digicon Contrail 4)",
+     "contribuicao": 1.14
+    }
+   ]
+  },
+  {
+   "equipamentoId": 136,
+   "codigo": "FOGO-SEM-0026",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0643,
+   "fatores": [
+    {
+     "nome": "Idade: 5,4 anos de uso",
+     "contribuicao": 2.07
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 125,
+   "codigo": "FOGO-CAM-0053",
+   "tipo": "camera",
+   "marca": "Hikvision",
+   "modelo": "DS-2DE4425 PTZ",
+   "bairroNome": "Jardim Conquista",
+   "probabilidade": 0.0638,
+   "fatores": [
+    {
+     "nome": "Modelo confiável (Hikvision DS-2DE4425 PTZ)",
+     "contribuicao": 0.55
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Idade: 0,9 anos de uso",
+     "contribuicao": 1.18
+    }
+   ]
+  },
+  {
+   "equipamentoId": 304,
+   "codigo": "FOGO-TRA-0016",
+   "tipo": "transporte",
+   "marca": "Honda",
+   "modelo": "CG 160 Fan",
+   "bairroNome": "Jardim Tropical",
+   "probabilidade": 0.0635,
+   "fatores": [
+    {
+     "nome": "Idade: 2,9 anos de uso",
+     "contribuicao": 1.59
+    },
+    {
+     "nome": "Modelo pouco confiável (Honda CG 160 Fan)",
+     "contribuicao": 1.15
+    }
+   ]
+  },
+  {
+   "equipamentoId": 252,
+   "codigo": "FOGO-TOT-0007",
+   "tipo": "totem_rotativo",
+   "marca": "Digicon",
+   "modelo": "DT-500",
+   "bairroNome": "Maria Izabel",
+   "probabilidade": 0.0635,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Idade: 1,3 anos de uso",
+     "contribuicao": 1.27
+    },
+    {
+     "nome": "Modelo na média do tipo (Digicon DT-500)",
+     "contribuicao": 0.96
+    }
+   ]
+  },
+  {
+   "equipamentoId": 149,
+   "codigo": "FOGO-SEM-0039",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Somenzari",
+   "probabilidade": 0.0631,
+   "fatores": [
+    {
+     "nome": "Idade: 5,2 anos de uso",
+     "contribuicao": 2.03
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 335,
+   "codigo": "FOGO-VTR-0001",
+   "tipo": "viatura",
+   "marca": "Toyota",
+   "modelo": "Hilux SW4",
+   "bairroNome": "Núcleo Habitacional José Teruel Martinez",
+   "probabilidade": 0.0628,
+   "fatores": [
+    {
+     "nome": "Idade: 2,1 anos de uso",
+     "contribuicao": 1.41
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo confiável (Toyota Hilux SW4)",
+     "contribuicao": 0.89
+    }
+   ]
+  },
+  {
+   "equipamentoId": 96,
+   "codigo": "FOGO-RAD-0042",
+   "tipo": "radar",
+   "marca": "Pumatronix",
+   "modelo": "ITS-450",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0627,
+   "fatores": [
+    {
+     "nome": "Idade: 1,8 anos de uso",
+     "contribuicao": 1.36
+    },
+    {
+     "nome": "Modelo pouco confiável (Pumatronix ITS-450)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 339,
+   "codigo": "FOGO-VTR-0005",
+   "tipo": "viatura",
+   "marca": "Renault",
+   "modelo": "Duster",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0622,
+   "fatores": [
+    {
+     "nome": "Idade: 4,1 anos de uso",
+     "contribuicao": 1.82
+    },
+    {
+     "nome": "Modelo na média do tipo (Renault Duster)",
+     "contribuicao": 0.91
+    }
+   ]
+  },
+  {
+   "equipamentoId": 12,
+   "codigo": "FOGO-SEM-0004",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Vila Real",
+   "probabilidade": 0.0614,
+   "fatores": [
+    {
+     "nome": "Idade: 2,4 anos de uso",
+     "contribuicao": 1.48
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 150,
+   "codigo": "FOGO-SEM-0040",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0612,
+   "fatores": [
+    {
+     "nome": "Idade: 4,8 anos de uso",
+     "contribuicao": 1.97
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 238,
+   "codigo": "FOGO-CAN-0003",
+   "tipo": "cancela",
+   "marca": "Nice",
+   "modelo": "Wil 6",
+   "bairroNome": "Lorenzetti",
+   "probabilidade": 0.061,
+   "fatores": [
+    {
+     "nome": "Idade: 2,8 anos de uso",
+     "contribuicao": 1.56
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Nice Wil 6)",
+     "contribuicao": 1.2
+    }
+   ]
+  },
+  {
+   "equipamentoId": 269,
+   "codigo": "FOGO-PMV-0006",
+   "tipo": "painel_mensagem",
+   "marca": "Luminex",
+   "modelo": "LX-PMV 3",
+   "bairroNome": "Jardim Tropical",
+   "probabilidade": 0.0607,
+   "fatores": [
+    {
+     "nome": "Idade: 6,5 anos de uso",
+     "contribuicao": 2.3
+    },
+    {
+     "nome": "Modelo confiável (Luminex LX-PMV 3)",
+     "contribuicao": 0.69
+    }
+   ]
+  },
+  {
+   "equipamentoId": 98,
+   "codigo": "FOGO-RAD-0044",
+   "tipo": "radar",
+   "marca": "Velsis",
+   "modelo": "VR-3 Sentinel",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0596,
+   "fatores": [
+    {
+     "nome": "Idade: 2,3 anos de uso",
+     "contribuicao": 1.45
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo confiável (Velsis VR-3 Sentinel)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 103,
+   "codigo": "FOGO-CAM-0031",
+   "tipo": "camera",
+   "marca": "Hikvision",
+   "modelo": "DS-2DE4425 PTZ",
+   "bairroNome": "Jardim Polyana",
+   "probabilidade": 0.0586,
+   "fatores": [
+    {
+     "nome": "Modelo confiável (Hikvision DS-2DE4425 PTZ)",
+     "contribuicao": 0.55
+    },
+    {
+     "nome": "Idade: 2,2 anos de uso",
+     "contribuicao": 1.44
+    }
+   ]
+  },
+  {
+   "equipamentoId": 267,
+   "codigo": "FOGO-PMV-0004",
+   "tipo": "painel_mensagem",
+   "marca": "Digiflex",
+   "modelo": "PMV-48",
+   "bairroNome": "Jardim Maria Izabel",
+   "probabilidade": 0.0581,
+   "fatores": [
+    {
+     "nome": "Idade: 1,5 anos de uso",
+     "contribuicao": 1.3
+    },
+    {
+     "nome": "Modelo pouco confiável (Digiflex PMV-48)",
+     "contribuicao": 1.17
+    }
+   ]
+  },
+  {
+   "equipamentoId": 239,
+   "codigo": "FOGO-CAN-0004",
+   "tipo": "cancela",
+   "marca": "PPA",
+   "modelo": "Barreira BR-6",
+   "bairroNome": "Jardim Domingos de Leo",
+   "probabilidade": 0.0567,
+   "fatores": [
+    {
+     "nome": "Manutenção atrasada há 13 dias",
+     "contribuicao": 1.43
+    },
+    {
+     "nome": "Idade: 1,8 anos de uso",
+     "contribuicao": 1.37
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo confiável (PPA Barreira BR-6)",
+     "contribuicao": 0.89
+    }
+   ]
+  },
+  {
+   "equipamentoId": 326,
+   "codigo": "FOGO-MOT-0006",
+   "tipo": "moto_agente",
+   "marca": "Honda",
+   "modelo": "XRE 300",
+   "bairroNome": "Jóquei Clube",
+   "probabilidade": 0.0567,
+   "fatores": [
+    {
+     "nome": "Idade: 4,4 anos de uso",
+     "contribuicao": 1.88
+    },
+    {
+     "nome": "Modelo na média do tipo (Honda XRE 300)",
+     "contribuicao": 1
+    }
+   ]
+  },
+  {
+   "equipamentoId": 59,
+   "codigo": "FOGO-SEM-0021",
+   "tipo": "semaforo",
+   "marca": "Siemens",
+   "modelo": "Sitraffic sX",
+   "bairroNome": "Jardim Bandeirantes",
+   "probabilidade": 0.0565,
+   "fatores": [
+    {
+     "nome": "Idade: 6,6 anos de uso",
+     "contribuicao": 2.32
+    },
+    {
+     "nome": "Modelo confiável (Siemens Sitraffic sX)",
+     "contribuicao": 0.81
+    }
+   ]
+  },
+  {
+   "equipamentoId": 324,
+   "codigo": "FOGO-MOT-0004",
+   "tipo": "moto_agente",
+   "marca": "Yamaha",
+   "modelo": "XTZ 250 Lander",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0561,
+   "fatores": [
+    {
+     "nome": "Idade: 4,3 anos de uso",
+     "contribuicao": 1.86
+    },
+    {
+     "nome": "Modelo na média do tipo (Yamaha XTZ 250 Lander)",
+     "contribuicao": 1
+    }
+   ]
+  },
+  {
+   "equipamentoId": 116,
+   "codigo": "FOGO-CAM-0044",
+   "tipo": "camera",
+   "marca": "Hikvision",
+   "modelo": "DS-2DE4425 PTZ",
+   "bairroNome": "Parque dos Ipês",
+   "probabilidade": 0.0548,
+   "fatores": [
+    {
+     "nome": "Modelo confiável (Hikvision DS-2DE4425 PTZ)",
+     "contribuicao": 0.55
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 155,
+   "codigo": "FOGO-SEM-0045",
+   "tipo": "semaforo",
+   "marca": "Siemens",
+   "modelo": "Sitraffic sX",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0542,
+   "fatores": [
+    {
+     "nome": "Idade: 6,1 anos de uso",
+     "contribuicao": 2.22
+    },
+    {
+     "nome": "Modelo confiável (Siemens Sitraffic sX)",
+     "contribuicao": 0.81
+    }
+   ]
+  },
+  {
+   "equipamentoId": 49,
+   "codigo": "FOGO-RAD-0010",
+   "tipo": "radar",
+   "marca": "Perkons",
+   "modelo": "PK-7000",
+   "bairroNome": "Vila Operária da Alimentação II",
+   "probabilidade": 0.0537,
+   "fatores": [
+    {
+     "nome": "Idade: 3,5 anos de uso",
+     "contribuicao": 1.69
+    },
+    {
+     "nome": "Modelo confiável (Perkons PK-7000)",
+     "contribuicao": 0.88
+    }
+   ]
+  },
+  {
+   "equipamentoId": 329,
+   "codigo": "FOGO-MOT-0009",
+   "tipo": "moto_agente",
+   "marca": "Yamaha",
+   "modelo": "XTZ 250 Lander",
+   "bairroNome": "Jardim Ohara",
+   "probabilidade": 0.0535,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Idade: 1,7 anos de uso",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo na média do tipo (Yamaha XTZ 250 Lander)",
+     "contribuicao": 1
+    }
+   ]
+  },
+  {
+   "equipamentoId": 274,
+   "codigo": "FOGO-ALG-0002",
+   "tipo": "sensor_alagamento",
+   "marca": "Senix",
+   "modelo": "ToughSonic 14",
+   "bairroNome": "Lorenzetti",
+   "probabilidade": 0.0535,
+   "fatores": [
+    {
+     "nome": "Idade: 6,5 anos de uso",
+     "contribuicao": 2.3
+    },
+    {
+     "nome": "Modelo confiável (Senix ToughSonic 14)",
+     "contribuicao": 0.69
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 162,
+   "codigo": "FOGO-SEM-0052",
+   "tipo": "semaforo",
+   "marca": "Siemens",
+   "modelo": "Sitraffic sX",
+   "bairroNome": "Núcleo Habitacional José Teruel Martinez",
+   "probabilidade": 0.0533,
+   "fatores": [
+    {
+     "nome": "Idade: 5,9 anos de uso",
+     "contribuicao": 2.18
+    },
+    {
+     "nome": "Modelo confiável (Siemens Sitraffic sX)",
+     "contribuicao": 0.81
+    }
+   ]
+  },
+  {
+   "equipamentoId": 285,
+   "codigo": "FOGO-ALG-0013",
+   "tipo": "sensor_alagamento",
+   "marca": "Hidromet",
+   "modelo": "HN-30",
+   "bairroNome": "Jardim Pérola",
+   "probabilidade": 0.0531,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo pouco confiável (Hidromet HN-30)",
+     "contribuicao": 1.29
+    },
+    {
+     "nome": "Idade: 1,1 anos de uso",
+     "contribuicao": 1.22
+    }
+   ]
+  },
+  {
+   "equipamentoId": 152,
+   "codigo": "FOGO-SEM-0042",
+   "tipo": "semaforo",
+   "marca": "Digicon",
+   "modelo": "Contrail 4",
+   "bairroNome": "Alto Cafezal",
+   "probabilidade": 0.0528,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Idade: 0,8 anos de uso",
+     "contribuicao": 1.16
+    },
+    {
+     "nome": "Modelo pouco confiável (Digicon Contrail 4)",
+     "contribuicao": 1.14
+    }
+   ]
+  },
+  {
+   "equipamentoId": 134,
+   "codigo": "FOGO-CAM-0062",
+   "tipo": "camera",
+   "marca": "Hikvision",
+   "modelo": "DS-2DE4425 PTZ",
+   "bairroNome": "Jardim Maria Izabel",
+   "probabilidade": 0.0528,
+   "fatores": [
+    {
+     "nome": "Modelo confiável (Hikvision DS-2DE4425 PTZ)",
+     "contribuicao": 0.55
+    },
+    {
+     "nome": "Idade: 1,4 anos de uso",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 99,
+   "codigo": "FOGO-RAD-0045",
+   "tipo": "radar",
+   "marca": "Velsis",
+   "modelo": "VR-3 Sentinel",
+   "bairroNome": "Jardim Tropical",
+   "probabilidade": 0.0521,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Modelo confiável (Velsis VR-3 Sentinel)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 36,
+   "codigo": "FOGO-SEM-0012",
+   "tipo": "semaforo",
+   "marca": "Siemens",
+   "modelo": "Sitraffic sX",
+   "bairroNome": "Vila Mariana",
+   "probabilidade": 0.0517,
+   "fatores": [
+    {
+     "nome": "Idade: 5,6 anos de uso",
+     "contribuicao": 2.11
+    },
+    {
+     "nome": "Modelo confiável (Siemens Sitraffic sX)",
+     "contribuicao": 0.81
+    }
+   ]
+  },
+  {
+   "equipamentoId": 61,
+   "codigo": "FOGO-SEM-0023",
+   "tipo": "semaforo",
+   "marca": "Siemens",
+   "modelo": "Sitraffic sX",
+   "bairroNome": "Jardim Pérola",
+   "probabilidade": 0.0515,
+   "fatores": [
+    {
+     "nome": "Idade: 5,5 anos de uso",
+     "contribuicao": 2.11
+    },
+    {
+     "nome": "Modelo confiável (Siemens Sitraffic sX)",
+     "contribuicao": 0.81
+    }
+   ]
+  },
+  {
+   "equipamentoId": 314,
+   "codigo": "FOGO-TRA-0026",
+   "tipo": "transporte",
+   "marca": "Mercedes-Benz",
+   "modelo": "Sprinter 416",
+   "bairroNome": "Jardim Ohara",
+   "probabilidade": 0.0511,
+   "fatores": [
+    {
+     "nome": "Idade: 2,7 anos de uso",
+     "contribuicao": 1.54
+    },
+    {
+     "nome": "Modelo na média do tipo (Mercedes-Benz Sprinter 416)",
+     "contribuicao": 0.95
+    }
+   ]
+  },
+  {
+   "equipamentoId": 15,
+   "codigo": "FOGO-RAD-0003",
+   "tipo": "radar",
+   "marca": "Perkons",
+   "modelo": "PK-7000",
+   "bairroNome": "Jardim Eldorado",
+   "probabilidade": 0.051,
+   "fatores": [
+    {
+     "nome": "Idade: 3,0 anos de uso",
+     "contribuicao": 1.61
+    },
+    {
+     "nome": "Modelo confiável (Perkons PK-7000)",
+     "contribuicao": 0.88
+    }
+   ]
+  },
+  {
+   "equipamentoId": 340,
+   "codigo": "FOGO-VTR-0006",
+   "tipo": "viatura",
+   "marca": "Toyota",
+   "modelo": "Hilux SW4",
+   "bairroNome": "Nova Marília",
+   "probabilidade": 0.0507,
+   "fatores": [
+    {
+     "nome": "Idade: 2,6 anos de uso",
+     "contribuicao": 1.51
+    },
+    {
+     "nome": "Modelo confiável (Toyota Hilux SW4)",
+     "contribuicao": 0.89
+    }
+   ]
+  },
+  {
+   "equipamentoId": 295,
+   "codigo": "FOGO-TRA-0007",
+   "tipo": "transporte",
+   "marca": "Chevrolet",
+   "modelo": "Spin 1.8",
+   "bairroNome": "Palmital",
+   "probabilidade": 0.0497,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Idade: 1,2 anos de uso",
+     "contribuicao": 1.24
+    },
+    {
+     "nome": "Modelo confiável (Chevrolet Spin 1.8)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 233,
+   "codigo": "FOGO-FIS-0004",
+   "tipo": "fiscal_rotativo",
+   "marca": "BYD",
+   "modelo": "Dolphin Mini",
+   "bairroNome": "Alto Cafezal",
+   "probabilidade": 0.0492,
+   "fatores": [
+    {
+     "nome": "Idade: 1,4 anos de uso",
+     "contribuicao": 1.29
+    },
+    {
+     "nome": "Modelo pouco confiável (BYD Dolphin Mini)",
+     "contribuicao": 1.15
+    }
+   ]
+  },
+  {
+   "equipamentoId": 266,
+   "codigo": "FOGO-PMV-0003",
+   "tipo": "painel_mensagem",
+   "marca": "Digiflex",
+   "modelo": "PMV-48",
+   "bairroNome": "Banzato",
+   "probabilidade": 0.0491,
+   "fatores": [
+    {
+     "nome": "Modelo pouco confiável (Digiflex PMV-48)",
+     "contribuicao": 1.17
+    },
+    {
+     "nome": "Idade: 0,4 anos de uso",
+     "contribuicao": 1.09
+    }
+   ]
+  },
+  {
+   "equipamentoId": 251,
+   "codigo": "FOGO-TOT-0006",
+   "tipo": "totem_rotativo",
+   "marca": "Digicon",
+   "modelo": "DT-500",
+   "bairroNome": "Palmital",
+   "probabilidade": 0.049,
+   "fatores": [
+    {
+     "nome": "Idade: 1,5 anos de uso",
+     "contribuicao": 1.29
+    },
+    {
+     "nome": "Modelo na média do tipo (Digicon DT-500)",
+     "contribuicao": 0.96
+    }
+   ]
+  },
+  {
+   "equipamentoId": 298,
+   "codigo": "FOGO-TRA-0010",
+   "tipo": "transporte",
+   "marca": "Toyota",
+   "modelo": "Corolla Cross",
+   "bairroNome": "Jardim Cavallari",
+   "probabilidade": 0.049,
+   "fatores": [
+    {
+     "nome": "Idade: 4,7 anos de uso",
+     "contribuicao": 1.94
+    },
+    {
+     "nome": "Modelo confiável (Toyota Corolla Cross)",
+     "contribuicao": 0.72
+    }
+   ]
+  },
+  {
+   "equipamentoId": 240,
+   "codigo": "FOGO-CAN-0005",
+   "tipo": "cancela",
+   "marca": "Came",
+   "modelo": "Gard 4",
+   "bairroNome": "Maria Izabel",
+   "probabilidade": 0.0488,
+   "fatores": [
+    {
+     "nome": "2 horas com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.67
+    },
+    {
+     "nome": "Idade: 1,7 anos de uso",
+     "contribuicao": 1.34
+    },
+    {
+     "nome": "Modelo confiável (Came Gard 4)",
+     "contribuicao": 0.89
+    }
+   ]
+  },
+  {
+   "equipamentoId": 138,
+   "codigo": "FOGO-SEM-0028",
+   "tipo": "semaforo",
+   "marca": "Siemens",
+   "modelo": "Sitraffic sX",
+   "bairroNome": "Jardim Damasco I",
+   "probabilidade": 0.0485,
+   "fatores": [
+    {
+     "nome": "Idade: 4,9 anos de uso",
+     "contribuicao": 1.98
+    },
+    {
+     "nome": "Modelo confiável (Siemens Sitraffic sX)",
+     "contribuicao": 0.81
+    }
+   ]
+  },
+  {
+   "equipamentoId": 95,
+   "codigo": "FOGO-RAD-0041",
+   "tipo": "radar",
+   "marca": "Perkons",
+   "modelo": "PK-7000",
+   "bairroNome": "Lorenzetti",
+   "probabilidade": 0.0481,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Idade: 0,7 anos de uso",
+     "contribuicao": 1.13
+    },
+    {
+     "nome": "Modelo confiável (Perkons PK-7000)",
+     "contribuicao": 0.88
+    }
+   ]
+  },
+  {
+   "equipamentoId": 78,
+   "codigo": "FOGO-RAD-0024",
+   "tipo": "radar",
+   "marca": "Perkons",
+   "modelo": "PK-7000",
+   "bairroNome": "Somenzari",
+   "probabilidade": 0.0478,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo confiável (Perkons PK-7000)",
+     "contribuicao": 0.88
+    },
+    {
+     "nome": "Idade: 0,6 anos de uso",
+     "contribuicao": 1.13
+    }
+   ]
+  },
+  {
+   "equipamentoId": 323,
+   "codigo": "FOGO-MOT-0003",
+   "tipo": "moto_agente",
+   "marca": "Honda",
+   "modelo": "XRE 300",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0478,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Idade: 0,9 anos de uso",
+     "contribuicao": 1.19
+    },
+    {
+     "nome": "Modelo na média do tipo (Honda XRE 300)",
+     "contribuicao": 1
+    }
+   ]
+  },
+  {
+   "equipamentoId": 75,
+   "codigo": "FOGO-RAD-0021",
+   "tipo": "radar",
+   "marca": "Pumatronix",
+   "modelo": "ITS-450",
+   "bairroNome": "Jardim Itaipu",
+   "probabilidade": 0.0478,
+   "fatores": [
+    {
+     "nome": "Modelo pouco confiável (Pumatronix ITS-450)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 332,
+   "codigo": "FOGO-MOT-0012",
+   "tipo": "moto_agente",
+   "marca": "Yamaha",
+   "modelo": "XTZ 250 Lander",
+   "bairroNome": "Jóquei Clube",
+   "probabilidade": 0.0477,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Idade: 0,9 anos de uso",
+     "contribuicao": 1.18
+    },
+    {
+     "nome": "Modelo na média do tipo (Yamaha XTZ 250 Lander)",
+     "contribuicao": 1
+    }
+   ]
+  },
+  {
+   "equipamentoId": 293,
+   "codigo": "FOGO-TRA-0005",
+   "tipo": "transporte",
+   "marca": "Toyota",
+   "modelo": "Corolla Cross",
+   "bairroNome": "Banzato",
+   "probabilidade": 0.0476,
+   "fatores": [
+    {
+     "nome": "Idade: 2,1 anos de uso",
+     "contribuicao": 1.41
+    },
+    {
+     "nome": "Modelo confiável (Toyota Corolla Cross)",
+     "contribuicao": 0.72
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 273,
+   "codigo": "FOGO-ALG-0001",
+   "tipo": "sensor_alagamento",
+   "marca": "Senix",
+   "modelo": "ToughSonic 14",
+   "bairroNome": "Fragata",
+   "probabilidade": 0.0475,
+   "fatores": [
+    {
+     "nome": "Idade: 5,2 anos de uso",
+     "contribuicao": 2.04
+    },
+    {
+     "nome": "Modelo confiável (Senix ToughSonic 14)",
+     "contribuicao": 0.69
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 348,
+   "codigo": "FOGO-VTR-0014",
+   "tipo": "viatura",
+   "marca": "Toyota",
+   "modelo": "Hilux SW4",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0462,
+   "fatores": [
+    {
+     "nome": "Idade: 1,9 anos de uso",
+     "contribuicao": 1.38
+    },
+    {
+     "nome": "Modelo confiável (Toyota Hilux SW4)",
+     "contribuicao": 0.89
+    }
+   ]
+  },
+  {
+   "equipamentoId": 306,
+   "codigo": "FOGO-TRA-0018",
+   "tipo": "transporte",
+   "marca": "Honda",
+   "modelo": "CG 160 Fan",
+   "bairroNome": "Parque dos Ipês",
+   "probabilidade": 0.0457,
+   "fatores": [
+    {
+     "nome": "Modelo pouco confiável (Honda CG 160 Fan)",
+     "contribuicao": 1.15
+    },
+    {
+     "nome": "Idade: 0,6 anos de uso",
+     "contribuicao": 1.13
+    }
+   ]
+  },
+  {
+   "equipamentoId": 331,
+   "codigo": "FOGO-MOT-0011",
+   "tipo": "moto_agente",
+   "marca": "Honda",
+   "modelo": "XRE 300",
+   "bairroNome": "Jardim Domingos de Leo",
+   "probabilidade": 0.0456,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Idade: 0,7 anos de uso",
+     "contribuicao": 1.13
+    },
+    {
+     "nome": "Modelo na média do tipo (Honda XRE 300)",
+     "contribuicao": 1
+    }
+   ]
+  },
+  {
+   "equipamentoId": 297,
+   "codigo": "FOGO-TRA-0009",
+   "tipo": "transporte",
+   "marca": "Chevrolet",
+   "modelo": "Spin 1.8",
+   "bairroNome": "Jardim California",
+   "probabilidade": 0.0456,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo confiável (Chevrolet Spin 1.8)",
+     "contribuicao": 0.86
+    },
+    {
+     "nome": "Idade: 0,7 anos de uso",
+     "contribuicao": 1.13
+    }
+   ]
+  },
+  {
+   "equipamentoId": 308,
+   "codigo": "FOGO-TRA-0020",
+   "tipo": "transporte",
+   "marca": "Honda",
+   "modelo": "CG 160 Fan",
+   "bairroNome": "Jardim Damasco I",
+   "probabilidade": 0.0442,
+   "fatores": [
+    {
+     "nome": "Modelo pouco confiável (Honda CG 160 Fan)",
+     "contribuicao": 1.15
+    },
+    {
+     "nome": "Idade: 0,5 anos de uso",
+     "contribuicao": 1.09
+    }
+   ]
+  },
+  {
+   "equipamentoId": 282,
+   "codigo": "FOGO-ALG-0010",
+   "tipo": "sensor_alagamento",
+   "marca": "Hidromet",
+   "modelo": "HN-30",
+   "bairroNome": "Jardim Conquista",
+   "probabilidade": 0.0437,
+   "fatores": [
+    {
+     "nome": "Modelo pouco confiável (Hidromet HN-30)",
+     "contribuicao": 1.29
+    },
+    {
+     "nome": "Manutenção atrasada há 5 dias",
+     "contribuicao": 1.17
+    },
+    {
+     "nome": "Idade: 0,7 anos de uso",
+     "contribuicao": 1.14
+    }
+   ]
+  },
+  {
+   "equipamentoId": 287,
+   "codigo": "FOGO-ALG-0015",
+   "tipo": "sensor_alagamento",
+   "marca": "Hidromet",
+   "modelo": "HN-30",
+   "bairroNome": "Jardim Conquista",
+   "probabilidade": 0.0433,
+   "fatores": [
+    {
+     "nome": "Idade: 1,6 anos de uso",
+     "contribuicao": 1.32
+    },
+    {
+     "nome": "Modelo pouco confiável (Hidromet HN-30)",
+     "contribuicao": 1.29
+    }
+   ]
+  },
+  {
+   "equipamentoId": 328,
+   "codigo": "FOGO-MOT-0008",
+   "tipo": "moto_agente",
+   "marca": "Honda",
+   "modelo": "XRE 300",
+   "bairroNome": "Jóquei Clube",
+   "probabilidade": 0.0433,
+   "fatores": [
+    {
+     "nome": "Idade: 2,1 anos de uso",
+     "contribuicao": 1.43
+    },
+    {
+     "nome": "Modelo na média do tipo (Honda XRE 300)",
+     "contribuicao": 1
+    }
+   ]
+  },
+  {
+   "equipamentoId": 27,
+   "codigo": "FOGO-RAD-0008",
+   "tipo": "radar",
+   "marca": "Velsis",
+   "modelo": "VR-3 Sentinel",
+   "bairroNome": "Jardim Planalto",
+   "probabilidade": 0.0429,
+   "fatores": [
+    {
+     "nome": "Idade: 1,9 anos de uso",
+     "contribuicao": 1.38
+    },
+    {
+     "nome": "Modelo confiável (Velsis VR-3 Sentinel)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 30,
+   "codigo": "FOGO-SEM-0010",
+   "tipo": "semaforo",
+   "marca": "Siemens",
+   "modelo": "Sitraffic sX",
+   "bairroNome": "Jardim Tropical",
+   "probabilidade": 0.0428,
+   "fatores": [
+    {
+     "nome": "Idade: 3,7 anos de uso",
+     "contribuicao": 1.74
+    },
+    {
+     "nome": "Modelo confiável (Siemens Sitraffic sX)",
+     "contribuicao": 0.81
+    }
+   ]
+  },
+  {
+   "equipamentoId": 290,
+   "codigo": "FOGO-TRA-0002",
+   "tipo": "transporte",
+   "marca": "Toyota",
+   "modelo": "Corolla Cross",
+   "bairroNome": "Jardim D'Itália",
+   "probabilidade": 0.0426,
+   "fatores": [
+    {
+     "nome": "Idade: 3,4 anos de uso",
+     "contribuicao": 1.68
+    },
+    {
+     "nome": "Modelo confiável (Toyota Corolla Cross)",
+     "contribuicao": 0.72
+    }
+   ]
+  },
+  {
+   "equipamentoId": 263,
+   "codigo": "FOGO-TOT-0018",
+   "tipo": "totem_rotativo",
+   "marca": "Digicon",
+   "modelo": "DT-500",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0424,
+   "fatores": [
+    {
+     "nome": "Idade: 0,6 anos de uso",
+     "contribuicao": 1.12
+    },
+    {
+     "nome": "Modelo na média do tipo (Digicon DT-500)",
+     "contribuicao": 0.96
+    }
+   ]
+  },
+  {
+   "equipamentoId": 91,
+   "codigo": "FOGO-RAD-0037",
+   "tipo": "radar",
+   "marca": "Velsis",
+   "modelo": "VR-3 Sentinel",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0424,
+   "fatores": [
+    {
+     "nome": "Idade: 1,8 anos de uso",
+     "contribuicao": 1.37
+    },
+    {
+     "nome": "Modelo confiável (Velsis VR-3 Sentinel)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 94,
+   "codigo": "FOGO-RAD-0040",
+   "tipo": "radar",
+   "marca": "Velsis",
+   "modelo": "VR-3 Sentinel",
+   "bairroNome": "Lorenzetti",
+   "probabilidade": 0.042,
+   "fatores": [
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo confiável (Velsis VR-3 Sentinel)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 236,
+   "codigo": "FOGO-CAN-0001",
+   "tipo": "cancela",
+   "marca": "Came",
+   "modelo": "Gard 4",
+   "bairroNome": "Jardim Planalto",
+   "probabilidade": 0.0415,
+   "fatores": [
+    {
+     "nome": "Manutenção atrasada há 15 dias",
+     "contribuicao": 1.5
+    },
+    {
+     "nome": "Idade: 1,3 anos de uso",
+     "contribuicao": 1.26
+    },
+    {
+     "nome": "Modelo confiável (Came Gard 4)",
+     "contribuicao": 0.89
+    }
+   ]
+  },
+  {
+   "equipamentoId": 296,
+   "codigo": "FOGO-TRA-0008",
+   "tipo": "transporte",
+   "marca": "Toyota",
+   "modelo": "Corolla Cross",
+   "bairroNome": "Jardim Maria Izabel",
+   "probabilidade": 0.0409,
+   "fatores": [
+    {
+     "nome": "Idade: 3,1 anos de uso",
+     "contribuicao": 1.62
+    },
+    {
+     "nome": "Modelo confiável (Toyota Corolla Cross)",
+     "contribuicao": 0.72
+    }
+   ]
+  },
+  {
+   "equipamentoId": 300,
+   "codigo": "FOGO-TRA-0012",
+   "tipo": "transporte",
+   "marca": "Toyota",
+   "modelo": "Corolla Cross",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0408,
+   "fatores": [
+    {
+     "nome": "Idade: 3,0 anos de uso",
+     "contribuicao": 1.61
+    },
+    {
+     "nome": "Modelo confiável (Toyota Corolla Cross)",
+     "contribuicao": 0.72
+    }
+   ]
+  },
+  {
+   "equipamentoId": 281,
+   "codigo": "FOGO-ALG-0009",
+   "tipo": "sensor_alagamento",
+   "marca": "Senix",
+   "modelo": "ToughSonic 14",
+   "bairroNome": "Jardim Conquista",
+   "probabilidade": 0.0403,
+   "fatores": [
+    {
+     "nome": "Idade: 3,6 anos de uso",
+     "contribuicao": 1.72
+    },
+    {
+     "nome": "Modelo confiável (Senix ToughSonic 14)",
+     "contribuicao": 0.69
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    }
+   ]
+  },
+  {
+   "equipamentoId": 315,
+   "codigo": "FOGO-TRA-0027",
+   "tipo": "transporte",
+   "marca": "Renault",
+   "modelo": "Master Escolar",
+   "bairroNome": "Nova Marília",
+   "probabilidade": 0.0402,
+   "fatores": [
+    {
+     "nome": "Idade: 0,4 anos de uso",
+     "contribuicao": 1.07
+    },
+    {
+     "nome": "Modelo na média do tipo (Renault Master Escolar)",
+     "contribuicao": 1.07
+    }
+   ]
+  },
+  {
+   "equipamentoId": 241,
+   "codigo": "FOGO-CAN-0006",
+   "tipo": "cancela",
+   "marca": "PPA",
+   "modelo": "Barreira BR-6",
+   "bairroNome": "Luiz Homero Zaninotto",
+   "probabilidade": 0.0398,
+   "fatores": [
+    {
+     "nome": "Idade: 1,8 anos de uso",
+     "contribuicao": 1.36
+    },
+    {
+     "nome": "1 hora com sinal fraco nas últimas 72 h",
+     "contribuicao": 1.33
+    },
+    {
+     "nome": "Modelo confiável (PPA Barreira BR-6)",
+     "contribuicao": 0.89
+    }
+   ]
+  },
+  {
+   "equipamentoId": 292,
+   "codigo": "FOGO-TRA-0004",
+   "tipo": "transporte",
+   "marca": "Chevrolet",
+   "modelo": "Spin 1.8",
+   "bairroNome": "Maria Izabel",
+   "probabilidade": 0.0398,
+   "fatores": [
+    {
+     "nome": "Idade: 1,6 anos de uso",
+     "contribuicao": 1.31
+    },
+    {
+     "nome": "Modelo confiável (Chevrolet Spin 1.8)",
+     "contribuicao": 0.86
+    }
+   ]
+  },
+  {
+   "equipamentoId": 89,
+   "codigo": "FOGO-RAD-0035",
+   "tipo": "radar",
+   "marca": "Perkons",
+   "modelo": "PK-7000",
+   "bairroNome": "Jardim Conquista",
+   "probabilidade": 0.0392,
+   "fatores": [
+    {
+     "nome": "Idade: 1,1 anos de uso",
+     "contribuicao": 1.23
+    },
+    {
+     "nome": "Modelo confiável (Perkons PK-7000)",
+     "contribuicao": 0.88
+    }
+   ]
+  },
+  {
+   "equipamentoId": 276,
+   "codigo": "FOGO-ALG-0004",
+   "tipo": "sensor_alagamento",
+   "marca": "Hidromet",
+   "modelo": "HN-30",
+   "bairroNome": "Luiz Homero Zaninotto",
+   "probabilidade": 0.0383,
+   "fatores": [
+    {
+     "nome": "Modelo pouco confiável (Hidromet HN-30)",
+     "contribuicao": 1.29
+    },
+    {
+     "nome": "Idade: 0,8 anos de uso",
+     "contribuicao": 1.17
+    }
+   ]
+  },
+  {
+   "equipamentoId": 85,
+   "codigo": "FOGO-RAD-0031",
+   "tipo": "radar",
+   "marca": "Perkons",
+   "modelo": "PK-7000",
+   "bairroNome": "Jardim Polyana",
+   "probabilidade": 0.0383,
+   "fatores": [
+    {
+     "nome": "Idade: 1,0 ano de uso",
+     "contribuicao": 1.2
+    },
+    {
+     "nome": "Modelo confiável (Perkons PK-7000)",
+     "contribuicao": 0.88
+    }
+   ]
+  },
+  {
+   "equipamentoId": 310,
+   "codigo": "FOGO-TRA-0022",
+   "tipo": "transporte",
+   "marca": "Renault",
+   "modelo": "Master Escolar",
+   "bairroNome": "Jardim Esplanada",
+   "probabilidade": 0.0382,
+   "fatores": [
+    {
+     "nome": "Modelo na média do tipo (Renault Master Escolar)",
+     "contribuicao": 1.07
+    }
+   ]
+  },
+  {
+   "equipamentoId": 303,
+   "codigo": "FOGO-TRA-0015",
+   "tipo": "transporte",
+   "marca": "Yamaha",
+   "modelo": "Factor 150",
+   "bairroNome": "Jardim Ohara",
+   "probabilidade": 0.0369,
+   "fatores": [
+    {
+     "nome": "Idade: 1,2 anos de uso",
+     "contribuicao": 1.25
+    },
+    {
+     "nome": "Modelo confiável (Yamaha Factor 150)",
+     "contribuicao": 0.84
+    }
+   ]
+  },
+  {
+   "equipamentoId": 299,
+   "codigo": "FOGO-TRA-0011",
+   "tipo": "transporte",
+   "marca": "Toyota",
+   "modelo": "Corolla Cross",
+   "bairroNome": "Jardim Conquista",
+   "probabilidade": 0.0367,
+   "fatores": [
+    {
+     "nome": "Idade: 2,2 anos de uso",
+     "contribuicao": 1.45
+    },
+    {
+     "nome": "Modelo confiável (Toyota Corolla Cross)",
+     "contribuicao": 0.72
+    }
+   ]
+  },
+  {
+   "equipamentoId": 289,
+   "codigo": "FOGO-TRA-0001",
+   "tipo": "transporte",
+   "marca": "Toyota",
+   "modelo": "Corolla Cross",
+   "bairroNome": "Núcleo Habitacional Chico Mendes",
+   "probabilidade": 0.0356,
+   "fatores": [
+    {
+     "nome": "Idade: 2,0 anos de uso",
+     "contribuicao": 1.4
+    },
+    {
+     "nome": "Modelo confiável (Toyota Corolla Cross)",
+     "contribuicao": 0.72
+    }
+   ]
+  },
+  {
+   "equipamentoId": 145,
+   "codigo": "FOGO-SEM-0035",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Jardim Domingos de Leo",
+   "probabilidade": 0.0356,
+   "fatores": [
+    {
+     "nome": "Idade: 0,7 anos de uso",
+     "contribuicao": 1.13
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 345,
+   "codigo": "FOGO-VTR-0011",
+   "tipo": "viatura",
+   "marca": "Renault",
+   "modelo": "Duster",
+   "bairroNome": "Jardim Veneza",
+   "probabilidade": 0.0355,
+   "fatores": [
+    {
+     "nome": "Modelo na média do tipo (Renault Duster)",
+     "contribuicao": 0.91
+    }
+   ]
+  },
+  {
+   "equipamentoId": 161,
+   "codigo": "FOGO-SEM-0051",
+   "tipo": "semaforo",
+   "marca": "Tesc",
+   "modelo": "CTS-12",
+   "bairroNome": "Palmital",
+   "probabilidade": 0.0346,
+   "fatores": [
+    {
+     "nome": "Idade: 0,5 anos de uso",
+     "contribuicao": 1.1
+    },
+    {
+     "nome": "Modelo na média do tipo (Tesc CTS-12)",
+     "contribuicao": 1.04
+    }
+   ]
+  },
+  {
+   "equipamentoId": 280,
+   "codigo": "FOGO-ALG-0008",
+   "tipo": "sensor_alagamento",
+   "marca": "Senix",
+   "modelo": "ToughSonic 14",
+   "bairroNome": "Jardim Itaipu",
+   "probabilidade": 0.0342,
+   "fatores": [
+    {
+     "nome": "Idade: 4,7 anos de uso",
+     "contribuicao": 1.94
+    },
+    {
+     "nome": "Modelo confiável (Senix ToughSonic 14)",
+     "contribuicao": 0.69
+    }
+   ]
+  },
+  {
+   "equipamentoId": 286,
+   "codigo": "FOGO-ALG-0014",
+   "tipo": "sensor_alagamento",
+   "marca": "Senix",
+   "modelo": "ToughSonic 14",
+   "bairroNome": "Fragata",
+   "probabilidade": 0.031,
+   "fatores": [
+    {
+     "nome": "Idade: 3,8 anos de uso",
+     "contribuicao": 1.76
+    },
+    {
+     "nome": "Modelo confiável (Senix ToughSonic 14)",
+     "contribuicao": 0.69
+    }
+   ]
+  },
+  {
+   "equipamentoId": 232,
+   "codigo": "FOGO-FIS-0003",
+   "tipo": "fiscal_rotativo",
+   "marca": "Renault",
+   "modelo": "Kwid E-Tech",
+   "bairroNome": "Centro",
+   "probabilidade": 0.0301,
+   "fatores": [
+    {
+     "nome": "Modelo confiável (Renault Kwid E-Tech)",
+     "contribuicao": 0.88
+    }
+   ]
+  },
+  {
+   "equipamentoId": 11,
+   "codigo": "FOGO-SEM-0003",
+   "tipo": "semaforo",
+   "marca": "Siemens",
+   "modelo": "Sitraffic sX",
+   "bairroNome": "Jardim Portal do Sol",
+   "probabilidade": 0.03,
+   "fatores": [
+    {
+     "nome": "Modelo confiável (Siemens Sitraffic sX)",
+     "contribuicao": 0.81
+    },
+    {
+     "nome": "Idade: 1,1 anos de uso",
+     "contribuicao": 1.21
+    }
+   ]
+  },
+  {
+   "equipamentoId": 284,
+   "codigo": "FOGO-ALG-0012",
+   "tipo": "sensor_alagamento",
+   "marca": "Senix",
+   "modelo": "ToughSonic 14",
+   "bairroNome": "Fragata",
+   "probabilidade": 0.0214,
+   "fatores": [
+    {
+     "nome": "Modelo confiável (Senix ToughSonic 14)",
+     "contribuicao": 0.69
+    },
+    {
+     "nome": "Idade: 1,0 ano de uso",
+     "contribuicao": 1.21
+    }
+   ]
+  }
+ ],
+ "explicacao": {
+  "oQuePreve": "A chance de cada equipamento em operação falhar nos próximos 7 dias, do maior risco para o menor, com o motivo de cada um.",
+  "dadosUsados": [
+   "292 falhas registradas nos últimos 60 dias, por tipo e por marca e modelo",
+   "Data de instalação (idade) e data da próxima manutenção (atraso) de cada equipamento",
+   "Telemetria das últimas 72 horas: horas em que o equipamento ficou menos de 55 minutos conectado"
+  ],
+  "comoAjuda": "Diz qual equipamento revisar antes que pare: 9 com 30% ou mais de chance; o primeiro da fila é FOGO-CAM-0060 (câmera, 73%). No total, cerca de 32 falhas esperadas na semana.",
+  "confiabilidade": [
+   {
+    "metrica": "Falhas previstas para a última semana",
+    "valor": 31.9,
+    "descricao": "Refazendo a conta como se fosse 7 dias atrás, a soma das chances previa 32 falhas na semana; aconteceram 41."
+   },
+   {
+    "metrica": "Falhas que aconteceram na última semana",
+    "valor": 41,
+    "descricao": "41 dos 311 equipamentos em operação naquele dia falharam."
+   },
+   {
+    "metrica": "Falhas entre os 10% de maior risco (%)",
+    "valor": 22,
+    "descricao": "Os 10% de equipamentos apontados como mais arriscados concentraram 22% das falhas da semana (ao acaso seriam 10%)."
+   }
+  ]
+ }
+}

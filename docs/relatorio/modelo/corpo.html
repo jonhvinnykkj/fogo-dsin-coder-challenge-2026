@@ -1,0 +1,824 @@
+<!-- ================= ELEMENTOS PRÉ-TEXTUAIS ================= -->
+<section class="rosto pre">
+  <div class="entidade">DSIN Coder Challenge 2026<br>Etapa Bônus – Desafio F.O.G.O.</div>
+  <div class="titulo-trabalho">
+    <div class="principal">F.O.G.O. – Ferramenta Onisciente de Gestão e Operações</div>
+    <div class="sub">relatório técnico do sistema de inventário, monitoramento em tempo real e previsão para equipamentos de trânsito e segurança de Marília/SP</div>
+  </div>
+  <div class="natureza">Relatório técnico apresentado à comissão avaliadora da Etapa Bônus do DSIN Coder Challenge 2026 como documentação do sistema desenvolvido para o Desafio F.O.G.O., contemplando as três partes do enunciado: Inventário Inteligente da Cidade, Central de Operações da Cidade e Cidade Preditiva.</div>
+  <div class="autores">João Vinnycius Matos Monteiro Ferreira<br>Mateus Robers Amaral</div>
+  <div class="local" style="margin-top: 2cm">Marília<br>2026</div>
+</section>
+
+<section class="pre resumo">
+<h1 class="centro fora">Resumo</h1>
+<p>Este relatório técnico documenta o F.O.G.O. (Ferramenta Onisciente de Gestão e Operações), sistema web desenvolvido para a Etapa Bônus do DSIN Coder Challenge 2026 com o objetivo de catalogar, monitorar e antecipar a situação dos equipamentos de trânsito e segurança e dos agentes de campo do município de Marília/SP. O sistema reúne, numa única aplicação, as três partes pedidas no enunciado: o Inventário Inteligente da Cidade, com treze tipos de equipamento conectado e o cadastro de agentes; a Central de Operações, com mapa em tempo real, indicadores, alertas e situação das regiões; e a Cidade Preditiva, com risco de ocorrências por bairro e hora, recomendação de reforço de agentes, chance de falha de equipamentos, detecção de anomalias e tendências. Cada previsão informa o que prevê, quais dados usa, como ajuda a decidir e quanto acertou no passado. Como diferenciais, foram construídos o Modo Campo, aplicação para o celular do agente integrada à Central; o Boletim do dia, pronto para impressão e exportação em CSV; e uma camada de segurança com quatro papéis, proteção de dados pessoais alinhada à Lei Geral de Proteção de Dados Pessoais e trilha de auditoria. A solução usa Node.js, Fastify, SQLite, React e Leaflet, roda com um único comando e não depende de serviço externo além dos mapas do OpenStreetMap. A qualidade foi verificada por 719 testes automatizados de unidade e integração, seis testes de ponta a ponta, duas rodadas de revisão que simularam a comissão avaliadora e medições de desempenho. No teste retroativo de catorze dias, a previsão de risco por bairro errou 8,4% menos que a média simples de cada bairro, resultado próximo do limite teórico estimado para os dados disponíveis.</p>
+<p class="chaves"><b>Palavras-chave:</b> mobilidade urbana; internet das coisas; monitoramento em tempo real; análise preditiva; proteção de dados pessoais.</p>
+</section>
+
+<section class="pre resumo">
+<h1 class="centro fora">Abstract</h1>
+<p>This technical report documents F.O.G.O. (Omniscient Management and Operations Tool), a web system developed for the bonus stage of the DSIN Coder Challenge 2026 to catalogue, monitor and anticipate the condition of traffic and public safety equipment and field agents in the city of Marília, Brazil. A single application covers the three parts required by the challenge: the Smart City Inventory, with thirteen types of connected equipment and the registry of agents; the Operations Center, with a real-time map, indicators, alerts and the status of each region; and the Predictive City, with incident risk by neighbourhood and hour, agent reinforcement recommendations, equipment failure probability, anomaly detection and trends. Every prediction states what it predicts, which data it uses, how it supports decisions and how accurate it was in the past. As additional features, the team built the Field Mode, a mobile application for agents integrated with the Operations Center; the Daily Bulletin, ready to print and to export as CSV; and a security layer with four roles, personal data protection aligned with the Brazilian General Data Protection Law and an audit trail. The solution uses Node.js, Fastify, SQLite, React and Leaflet, runs with a single command and depends on no external service other than OpenStreetMap tiles. Quality was verified by 719 automated unit and integration tests, six end-to-end tests, two review rounds simulating the evaluation committee and performance measurements. In a fourteen-day backtest, the neighbourhood risk forecast had 8.4% lower error than each neighbourhood's simple average, close to the theoretical limit estimated for the available data.</p>
+<p class="chaves"><b>Keywords:</b> urban mobility; internet of things; real-time monitoring; predictive analytics; personal data protection.</p>
+</section>
+
+<section class="pre">
+<h1 class="centro fora">Lista de figuras</h1>
+<!-- LISTA:figura -->
+</section>
+
+<section class="pre">
+<h1 class="centro fora">Lista de quadros</h1>
+<!-- LISTA:quadro -->
+</section>
+
+<section class="pre">
+<h1 class="centro fora">Lista de tabelas</h1>
+<!-- LISTA:tabela -->
+</section>
+
+<section class="pre">
+<h1 class="centro fora">Lista de abreviaturas e siglas</h1>
+<table class="siglas">
+<tr><td>ABNT</td><td>Associação Brasileira de Normas Técnicas</td></tr>
+<tr><td>API</td><td>Interface de programação de aplicações (<i>Application Programming Interface</i>)</td></tr>
+<tr><td>CEP</td><td>Código de Endereçamento Postal</td></tr>
+<tr><td>CSP</td><td>Política de segurança de conteúdo (<i>Content Security Policy</i>)</td></tr>
+<tr><td>CSRF</td><td>Falsificação de requisição entre sites (<i>Cross-Site Request Forgery</i>)</td></tr>
+<tr><td>CSV</td><td>Valores separados por delimitador (<i>Comma-Separated Values</i>)</td></tr>
+<tr><td>E2E</td><td>Teste de ponta a ponta (<i>end-to-end</i>)</td></tr>
+<tr><td>GPS</td><td>Sistema de posicionamento global (<i>Global Positioning System</i>)</td></tr>
+<tr><td>HTTP</td><td>Protocolo de transferência de hipertexto (<i>Hypertext Transfer Protocol</i>)</td></tr>
+<tr><td>IA</td><td>Inteligência artificial</td></tr>
+<tr><td>IoT</td><td>Internet das coisas (<i>Internet of Things</i>)</td></tr>
+<tr><td>JSON</td><td>Notação de objetos JavaScript (<i>JavaScript Object Notation</i>)</td></tr>
+<tr><td>LGPD</td><td>Lei Geral de Proteção de Dados Pessoais</td></tr>
+<tr><td>MAE</td><td>Erro absoluto médio (<i>Mean Absolute Error</i>)</td></tr>
+<tr><td>ODbL</td><td>Licença aberta de bases de dados (<i>Open Database License</i>)</td></tr>
+<tr><td>OSM</td><td>OpenStreetMap</td></tr>
+<tr><td>PM</td><td>Polícia Militar</td></tr>
+<tr><td>p.p.</td><td>Pontos percentuais</td></tr>
+<tr><td>REST</td><td>Transferência de estado representacional (<i>Representational State Transfer</i>)</td></tr>
+<tr><td>SQL</td><td>Linguagem de consulta estruturada (<i>Structured Query Language</i>)</td></tr>
+<tr><td>SSE</td><td>Eventos enviados pelo servidor (<i>Server-Sent Events</i>)</td></tr>
+<tr><td>TDD</td><td>Desenvolvimento guiado por testes (<i>Test-Driven Development</i>)</td></tr>
+<tr><td>UF</td><td>Unidade da Federação</td></tr>
+<tr><td>XSS</td><td>Injeção de código entre sites (<i>Cross-Site Scripting</i>)</td></tr>
+<tr><td>2FA</td><td>Autenticação em dois fatores</td></tr>
+</table>
+</section>
+
+<section class="pre">
+<h1 class="centro fora">Sumário</h1>
+<!-- SUMARIO -->
+</section>
+
+<!-- ================= ELEMENTOS TEXTUAIS ================= -->
+
+<h1>Introdução</h1>
+<p>O DSIN Coder Challenge 2026, sob a narrativa do “Protocolo PROMETHEUS”, propôs em sua Etapa Bônus a construção do F.O.G.O., sigla de Ferramenta Onisciente de Gestão e Operações, descrita no enunciado como a ferramenta “responsável por colocar o controle e gestão das operações de trânsito em outro patamar” (DSIN, 2026). O desafio foi dividido em três partes: o Inventário Inteligente da Cidade, a Central de Operações da Cidade e a Cidade Preditiva.</p>
+<p>Este relatório documenta a solução desenvolvida pela equipe para essas três partes, reunidas num único sistema web. São descritos os requisitos considerados, o processo de desenvolvimento, a arquitetura, as funcionalidades de cada parte, os métodos de previsão e a forma como foram validados, as medidas de segurança, a verificação de qualidade e as instruções para executar o sistema. A apresentação segue a ABNT NBR 10719 (Associação Brasileira de Normas Técnicas, 2015), que trata de relatórios técnicos e científicos.</p>
+
+<h2>Contexto e problema</h2>
+<p>Os municípios instalam um número crescente de equipamentos conectados nas vias, como radares, câmeras de videomonitoramento, semáforos, balanças de pesagem e patinetes compartilhados, e mantêm agentes de trânsito, guardas municipais e policiais em campo. Cada um desses recursos gera dados de forma contínua, mas, quando esses dados ficam dispersos em cadastros e sistemas diferentes, o gestor não consegue responder com rapidez às duas perguntas que o enunciado coloca: “Se algo estiver acontecendo na cidade agora, PROMETHEUS conseguirá perceber?” e “Você consegue fazê-lo enxergar o que pode acontecer amanhã?” (DSIN, 2026).</p>
+<p>O problema tratado, portanto, é integrar numa visão única o cadastro dos recursos, a operação em tempo real e a antecipação de situações críticas, com números que possam ser explicados e conferidos, de modo que a informação se transforme em decisão.</p>
+
+<h2>Objetivos</h2>
+<h3>Objetivo geral</h3>
+<p>Desenvolver um sistema web que integre inventário, monitoramento em tempo real e previsão para os equipamentos de trânsito e segurança e para os agentes de campo de Marília/SP, de modo a apoiar a tomada de decisão dos gestores.</p>
+<h3>Objetivos específicos</h3>
+<p>Para alcançar o objetivo geral, foram definidos os seguintes objetivos específicos:</p>
+<ul class="alineas">
+<li data-l="a">catalogar equipamentos de treze tipos, com características próprias de cada tipo, localização validada, situação e necessidade de manutenção;</li>
+<li data-l="b">cadastrar agentes de trânsito, guardas municipais e policiais militares, com base, turno e veículo vinculado;</li>
+<li data-l="c">receber telemetria por uma porta de entrada autenticada e apresentá-la, em tempo real, numa central com mapa, indicadores, alertas e situação por região;</li>
+<li data-l="d">prever o risco de ocorrências por bairro e hora, a necessidade de reforço de agentes e a chance de falha de equipamentos, medindo o acerto dessas previsões contra uma referência simples;</li>
+<li data-l="e">levar o despacho até o agente em campo e produzir um boletim diário para reuniões;</li>
+<li data-l="f">proteger o acesso com papéis, mascarar dados pessoais e registrar uma trilha de auditoria;</li>
+<li data-l="g">garantir que o sistema rode com um único comando, sem configuração prévia;</li>
+<li data-l="h">documentar o sistema e verificá-lo com testes automatizados e revisões independentes.</li>
+</ul>
+
+<h2>Escopo e premissas</h2>
+<p>O sistema atende um único município, Marília/SP, sede da DSIN. Os 65 bairros, as ruas e o limite urbano são reais, obtidos do OpenStreetMap (OpenStreetMap Contributors, 2026) e guardados no próprio repositório, de modo que o sistema não depende de rede para conhecê-los. Os equipamentos, os agentes e os 60 dias de histórico de ocorrências e telemetria são sintéticos, gerados com semente fixa e com padrões inseridos de propósito, que a parte preditiva deve redescobrir.</p>
+<p>Foram adotadas ainda as seguintes premissas: nenhum serviço externo é obrigatório, sendo a internet necessária apenas para o fundo do mapa; a consulta de CEP ao serviço ViaCEP é opcional; a cidade e a UF são fixas em Marília/SP, por decisão de escopo; e toda a interface está em português do Brasil, com números no formato brasileiro e datas no fuso de São Paulo.</p>
+
+<h2>Estrutura do relatório</h2>
+<p>A seção 2 apresenta os requisitos funcionais e não funcionais e onde cada um é atendido. A seção 3 descreve a metodologia de desenvolvimento, incluindo o uso de inteligência artificial. A seção 4 trata da arquitetura e do modelo de dados. As seções 5, 6 e 7 detalham, respectivamente, o Inventário Inteligente da Cidade, a Central de Operações e a Cidade Preditiva. A seção 8 apresenta as funcionalidades complementares (Modo Campo, Boletim do dia e tema escuro). A seção 9 trata de segurança e proteção de dados; a seção 10, de testes, revisões e desempenho; a seção 11, de implantação e execução; a seção 12, das limitações e trabalhos futuros; e a seção 13 traz as considerações finais. Os apêndices listam as rotas da interface de programação e um roteiro curto de avaliação.</p>
+
+<h1>Requisitos</h1>
+<p>Os requisitos foram extraídos do enunciado original, guardado no repositório em <code>docs/ENUNCIADO.md</code>, e conferidos item por item contra o sistema em execução. O enunciado também informa os critérios de avaliação: “capacidade de resolver o problema proposto, criatividade, inovação, efetividade, desempenho, qualidade técnica, experiência de uso e diferenciais da solução” (DSIN, 2026). Esses critérios orientaram os requisitos não funcionais.</p>
+
+<h2>Requisitos funcionais</h2>
+<p>O Quadro 1 relaciona cada requisito funcional do enunciado à forma como o sistema o atende e à seção deste relatório em que ele é descrito.</p>
+<quadro titulo="Requisitos funcionais e atendimento" fonte="Elaborado pelos autores com base em DSIN (2026).">
+<table>
+<thead><tr><th style="width:1.2cm">Código</th><th style="width:5.2cm">Requisito (enunciado)</th><th>Atendimento no sistema</th><th style="width:1.2cm">Seção</th></tr></thead>
+<tbody>
+<tr><td colspan="4"><b>1ª parte – Inventário Inteligente da Cidade</b></td></tr>
+<tr><td>RF01</td><td>Catalogar o tipo de equipamento (radar, câmera, balança, fiscalização do rotativo, cancela, veículos de transporte, totem, patinete, moto de agente, viatura e outros)</td><td>Treze tipos, os dez citados mais semáforo inteligente, painel de mensagem variável e sensor de alagamento</td><td>5.1</td></tr>
+<tr><td>RF02</td><td>Número de série, marca e modelo</td><td>Obrigatórios; número de série único, normalizado e sem diferenciar maiúsculas</td><td>5.2</td></tr>
+<tr><td>RF03</td><td>Localização: CEP, bairro, cidade/UF, rua, referência e coordenadas GPS</td><td>Todos os campos; ponto escolhido no mapa, conferido dentro do município e do bairro; CEP com preenchimento opcional</td><td>5.2</td></tr>
+<tr><td>RF04</td><td>Situação atual do equipamento</td><td>Seis situações, com histórico de mudanças; furtado só sai com registro de recuperação</td><td>5.3</td></tr>
+<tr><td>RF05</td><td>Necessidade de manutenção imediata ou agendada/periódica, com a próxima data</td><td>Nenhuma, imediata, agendada ou periódica; data obrigatória nas duas últimas; mau funcionamento torna a necessidade imediata</td><td>5.3</td></tr>
+<tr><td>RF06</td><td>Características próprias de cada tipo</td><td>Campos por tipo, validados no servidor (ex.: resolução e visão noturna da câmera, modalidade e velocidade máxima do radar)</td><td>5.1</td></tr>
+<tr><td>RF07</td><td>Cadastro de agentes de trânsito, guardas municipais e policiais</td><td>Cadastro com categoria, órgão, turno, base, telefone e moto ou viatura vinculada</td><td>5.4</td></tr>
+<tr><td colspan="4"><b>2ª parte – Central de Operações da Cidade</b></td></tr>
+<tr><td>RF08</td><td>Dashboard integrado a um mapa, com informações em tempo real</td><td>Central com mapa, atualizada por eventos do servidor (SSE)</td><td>6.1</td></tr>
+<tr><td>RF09</td><td>Visualizar no mapa todos os equipamentos e agentes, com identificação por tipo</td><td>Ícone do tipo em bloco colorido pela situação; agentes em losango com o ícone da categoria; agrupamento de marcadores</td><td>6.3</td></tr>
+<tr><td>RF10</td><td>Identificar de forma simples a situação de cada equipamento</td><td>Cor cheia por situação, tracejado para não instalado e legenda no mapa</td><td>6.3</td></tr>
+<tr><td>RF11</td><td>Indicadores gerais (total, operacionais, indisponíveis, disponibilidade e agentes em atividade)</td><td>Seis indicadores, incluindo alertas críticos abertos</td><td>6.2</td></tr>
+<tr><td>RF12</td><td>Filtros por tipo, situação, bairro, região, órgão e outros</td><td>Filtros por tipo, situação, região, bairro, órgão, manutenção e categoria e situação do agente</td><td>6.3</td></tr>
+<tr><td>RF13</td><td>Destacar manutenção imediata ou próxima da data</td><td>Selo no marcador e no grupo de marcadores, filtro e quadro de manutenção</td><td>6.3; 6.7</td></tr>
+<tr><td>RF14</td><td>Alertas para situações críticas, com destaque</td><td>Feed de alertas com criticidade, contorno do bairro no mapa e contador de críticos</td><td>6.4</td></tr>
+<tr><td>RF15</td><td>Consultar detalhes de equipamento ou agente pelo mapa</td><td>Ficha lateral ao clicar no marcador, com acesso à ficha completa</td><td>6.6</td></tr>
+<tr><td>RF16</td><td>Visão consolidada das regiões que operam normalmente e das que exigem atenção</td><td>Índice por bairro e por região, com nível e motivos em texto</td><td>6.5</td></tr>
+<tr><td colspan="4"><b>3ª parte – Cidade Preditiva</b></td></tr>
+<tr><td>RF17</td><td>Regiões, dias ou horários com maior probabilidade de ocorrências</td><td>Risco por bairro e hora nas próximas 24 horas e nos próximos 7 dias</td><td>7.3</td></tr>
+<tr><td>RF18</td><td>Momentos em que regiões precisarão de reforço de agentes</td><td>Recomendação de mover agentes entre regiões, por turno</td><td>7.4</td></tr>
+<tr><td>RF19</td><td>Comportamentos fora do padrão</td><td>Detecção de anomalias na telemetria, comparada ao normal do próprio equipamento</td><td>7.6</td></tr>
+<tr><td>RF20</td><td>Tendências de disponibilidade e utilização</td><td>Disponibilidade por tipo, uso de patinetes por bairro e falhas por modelo</td><td>7.7</td></tr>
+<tr><td>RF21</td><td>Índices ou níveis de risco</td><td>Índice de 0 a 100 com quatro níveis, por bairro e hora</td><td>7.3</td></tr>
+<tr><td>RF22</td><td>Alertas preventivos e recomendações</td><td>Resumo do dia com recomendações e alerta preventivo de falha provável</td><td>7.8</td></tr>
+<tr><td>RF23</td><td>Deixar claro o que é previsto, os dados considerados e como ajuda</td><td>Cartão “O que prevê / Dados usados / Como ajuda” em cada previsão, com a confiabilidade medida</td><td>7.1</td></tr>
+</tbody>
+</table>
+</quadro>
+
+<h2>Requisitos não funcionais</h2>
+<p>Os requisitos não funcionais derivam das instruções de entrega do enunciado (rodar de primeira, limite de 50 MB, declaração do uso de IA) e dos critérios de avaliação. O Quadro 2 apresenta cada um deles.</p>
+<quadro titulo="Requisitos não funcionais e atendimento" fonte="Elaborado pelos autores com base em DSIN (2026).">
+<table>
+<thead><tr><th style="width:1.4cm">Código</th><th style="width:4.6cm">Requisito</th><th>Atendimento no sistema</th><th style="width:1.2cm">Seção</th></tr></thead>
+<tbody>
+<tr><td>RNF01</td><td>Rodar de primeira, sem configuração</td><td><code>npm install &amp;&amp; npm start</code> ou <code>docker compose up --build</code>; o banco é criado e povoado sozinho</td><td>11.2</td></tr>
+<tr><td>RNF02</td><td>Envio de até 50 MB</td><td><code>npm run empacotar</code> gera o arquivo compactado só com o necessário e falha se passar do limite</td><td>11.4</td></tr>
+<tr><td>RNF03</td><td>Nenhum serviço externo obrigatório</td><td>Só o fundo do mapa precisa de internet; a consulta de CEP é opcional</td><td>1.3</td></tr>
+<tr><td>RNF04</td><td>Desempenho</td><td>Rotas da API em 1 a 2 ms; telas abrem em 0,1 a 0,5 s mesmo com processador quatro vezes mais lento</td><td>10.3</td></tr>
+<tr><td>RNF05</td><td>Segurança e proteção de dados pessoais</td><td>Sessão, quatro papéis, mascaramento, auditoria e defesas contra ataques comuns</td><td>9</td></tr>
+<tr><td>RNF06</td><td>Experiência de uso</td><td>Interface em português, tema claro e escuro opcional, telas testadas em 1440, 1024, 800 e 390 px de largura</td><td>6; 8</td></tr>
+<tr><td>RNF07</td><td>Portabilidade</td><td>macOS, Linux e Windows, com Node.js 22.14 ou mais novo, ou Docker</td><td>11.1</td></tr>
+<tr><td>RNF08</td><td>Manutenibilidade</td><td>TypeScript estrito, testes ao lado do código e nomes de funções em português do domínio</td><td>4.3; 10.1</td></tr>
+<tr><td>RNF09</td><td>Explicabilidade das previsões</td><td>Cada previsão mostra o que prevê, os dados usados, como ajuda e quanto acertou</td><td>7.1</td></tr>
+<tr><td>RNF10</td><td>Declaração do uso de IA e entendimento do que foi construído</td><td>Declaração no README e guia de estudo da equipe com o mapa do código e as fórmulas</td><td>3.2</td></tr>
+</tbody>
+</table>
+</quadro>
+
+<h1>Metodologia de desenvolvimento</h1>
+<p>Esta seção descreve como o sistema foi planejado, construído e verificado, incluindo o papel das ferramentas de inteligência artificial e a organização do trabalho no controle de versão.</p>
+
+<h2>Processo</h2>
+<p>O desenvolvimento começou por um documento de design, que registrou a intenção do projeto, as metas, as não metas, as “anti-metas” (o que conta como falha mesmo que funcione, como tela vazia, número sem origem ou previsão sem medida de acerto), as restrições e as decisões de construção. A partir dele, foi escrito um plano de implementação em catorze tarefas. Cada tarefa seguiu o ciclo de desenvolvimento guiado por testes: os testes que descrevem a regra foram escritos antes do código, o código foi implementado até que passassem e, em seguida, o resultado passou por uma revisão independente antes de ser integrado.</p>
+<p>Concluída a primeira versão, o sistema passou por duas rodadas de revisão que simularam a comissão avaliadora testando o projeto pela primeira vez, descritas na seção 10.2. Os achados de cada rodada foram corrigidos em ramos próprios e integrados com novos testes. Por fim, o desempenho foi medido e otimizado, e as medições foram registradas no README.</p>
+
+<h2>Uso de inteligência artificial</h2>
+<p>Conforme pede o enunciado, declara-se o uso de inteligência artificial. O sistema foi construído com o Claude Code (Anthropic, 2026): o modelo Claude Opus 5.5 orquestrou o trabalho, revisou e implementou as partes mais complexas; o Claude Sonnet 5.5 implementou e revisou tarefas; e o Claude Haiku 5.5 fez revisões curtas. Cada tarefa teve testes escritos antes do código e revisão independente.</p>
+<p>A equipe revisou, testou e estudou cada módulo. Para demonstrar o entendimento do que foi construído, como exige o enunciado, o repositório traz o guia <code>docs/GUIA-DO-TIME.md</code>, com o mapa do código, o caminho de um dado de telemetria, as fórmulas com exemplos numéricos conferidos contra o código e vinte e seis perguntas prováveis da comissão com as respostas. Este relatório foi elaborado com o mesmo apoio, a partir do código, da documentação do repositório e de capturas do sistema em execução.</p>
+
+<h2>Controle de versão e colaboração</h2>
+<p>O código é mantido em Git e publicado no GitHub, em <span class="url">https://github.com/jonhvinnykkj/fogo-dsin-coder-challenge-2026</span>, cujo ramo principal corresponde à versão de entrega. As correções de cada rodada de revisão foram feitas em ramos temáticos (por exemplo, <code>correcao/dados</code>, <code>correcao/seguranca</code> e <code>correcao/r2-simulacao</code>) e integradas por mesclagem. As contribuições do integrante Mateus Robers Amaral chegaram por <i>pull requests</i>, revisados antes da integração: a revisão do projeto como avaliador (#1), o Modo Campo (#2), o login com papéis e a auditoria (#3), o Boletim do dia (#4) e o ajuste do tempo máximo dos testes para máquinas Windows (#5). Até 26 de outubro de 2026, o histórico somava 143 <i>commits</i>, com mensagens em português no padrão “tipo(escopo): descrição”.</p>
+
+<h2>Cronograma</h2>
+<p>O Quadro 3 resume as etapas do projeto, do documento de design à entrega.</p>
+<quadro titulo="Cronograma das etapas do projeto" fonte="Elaborado pelos autores a partir do histórico do repositório (2026).">
+<table>
+<thead><tr><th style="width:2.6cm">Data (2026)</th><th>Etapa</th></tr></thead>
+<tbody>
+<tr><td>17 de outubro</td><td>Documento de design, plano de catorze tarefas, implementação das três partes com testes e revisão final</td></tr>
+<tr><td>18 de outubro</td><td>Primeira versão do vídeo de demonstração</td></tr>
+<tr><td>19 de outubro</td><td>Primeira rodada de revisão como avaliador (Windows 11, instalação do zero); vídeo com narração</td></tr>
+<tr><td>22 de outubro</td><td>Integração dos <i>pull requests</i> #1 a #4 (revisão, Modo Campo, segurança e Boletim do dia); correção dos achados da primeira rodada; segunda rodada com cinco frentes de teste independentes e correção de cerca de 60 achados</td></tr>
+<tr><td>23 de outubro</td><td>Medição e otimização de desempenho (compressão no build, cache e carregamento sob demanda)</td></tr>
+<tr><td>26 de outubro</td><td>Integração do <i>pull request</i> #5 (tempo dos testes no Windows); segunda versão do vídeo de demonstração (3 min 52 s)</td></tr>
+<tr><td>27 de outubro</td><td>Relatório técnico e entrega</td></tr>
+</tbody>
+</table>
+</quadro>
+
+<h1>Arquitetura do sistema</h1>
+<p>Esta seção apresenta a organização do sistema em camadas, as tecnologias escolhidas, a estrutura do código, o modelo de dados, o caminho percorrido por um dado de telemetria e a interface de programação.</p>
+
+<h2>Visão geral</h2>
+<p>O F.O.G.O. é um monólito modular: um único processo Node.js serve a interface de programação (API), o canal de tempo real, a interface web compilada e o simulador da cidade. Essa escolha atende ao requisito de rodar com um comando, sem filas, serviços ou bancos externos para instalar, e mantém o caminho de um dado fácil de seguir. A Figura 1 mostra os componentes e o sentido em que os dados circulam.</p>
+<figura svg="diagramas/arquitetura.svg" titulo="Arquitetura do sistema F.O.G.O." fonte="Elaborada pelos autores (2026)."></figura>
+<p>A telemetria entra sempre pela mesma porta, <code>POST /api/telemetria</code>, seja ela gerada pelo simulador, que roda no próprio processo, seja enviada por um dispositivo real autenticado com o seu token. Depois de validada e gravada, cada leitura passa pela detecção de anomalias e pelo motor de alertas; os eventos resultantes seguem por um barramento interno até o canal de <i>Server-Sent Events</i> (<code>GET /api/stream</code>), que os entrega às telas abertas (WHATWG, 2026). O módulo preditivo lê apenas o histórico gravado no SQLite e responde pela API REST. A camada de segurança envolve todas as rotas e o canal de tempo real.</p>
+
+<h2>Tecnologias</h2>
+<p>As tecnologias foram escolhidas para que o sistema rodasse sem instalação de serviços, fosse rápido e pudesse ser explicado pela equipe. O Quadro 4 apresenta cada escolha e a justificativa.</p>
+<quadro titulo="Tecnologias adotadas e justificativas" fonte="Elaborado pelos autores (2026).">
+<table>
+<thead><tr><th style="width:2.8cm">Camada</th><th style="width:5.2cm">Tecnologia</th><th>Justificativa</th></tr></thead>
+<tbody>
+<tr><td>Linguagem</td><td>TypeScript 5.9 em modo estrito</td><td>Os mesmos tipos e regras servem ao servidor e à interface (pasta <code>shared/</code>)</td></tr>
+<tr><td>Servidor</td><td>Node.js 22 e Fastify 5</td><td>Rápido, simples de ler e com injeção de requisições que facilita os testes de API (Fastify, 2026)</td></tr>
+<tr><td>Validação e documentação</td><td>zod 3, com geração de esquema para Swagger</td><td>Uma única regra valida a entrada e documenta a rota</td></tr>
+<tr><td>Banco de dados</td><td>SQLite com <code>better-sqlite3</code></td><td>Arquivo único, criado sozinho na primeira partida, com SQL puro e fácil de explicar (SQLite, 2026)</td></tr>
+<tr><td>Tempo real</td><td><i>Server-Sent Events</i></td><td>O fluxo é só do servidor para a tela; reconexão automática sobre HTTP comum</td></tr>
+<tr><td>Interface</td><td>React 19, Vite 8, React Router 7 e TanStack Query 5</td><td>Padrão de mercado, compilação rápida e cache de consultas atualizado pelo tempo real (React, 2026)</td></tr>
+<tr><td>Mapa</td><td>Leaflet 1.9, agrupamento de marcadores e mapa de calor, com blocos do OpenStreetMap</td><td>Gratuito e sem chave de acesso (Leaflet, 2026)</td></tr>
+<tr><td>Gráficos e ícones</td><td>Recharts 3 e Phosphor Icons</td><td>Gráficos simples; ícones cheios, sempre acompanhados de palavra</td></tr>
+<tr><td>Testes</td><td>Vitest 5, Testing Library e Playwright 1.64</td><td>Testes de regra, de API, de interface e de ponta a ponta (Vitest, 2026; Playwright, 2026)</td></tr>
+<tr><td>Segurança</td><td>Helmet, limite de requisições e cookies do Fastify; <code>scrypt</code> do Node.js</td><td>Cabeçalhos de proteção, limite por IP, sessão por cookie e senha com derivação resistente a força bruta (Percival, 2009)</td></tr>
+<tr><td>Implantação</td><td>Docker e Docker Compose</td><td>Alternativa para quem não quer instalar o Node.js</td></tr>
+</tbody>
+</table>
+</quadro>
+
+<h2>Organização do código</h2>
+<p>O código está dividido em três partes: <code>shared/</code>, com o que servidor e interface usam igualmente (situações, tipos de equipamento, métricas de telemetria, validações e formatação brasileira); <code>server/</code>, com o servidor; e <code>web/src/</code>, com a interface. O Quadro 5 descreve as pastas principais.</p>
+<quadro titulo="Organização das pastas do código" fonte="Elaborado pelos autores a partir do repositório (2026).">
+<table>
+<thead><tr><th style="width:5cm">Pasta</th><th>Conteúdo</th></tr></thead>
+<tbody>
+<tr><td><code>shared/</code></td><td>Domínio (situações, criticidades, rótulos, turnos), catálogo dos treze tipos, métricas de telemetria, validações, modelos das respostas, geometria e limite do município, formatação brasileira e regras de papéis</td></tr>
+<tr><td><code>server/db/</code></td><td>Conexão SQLite, esquema das tabelas e índices, e migração de bancos antigos</td></tr>
+<tr><td><code>server/repositorios/</code></td><td>Todo o SQL, organizado por tabela</td></tr>
+<tr><td><code>server/servicos/</code></td><td>Regras de negócio (equipamentos, indicadores, mapa, regiões, Modo Campo)</td></tr>
+<tr><td><code>server/rotas/</code></td><td>Rotas finas: validam, chamam o serviço e respondem</td></tr>
+<tr><td><code>server/semente/</code></td><td>Criação da cidade e do histórico de 60 dias, com padrões inseridos</td></tr>
+<tr><td><code>server/tempo-real/</code></td><td>Ingestão, faixas de validação, anomalias, motor de alertas, simulador e barramento de eventos</td></tr>
+<tr><td><code>server/preditivo/</code></td><td>Base estatística, risco, teste retroativo, reforço, falhas, tendências e resumo do dia</td></tr>
+<tr><td><code>server/seguranca/</code></td><td>Sessão, permissão por rota, proteção de dados pessoais, auditoria e criptografia</td></tr>
+<tr><td><code>web/src/</code></td><td>Páginas, componentes, mapa, cliente da API, conexão de tempo real, Modo Campo, Boletim e estilos</td></tr>
+<tr><td><code>e2e/</code>, <code>scripts/</code>, <code>docs/</code></td><td>Teste de ponta a ponta; empacotamento, geração de token e de senha; documentação</td></tr>
+</tbody>
+</table>
+</quadro>
+<p>Os testes ficam ao lado do código que verificam (arquivos <code>*.test.ts</code>) e funcionam também como documentação das regras. A Tabela 1 mostra o tamanho de cada parte.</p>
+<tabela titulo="Linhas de código e de teste por parte do sistema" fonte="Elaborada pelos autores a partir do repositório em 27 out. 2026." nota="Contagem de linhas dos arquivos TypeScript e JavaScript, incluindo comentários e linhas em branco. A interface tem ainda 7.935 linhas de CSS.">
+<table>
+<thead><tr><th>Parte</th><th class="n">Código</th><th class="n">Testes</th><th class="n">Arquivos de teste</th></tr></thead>
+<tbody>
+<tr><td>Servidor (<code>server/</code>)</td><td class="n">9.941</td><td class="n">6.245</td><td class="n">41</td></tr>
+<tr><td>Compartilhado (<code>shared/</code>)</td><td class="n">1.495</td><td class="n">310</td><td class="n">6</td></tr>
+<tr><td>Interface (<code>web/src/</code>)</td><td class="n">11.827</td><td class="n">3.243</td><td class="n">41</td></tr>
+<tr><td>Scripts (<code>scripts/</code>)</td><td class="n">744</td><td class="n">236</td><td class="n">6</td></tr>
+<tr><td>Ponta a ponta (<code>e2e/</code>)</td><td class="n">77</td><td class="n">66</td><td class="n">1</td></tr>
+<tr><td><b>Total</b></td><td class="n"><b>24.084</b></td><td class="n"><b>10.100</b></td><td class="n"><b>95</b></td></tr>
+</tbody>
+</table>
+</tabela>
+
+<h2>Modelo de dados</h2>
+<p>O banco é um único arquivo SQLite, criado e povoado na primeira partida. O esquema é idempotente (todas as tabelas e índices são criados apenas se não existirem) e as datas são gravadas como texto no formato ISO 8601, em UTC. A Figura 2 mostra as entidades e seus relacionamentos, e o Quadro 6 resume o que cada tabela guarda.</p>
+<div class="folha-deitada">
+<figura svg="diagramas/banco.svg" titulo="Modelo entidade-relacionamento do banco de dados" fonte="Elaborada pelos autores a partir de server/db/schema.sql (2026)." nota="A ligação tracejada entre usuários e auditoria é lógica (sem chave estrangeira): a trilha guarda também tentativas de quem não existe ou já foi removido."></figura>
+</div>
+<quadro titulo="Dicionário de dados resumido" fonte="Elaborado pelos autores a partir de server/db/schema.sql (2026).">
+<table>
+<thead><tr><th style="width:4.1cm">Tabela</th><th>O que guarda</th></tr></thead>
+<tbody>
+<tr><td><code>equipamentos</code></td><td>Código legível (ex.: FOGO-RAD-0007), tipo, número de série único, marca, modelo, órgão, situação, endereço (CEP, logradouro, referência, bairro, cidade/UF), ponto cadastrado e posição atual, último sinal, manutenção (necessidade, periodicidade, última e próxima data), características do tipo em JSON validado e o <i>hash</i> do token do dispositivo</td></tr>
+<tr><td><code>historico_situacao</code></td><td>Cada mudança de situação, com motivo, data e origem (<code>historico</code>, gerada pela semente, ou <code>ao_vivo</code>, do simulador e das telas)</td></tr>
+<tr><td><code>agentes</code></td><td>Nome, matrícula, categoria, órgão, situação, turno, base, posição, telefone e veículo vinculado</td></tr>
+<tr><td><code>bairros</code></td><td>Os 65 bairros de Marília, com região (Centro, Norte, Sul, Leste, Oeste), centro e polígono</td></tr>
+<tr><td><code>ocorrencias</code></td><td>Acidente, congestionamento, infração, furto ou vandalismo, veículo quebrado, alagamento e segurança; gravidade de 1 a 4, local, início e fim, origem (<code>historico</code>, <code>tempo_real</code>, <code>injetado</code>), agente e peso no índice das regiões</td></tr>
+<tr><td><code>telemetria_hora</code></td><td>Uma linha por equipamento e hora, com as métricas do tipo e os minutos conectado (cerca de 450 mil linhas na semente)</td></tr>
+<tr><td><code>manutencoes</code></td><td>Ordens preventivas e corretivas, previstas e concluídas</td></tr>
+<tr><td><code>alertas</code></td><td>Tipo, criticidade (crítica, alta, média, baixa), explicação, chave contra duplicação, reconhecimento e resolução (manual ou automática)</td></tr>
+<tr><td><code>clima_dia</code></td><td>Chuva observada e a previsão do tempo da véspera, a única usada pelas previsões</td></tr>
+<tr><td><code>usuarios</code>, <code>sessoes</code></td><td>Pessoas com papel e senha em <i>hash scrypt</i>; sessões guardadas apenas pelo SHA-256 do cookie</td></tr>
+<tr><td><code>auditoria</code></td><td>Quem, papel, ação, rota, entidade, estado antes e depois, IP e resultado de cada escrita e tentativa de entrada</td></tr>
+<tr><td><code>meta</code></td><td>Pares chave-valor, como o fim do histórico gerado (<code>historico_ate</code>)</td></tr>
+</tbody>
+</table>
+</quadro>
+
+<h2>Fluxo de um dado de telemetria</h2>
+<p>O exemplo a seguir acompanha uma leitura anormal, um radar que informa fluxo zero no horário de pico, do simulador até a tela:</p>
+<ul class="alineas">
+<li data-l="a">a cada dois segundos, o simulador (<code>tempo-real/simulador.ts</code>) gera leituras com a mesma função que gerou o histórico, para que o “normal” ao vivo seja igual ao do passado, e as envia pela mesma função de ingestão que um dispositivo real usaria;</li>
+<li data-l="b">a rota <code>POST /api/telemetria</code> confere o token do dispositivo em tempo constante e valida o corpo;</li>
+<li data-l="c">a ingestão valida as métricas do tipo e suas faixas, atualiza o último sinal e a posição, e acumula a leitura na linha da hora corrente;</li>
+<li data-l="d">a detecção de anomalias compara a leitura com a média e o desvio do mesmo equipamento, na mesma hora e tipo de dia, e marca a leitura como anormal quando o desvio padronizado passa de três;</li>
+<li data-l="e">o motor de alertas abre um alerta com criticidade e explicação em português, sem duplicar enquanto houver outro igual aberto;</li>
+<li data-l="f">o barramento de eventos recebe o alerta (e as posições, agrupadas a cada dois segundos para não sobrecarregar a tela);</li>
+<li data-l="g">o canal <code>GET /api/stream</code> entrega o evento a cada navegador conectado;</li>
+<li data-l="h">na interface, a conexão de tempo real atualiza o cache de consultas e, se cair, reconecta e ressincroniza a tela;</li>
+<li data-l="i">o alerta aparece no feed, o indicador de alertas críticos sobe e o marcador no mapa muda de cor.</li>
+</ul>
+<p>Quando a causa termina, o caminho se inverte: três leituras normais seguidas encerram a anomalia, o sinal que volta encerra o alerta de falta de sinal, a ocorrência concluída encerra o seu alerta e o reparo registrado encerra a falha. Essas resoluções ficam marcadas como automáticas, enquanto as feitas por uma pessoa ficam marcadas como manuais.</p>
+
+<h2>Interface de programação</h2>
+<p>A API segue o estilo REST, com 48 rotas agrupadas em inventário, Central, tempo real, previsões, acesso, Modo Campo e saúde. Todo corpo e todo filtro passam por validação antes de chegar ao banco, e a documentação interativa (Swagger), mostrada na Figura 3, é gerada a partir dos mesmos esquemas de validação, com os corpos, os filtros e os códigos de resposta de cada rota. Exceto a verificação de saúde, a entrada e a telemetria, toda rota exige sessão: sem ela, a resposta é 401; sem permissão para o papel, 403. A lista completa, com o acesso de cada papel, está no Apêndice A.</p>
+<figura src="capturas/34-swagger.jpg" titulo="Documentação interativa da API (Swagger) em /api/docs" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+
+<h1>Inventário Inteligente da Cidade</h1>
+<p>A primeira parte do enunciado pede o catálogo dos equipamentos de apoio à segurança e ao trânsito e o cadastro dos agentes que atuam nas operações. Esta seção descreve o catálogo de tipos, o cadastro de equipamentos e agentes e as regras que mantêm os dados coerentes.</p>
+
+<h2>Catálogo de tipos de equipamento</h2>
+<p>O catálogo tem treze tipos: os dez citados no enunciado e mais três que completam a operação de trânsito (semáforo inteligente, painel de mensagem variável e sensor de alagamento). Cada tipo define suas características próprias, validadas no servidor e exibidas como campos dinâmicos no formulário, e as métricas que envia por telemetria. Os tipos móveis (veículos, motos, viaturas e patinetes) têm uma base cadastrada e uma posição atual que vem da telemetria. O Quadro 7 apresenta o catálogo.</p>
+<quadro titulo="Catálogo dos treze tipos de equipamento" fonte="Elaborado pelos autores a partir de shared/tipos-equipamento.ts e shared/telemetria.ts (2026).">
+<table>
+<thead><tr><th style="width:4.1cm">Tipo (sigla)</th><th>Características próprias</th><th style="width:4.4cm">Métricas de telemetria</th></tr></thead>
+<tbody>
+<tr><td>Radar de fiscalização (RAD)</td><td>Modalidade (velocidade, avanço de semáforo, conversão proibida, retorno proibido, parada sobre faixa), velocidade máxima, faixas, sentido</td><td>Fluxo, velocidade média, infrações</td></tr>
+<tr><td>Câmera de videomonitoramento (CAM)</td><td>Resolução (720p, 1080p, 4K), visão noturna, colorida ou preto e branco, PTZ, ângulo, dias de armazenamento</td><td>Conexão, quadros por segundo</td></tr>
+<tr><td>Balança de caminhão (BAL)</td><td>Capacidade, tolerância, eixos lidos</td><td>Pesagens, excessos de peso</td></tr>
+<tr><td>Veículo de fiscalização do rotativo (FIS), móvel</td><td>Autonomia, câmeras de leitura de placa, rota de patrulha</td><td>Placas lidas, quilômetros rodados</td></tr>
+<tr><td>Cancela automatizada (CAN)</td><td>Tipo de acesso (tag, ticket, placa), local</td><td>Aberturas</td></tr>
+<tr><td>Veículo de transporte cadastrado (TRA), móvel</td><td>Categoria (táxi, mototáxi, escolar), placa, capacidade, permissionário</td><td>Velocidade, quilômetros rodados</td></tr>
+<tr><td>Totem do rotativo (TOT)</td><td>Meios de pagamento, impressora, tela acessível</td><td>Transações, conexão</td></tr>
+<tr><td>Patinete elétrico compartilhado (PAT), móvel</td><td>Operadora, autonomia, bateria</td><td>Bateria, tempo em uso</td></tr>
+<tr><td>Moto de agente de trânsito (MOT), móvel</td><td>Placa, cilindrada</td><td>Velocidade, quilômetros rodados</td></tr>
+<tr><td>Viatura da Guarda Municipal ou PM (VTR), móvel</td><td>Placa, órgão, prefixo</td><td>Velocidade, quilômetros rodados</td></tr>
+<tr><td>Semáforo inteligente (SEM)</td><td>Fases, botoeira para pedestre, sincronização</td><td>Conexão, falhas de fase</td></tr>
+<tr><td>Painel de mensagem variável (PMV)</td><td>Tamanho, cores</td><td>Conexão</td></tr>
+<tr><td>Sensor de alagamento (ALG)</td><td>Altura de alerta</td><td>Nível da água</td></tr>
+</tbody>
+</table>
+</quadro>
+
+<h2>Cadastro de equipamentos</h2>
+<p>A lista de equipamentos (Figura 4) oferece busca que ignora acentos e maiúsculas, filtros por tipo, situação, bairro, região, órgão e manutenção, ordenação pelo cabeçalho e paginação. Na semente padrão, a cidade começa com 350 equipamentos.</p>
+<figura src="capturas/10-equipamentos.jpg" titulo="Lista de equipamentos do inventário" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+<p>O formulário de cadastro (Figura 5) pede número de série, marca, modelo, órgão, situação inicial, endereço e as características do tipo escolhido. O CEP pode preencher o logradouro pelo ViaCEP, mas o cadastro funciona sem ele. O ponto é escolhido com um clique no mapa, que preenche as coordenadas e sugere o bairro. Ao salvar, o sistema gera o código legível do equipamento e mostra, uma única vez, o token que o dispositivo usará para enviar telemetria.</p>
+<figura src="capturas/11-equipamento-novo.jpg" classe="alta" titulo="Formulário de cadastro de equipamento, com os campos próprios do tipo" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+<p>A ficha completa do equipamento (Figura 6) reúne os dados cadastrais, a situação e a manutenção, a linha do tempo das mudanças de situação, o gráfico da telemetria recente e os alertas ligados a ele, com as ações permitidas ao papel de quem a consulta.</p>
+<figura src="capturas/12-equipamento-ficha.jpg" classe="alta" titulo="Ficha completa de um equipamento" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+
+<h2>Situação e manutenção</h2>
+<p>Cada equipamento está numa de seis situações: não instalado, operacional, mau funcionamento, em manutenção, desativado ou furtado. Toda mudança é registrada no histórico, com motivo, data e origem. O cadastro só aceita que um equipamento nasça não instalado, operacional ou em manutenção. Equipamentos não instalados e desativados não entram no cálculo de disponibilidade; mau funcionamento, manutenção e furto contam como indisponíveis.</p>
+<p>A necessidade de manutenção pode ser nenhuma, imediata, agendada ou periódica, e as duas últimas exigem a data da próxima manutenção (a periódica exige também a periodicidade). Quando um equipamento entra em mau funcionamento, por qualquer caminho (tela, API, simulação ou relato do agente em campo), a necessidade passa a ser imediata. Registrar uma manutenção concluída devolve o equipamento à operação e recalcula a próxima data pela periodicidade; agendar duas vezes a mesma manutenção é recusado. Um equipamento furtado só deixa essa situação com o registro da recuperação, que o devolve ao ponto cadastrado e encerra o alerta de furto.</p>
+
+<h2>Cadastro de agentes</h2>
+<p>O cadastro de agentes (Figura 7) contempla os três perfis citados no enunciado: agente de trânsito, guarda municipal e policial militar. Cada agente tem nome, matrícula, categoria, órgão, turno (manhã, tarde, noite ou madrugada), base com rua, bairro e coordenadas, telefone e, opcionalmente, um veículo vinculado. A situação (em serviço, em ocorrência, pausa ou fora de serviço) segue o turno e as ocorrências e só muda pela ação “Mudar situação” ou pelo próprio agente no Modo Campo. Na semente padrão, a cidade tem 80 agentes.</p>
+<figura src="capturas/13-agentes.jpg" titulo="Lista de agentes, vista pelo gestor" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+<p>A ficha do agente (Figura 8) mostra a situação, a ocorrência atual, o turno, o órgão, a base, o veículo e o último sinal.</p>
+<figura src="capturas/14-agente-ficha.jpg" classe="alta" titulo="Ficha completa de um agente" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+
+<h2>Regras de validação</h2>
+<p>As regras do Quadro 8 valem tanto para a interface quanto para a API, pois são conferidas no servidor.</p>
+<quadro titulo="Principais regras de validação do inventário" fonte="Elaborado pelos autores a partir do guia do time e do código (2026).">
+<table>
+<thead><tr><th style="width:4cm">Assunto</th><th>Regra</th></tr></thead>
+<tbody>
+<tr><td>Identificação</td><td>Número de série único, comparado sem diferenciar maiúsculas e normalizado em NFKC; código legível gerado pelo sistema</td></tr>
+<tr><td>Localização</td><td>Coordenadas dentro do polígono do município e do bairro escolhido (30 m de tolerância na divisa); CEP na faixa de Marília (17500-000 a 17539-999)</td></tr>
+<tr><td>Textos e datas</td><td>Datas a partir do ano 2000; textos com caracteres de controle são recusados</td></tr>
+<tr><td>Agentes</td><td>Telefone brasileiro validado e gravado num formato único; matrícula normalizada; o veículo combina com a categoria (trânsito leva moto de agente; guarda e PM levam viatura do mesmo órgão) e pertence a um só agente</td></tr>
+<tr><td>Viatura</td><td>O órgão responsável é o órgão da própria viatura</td></tr>
+<tr><td>Edição</td><td>Editar não apaga posição atual, último sinal nem situação vinda da telemetria; trocar o tipo é recusado</td></tr>
+<tr><td>Exclusão</td><td>Equipamento com histórico (telemetria, alertas ou agente vinculado) não pode ser excluído; a mensagem sugere desativá-lo</td></tr>
+<tr><td>Busca</td><td>Ignora acentos e maiúsculas e trata <code>%</code>, <code>_</code> e aspas como texto comum</td></tr>
+</tbody>
+</table>
+</quadro>
+
+<h1>Central de Operações</h1>
+<p>A segunda parte do enunciado pede uma central capaz de mostrar, em tempo real, o que acontece na cidade, para que o gestor identifique problemas, acompanhe a disponibilidade dos recursos e decida com base em informação atualizada. Esta seção descreve como a Central atende a esse pedido.</p>
+
+<h2>Visão geral</h2>
+<p>A Central (Figura 9) é a tela inicial do gestor. No alto ficam os seis indicadores; ao centro, o mapa de Marília com equipamentos e agentes; à direita, o feed de alertas em tempo real; e, no rodapé do mapa, a barra da simulação. A tela é atualizada pelo canal de tempo real, sem recarregar a página.</p>
+<figura src="capturas/02-central.jpg" titulo="Central de Operações vista pelo gestor" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+
+<h2>Indicadores</h2>
+<p>Os indicadores aparecem em blocos de cor cheia, com o número em destaque: total de equipamentos, operacionais, indisponíveis (mau funcionamento, em manutenção ou furtado), disponibilidade, agentes em atividade (em serviço ou em ocorrência) e alertas críticos abertos. A disponibilidade é calculada pela Equação 1, em que os equipamentos não instalados e os desativados ficam fora da base.</p>
+<div class="equacao"><span class="expr"><var>disponibilidade</var> = 100 × <var>operacionais</var> ÷ (<var>total</var> − <var>não instalados</var> − <var>desativados</var>)</span><span class="n">(1)</span></div>
+<p>A Tabela 2 registra os valores exibidos no momento das capturas deste relatório.</p>
+<tabela titulo="Indicadores da Central no momento das capturas" fonte="Elaborada pelos autores a partir do sistema F.O.G.O., banco criado em 27 out. 2026." nota="Os valores mudam continuamente com a simulação em tempo real.">
+<table>
+<thead><tr><th>Indicador</th><th class="n">Valor</th></tr></thead>
+<tbody>
+<tr><td>Total de equipamentos</td><td class="n">350</td></tr>
+<tr><td>Operacionais</td><td class="n">287</td></tr>
+<tr><td>Indisponíveis</td><td class="n">42</td></tr>
+<tr><td>Disponibilidade</td><td class="n">87,2%</td></tr>
+<tr><td>Agentes em atividade (de 80)</td><td class="n">21</td></tr>
+<tr><td>Alertas críticos abertos</td><td class="n">0</td></tr>
+</tbody>
+</table>
+</tabela>
+
+<h2>Mapa, filtros e destaques de manutenção</h2>
+<p>No mapa, cada equipamento é um bloco com o ícone do seu tipo, pintado com a cor da sua situação (o não instalado aparece tracejado), e cada agente é um losango com o ícone da categoria. Quando há muitos marcadores próximos, eles se agrupam e o grupo mostra quantos equipamentos estão em cada situação. Os bairros são pintados de acordo com o índice de atenção descrito na seção 6.5. Os equipamentos móveis e os agentes deslizam pelo mapa conforme chegam as posições.</p>
+<p>Os filtros (Figura 10) abrem por cima do mapa e ficam guardados no endereço da página. Eles são agrupados pelo alcance: região, bairro e órgão valem para equipamentos e agentes; situação, tipo e manutenção valem só para equipamentos; categoria e situação valem só para agentes.</p>
+<figura src="capturas/03-central-filtros.jpg" titulo="Filtros da Central agrupados pelo alcance" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+<p>Para destacar a manutenção, como pede o enunciado, o marcador recebe um selo: chave inglesa em disco cheio para manutenção imediata ou atrasada e relógio em disco vazado para manutenção prevista nos próximos sete dias. O grupo de marcadores que esconde algum desses equipamentos também recebe o selo, com a contagem. A legenda do mapa (Figura 11) explica cores, ícones e selos.</p>
+<figura src="capturas/08-legenda.jpg" titulo="Legenda do mapa, com as situações e os selos de manutenção" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+
+<h2>Alertas</h2>
+<p>Os alertas têm quatro níveis de criticidade (crítica, alta, média e baixa) e aparecem no feed da Central em ordem de importância, com as ações de reconhecer e resolver. Um alerta crítico também contorna o bairro no mapa e soma no indicador de críticos. Cada alerta tem uma chave que impede que um alerta igual seja aberto enquanto o anterior estiver aberto, e a maioria se resolve sozinha quando a causa termina. O Quadro 9 resume quando cada tipo abre e como fecha.</p>
+<quadro titulo="Tipos de alerta: quando abrem e como fecham" fonte="Elaborado pelos autores a partir do guia do time e do código (2026).">
+<table>
+<thead><tr><th style="width:3.8cm">Alerta</th><th>Quando abre</th><th>Como fecha</th></tr></thead>
+<tbody>
+<tr><td>Leitura fora do normal</td><td>Desvio padronizado de três ou mais em relação ao normal do equipamento</td><td>Automaticamente, após três leituras normais seguidas</td></tr>
+<tr><td>Sem sinal</td><td>Equipamento sem enviar leitura por mais de 15 minutos</td><td>Automaticamente, quando o sinal volta</td></tr>
+<tr><td>Falha de equipamento</td><td>Equipamento entra em mau funcionamento</td><td>Automaticamente, com o reparo registrado ou a volta à operação</td></tr>
+<tr><td>Furto suspeito</td><td>Patinete sai do município ou equipamento é marcado como furtado</td><td>Por uma pessoa: registro da recuperação ou resolução do alerta</td></tr>
+<tr><td>Alagamento</td><td>Sensor acima da altura de alerta ou ocorrência de alagamento</td><td>Automaticamente, quando a água baixa ou a ocorrência termina</td></tr>
+<tr><td>Manutenção atrasada</td><td>Data da próxima manutenção vencida</td><td>Por uma pessoa: registro da manutenção</td></tr>
+<tr><td>Ocorrência</td><td>Acidente, congestionamento ou outra ocorrência; o acidente de gravidade 4 é crítico</td><td>Automaticamente, quando a ocorrência termina</td></tr>
+<tr><td>Falha provável</td><td>Equipamento operacional com 50% ou mais de chance de falhar em sete dias (alta a partir de 80%)</td><td>Com a manutenção registrada, quando a chance cai abaixo de 40% ou quando o equipamento sai de operação</td></tr>
+</tbody>
+</table>
+</quadro>
+
+<h2>Situação das regiões</h2>
+<p>Para responder rapidamente quais regiões operam normalmente e quais exigem atenção, cada bairro recebe um índice de atenção de 0 a 100, calculado pela Equação 2 e limitado a 100.</p>
+<div class="equacao"><span class="expr"><var>índice</var> = 12<var>I</var> + 25<var>C</var> + 10<var>A</var> + 4<var>O</var></span><span class="n">(2)</span></div>
+<p class="sem-recuo">em que <var>I</var> é o número de equipamentos indisponíveis no bairro, <var>C</var> e <var>A</var> são os alertas críticos e altos abertos e <var>O</var> é a soma ponderada das ocorrências das últimas três horas.</p>
+<p>O bairro fica normal abaixo de 30, em atenção de 30 a 59 e crítico a partir de 60. O índice de cada uma das cinco regiões é o do seu bairro mais pressionado, e o painel (Figura 12) explica em texto os motivos de cada nível. Como o simulador produz ocorrências oito vezes mais depressa que o ritmo real (multiplicado ainda pela velocidade escolhida), cada ocorrência gerada ao vivo pesa 1 ÷ (8 × velocidade) no índice, enquanto as do histórico e as injetadas pesam 1. Assim o índice mede a cidade no ritmo real, e a velocidade de 60 vezes não pinta todas as regiões de vermelho.</p>
+<figura src="capturas/07-central-regioes.jpg" titulo="Painel de situação das regiões e dos bairros" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+
+<h2>Fichas pelo mapa</h2>
+<p>Um clique num marcador abre a ficha lateral sem sair do mapa. A ficha do equipamento (Figura 13) mostra situação, manutenção, último sinal e as ações permitidas ao papel; a do agente (Figura 14) mostra situação, ocorrência atual, turno, órgão, base e último sinal. As duas levam à ficha completa.</p>
+<figura src="capturas/05-central-ficha.jpg" titulo="Ficha lateral de um equipamento aberta pelo mapa" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+<figura src="capturas/06-central-ficha-agente.jpg" titulo="Ficha lateral de um agente aberta pelo mapa" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+
+<h2>Quadro de manutenção e lista de alertas</h2>
+<p>O quadro de manutenção (Figura 15) reúne, numa só tela, os equipamentos com manutenção imediata, atrasada e prevista para os próximos dias, com o registro da manutenção a um clique para quem tem permissão. A tela de alertas (Figura 16) lista os alertas abertos e encerrados, com filtros por criticidade e tipo.</p>
+<figura src="capturas/15-manutencao.jpg" titulo="Quadro de manutenção" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+<figura src="capturas/16-alertas.jpg" titulo="Tela de alertas" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+
+<h2>Simulação e injeção de eventos</h2>
+<p>Para que a comissão veja a cidade reagir, a barra da simulação permite escolher a velocidade (1, 10 ou 60 vezes) e injetar um evento: acidente, furto, falha de equipamento, alagamento ou congestionamento. A velocidade multiplica apenas o ritmo dos eventos; o relógio continua sendo o real, e nada é gravado no futuro. O acidente injetado usa sempre a gravidade máxima, de modo que o alerta crítico aparece toda vez, e o simulador despacha ao local o agente de trânsito ou policial militar livre mais próximo. A Figura 17 mostra a Central logo após um acidente injetado no bairro Jardim Eldorado, com o alerta crítico no topo do feed.</p>
+<figura src="capturas/04-central-acidente.jpg" titulo="Central logo após a injeção de um acidente" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+
+<h1>Cidade Preditiva</h1>
+<p>A terceira parte do enunciado pede mecanismos que identifiquem padrões, tendências e situações capazes de ajudar o gestor a agir antes que um problema aconteça, e exige que o sistema deixe claro o que é previsto, quais informações foram consideradas e como a previsão ajuda. Esta seção descreve os princípios adotados, os dados, cada previsão e a forma como o acerto foi medido.</p>
+
+<h2>Princípios</h2>
+<p>As previsões foram construídas sobre quatro princípios. O primeiro é a explicabilidade: os métodos são estatísticos, escritos em TypeScript, e cada fator que pesou numa previsão aparece na tela. O segundo é a transparência: cada previsão tem um cartão com “O que prevê”, “Dados usados” e “Como ajuda” (Figura 18). O terceiro é a medida de acerto: toda previsão que pode ser conferida é comparada com o que aconteceu e com uma regra simples, pois um modelo que não supera uma regra simples não deve ser usado (Hyndman; Athanasopoulos, 2021). O quarto é a separação entre histórico e simulação: as previsões aprendem apenas com o histórico, porque o simulador acelera os eventos para a demonstração e deformaria o aprendizado.</p>
+<figura src="capturas/27-previsoes-explicacao.jpg" classe="meia" titulo="Cartão de explicação de uma previsão" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+<p>A Figura 19 mostra como os módulos preditivos se relacionam.</p>
+<figura svg="diagramas/preditivo.svg" titulo="Fluxo dos dados no módulo preditivo" fonte="Elaborada pelos autores (2026)."></figura>
+
+<h2>Dados históricos e padrões inseridos</h2>
+<p>Na primeira partida, a semente cria 65 bairros reais, 350 equipamentos, 80 agentes e 60 dias de histórico, com cerca de 17,6 mil ocorrências e 452 mil horas de telemetria, em poucos segundos. Tudo sai de um gerador com semente fixa: a mesma semente produz a mesma cidade. Os padrões da Tabela 3 foram inseridos de propósito, e as previsões devem redescobri-los; os testes da semente exigem que essas intensidades se mantenham.</p>
+<tabela titulo="Padrões inseridos no histórico e intensidade medida" fonte="Elaborada pelos autores a partir do guia do time (2026).">
+<table>
+<thead><tr><th>Padrão inserido</th><th class="n">Intensidade medida</th></tr></thead>
+<tbody>
+<tr><td>Picos das 7 h às 9 h e das 17 h às 19 h em dias úteis</td><td class="n">≈ 2 vezes as outras horas</td></tr>
+<tr><td>Chuva aumenta acidentes (inserido: 1,8 vez)</td><td class="n">1,68 vez</td></tr>
+<tr><td>Ocorrências de segurança no Centro à noite de sexta e sábado (inserido: 2,5 vezes)</td><td class="n">2,71 vezes</td></tr>
+<tr><td>Acidentes leves perto de escolas no horário escolar</td><td class="n">≈ 11 vezes</td></tr>
+<tr><td>Furto de patinete em dois bairros (inserido: 3 vezes)</td><td class="n">4,3 vezes</td></tr>
+<tr><td>Câmeras do modelo Vigilux VX-200 falham mais</td><td class="n">3,3 vezes</td></tr>
+<tr><td>Sinal cai de 12 a 48 h antes de uma falha (minutos conectado por hora)</td><td class="n">45 contra 58</td></tr>
+<tr><td>Equipes negligentes deixam manutenção atrasar</td><td class="n">10 equipamentos</td></tr>
+</tbody>
+</table>
+</tabela>
+<p>A semente também guarda, para cada dia, a previsão do tempo da véspera, que acerta 80% dos dias de chuva e dá alarme falso em 10% dos dias secos. As previsões de risco usam essa previsão, e nunca a chuva que de fato caiu no dia previsto. Se o sistema for aberto dias depois, o histórico é completado até o momento da partida.</p>
+
+<h2>Risco por bairro e hora</h2>
+<p>A previsão de risco estima a taxa de ocorrências de cada bairro em cada hora das próximas 24 horas e dos próximos 7 dias (estes em blocos de três horas), pela Equação 3:</p>
+<div class="equacao"><span class="expr"><var>taxa</var> = <var>B</var> × <var>P</var>(<var>d</var>, <var>h</var>) × <var>F</var><sub>chuva</sub> × <var>T</var></span><span class="n">(3)</span></div>
+<p class="sem-recuo">em que <var>B</var> é a base do bairro, <var>P</var> o perfil da região no dia da semana <var>d</var> e na hora <var>h</var>, <var>F</var><sub>chuva</sub> o fator de chuva e <var>T</var> a tendência da cidade.</p>
+<p>A base do bairro é suavizada em direção à média dos bairros, para que um bairro com poucos dados não vire extremo (Equação 4); o perfil da região compara o horário com a média da região, também suavizado em direção ao perfil da cidade (Equação 5):</p>
+<div class="equacao"><span class="expr"><var>B</var> = (<var>o</var><sub>b</sub> + 20<var>m</var>) ÷ (<var>n</var> + 20)</span><span class="n">(4)</span></div>
+<div class="equacao"><span class="expr"><var>P</var> = (<var>o</var><sub>r,t</sub> ÷ <var>m</var><sub>r</sub> + 8<var>P</var><sub>c</sub>) ÷ (<var>n</var><sub>t</sub> + 8)</span><span class="n">(5)</span></div>
+<p class="sem-recuo">em que <var>o</var><sub>b</sub> é o número de ocorrências do bairro nas oito semanas da base, <var>n</var> o número de horas desse período, <var>m</var> a média de ocorrências por hora dos bairros, <var>o</var><sub>r,t</sub> as ocorrências da região no horário <var>t</var> (dia da semana e hora), <var>m</var><sub>r</sub> a média horária da região, <var>P</var><sub>c</sub> o perfil da cidade no mesmo horário e <var>n</var><sub>t</sub> o número de horas daquele horário no período.</p>
+<p>O fator de chuva vale apenas quando a previsão do tempo guardada anuncia chuva para o dia, e a tendência compara as duas últimas semanas com as seis anteriores. Por fim, a taxa vira um índice de 0 a 100 pela Equação 6, em que <var>p</var><sub>99</sub> é o percentil 99 das taxas das próximas 24 horas; o nível é baixo abaixo de 25, moderado abaixo de 50, alto abaixo de 75 e crítico a partir de 75.</p>
+<div class="equacao"><span class="expr"><var>índice</var> = min(100; 100 × <var>taxa</var> ÷ <var>p</var><sub>99</sub>)</span><span class="n">(6)</span></div>
+<p>Como exemplo, na medição registrada no guia do time (banco criado em 22 de outubro de 2026), o bairro Centro tinha base de 1,232 ocorrência por hora e a região Centro, perfil de 1,90 na sexta-feira às 7 h; sem chuva prevista e com tendência de 0,99, a taxa foi de 2,33 ocorrências por hora, acima do percentil 99 (1,40), e o índice ficou em 100, nível crítico. Às 3 h do mesmo dia, o perfil caía para 0,32 e o índice, para 28, nível moderado. A tela mostra esses fatores ao lado de cada célula. As Figuras 20 e 21 mostram a previsão para as próximas 24 horas e para a semana.</p>
+<figura src="capturas/21-previsoes-risco.jpg" titulo="Risco por bairro e hora nas próximas 24 horas" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+<figura src="capturas/22-previsoes-semana.jpg" titulo="Risco nos próximos sete dias, em blocos de três horas" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+
+<h2>Reforço de agentes</h2>
+<p>A recomendação de reforço compara, para cada região e turno, as ocorrências esperadas com os agentes escalados (Equação 7). Um algoritmo guloso move um agente por vez da região mais folgada para a mais carregada, enquanto a maior carga estiver pelo menos 20% acima da média da cidade e a região de origem não ficar pior que a de destino, com no máximo três mudanças por turno.</p>
+<div class="equacao"><span class="expr"><var>carga por agente</var> = <var>ocorrências esperadas na região no turno</var> ÷ <var>agentes escalados</var></span><span class="n">(7)</span></div>
+<p>Na medição do guia, a região Centro tinha, na tarde de quinta-feira, 37,0 ocorrências esperadas para 7 agentes (5,3 por agente), contra 2,3 por agente na Zona Leste; a recomendação foi mover um agente da Zona Leste para o Centro, o que reduzia a carga para 4,6. O Centro aparece com frequência porque concentra cerca de um terço das ocorrências com um quarto dos agentes. A Figura 22 mostra a recomendação no momento das capturas.</p>
+<figura src="capturas/24-previsoes-reforco.jpg" titulo="Recomendação de reforço de agentes" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+
+<h2>Chance de falha em sete dias</h2>
+<p>Para a manutenção preditiva, estima-se a taxa diária de falhas λ de cada equipamento pela Equação 8 e, supondo que as falhas sigam um processo de Poisson, a chance de pelo menos uma falha em sete dias pela Equação 9 (Montgomery; Runger, 2016).</p>
+<div class="equacao"><span class="expr">λ = λ<sub>tipo</sub> × <var>f</var><sub>modelo</sub> × (1 + <var>a</var> ÷ 5) × min(3; 1 + <var>d</var> ÷ 30) × (1 + <var>q</var> ÷ 3)</span><span class="n">(8)</span></div>
+<div class="equacao"><span class="expr"><var>chance</var> = 1 − <var>e</var><sup>−7λ</sup></span><span class="n">(9)</span></div>
+<p class="sem-recuo">em que λ<sub>tipo</sub> é a taxa diária de falhas do tipo, <var>f</var><sub>modelo</sub> o fator de confiabilidade da marca e modelo, <var>a</var> a idade do equipamento em anos, <var>d</var> os dias de atraso da manutenção e <var>q</var> as horas com sinal fraco (menos de 55 minutos conectado) nas últimas 72 horas.</p>
+<p>A taxa do tipo é normalizada pelo equipamento típico, para não contar duas vezes a idade e o atraso médios. O fator do modelo compara as falhas do modelo com as esperadas para o tipo, com suavização: na medição do guia, o Vigilux VX-200 teve 51 falhas em 21 câmeras quando o esperado eram 28,1, o que dá fator (51 + 3) ÷ (28,1 + 3) = 1,74. Só contam as horas de sinal fraco posteriores à última manutenção ou recuperação, para que um equipamento consertado não continue “pagando” por um sinal antigo. A lista (Figura 23) ordena os equipamentos em operação pela chance, com os fatores de cada um, e mostra “mais de 99%” em vez de 100%, porque nunca há certeza.</p>
+<figura src="capturas/25-previsoes-falhas.jpg" titulo="Equipamentos com maior chance de falha em sete dias" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+
+<h2>Detecção de anomalias</h2>
+<p>A detecção de anomalias compara cada leitura com o comportamento do mesmo equipamento, na mesma hora e no mesmo tipo de dia, pelo desvio padronizado da Equação 10:</p>
+<div class="equacao"><span class="expr"><var>z</var> = (<var>leitura</var> − <var>média</var>) ÷ <var>desvio</var></span><span class="n">(10)</span></div>
+<p>A leitura vira alerta quando |<var>z</var>| ≥ 3. Desvios moderados precisam se repetir em duas leituras seguidas, e há um piso para o desvio (20% da média), para que contagens baixas não disparem alarmes. Na construção do detector, esses cuidados reduziram os alarmes falsos em cerca de dez vezes. A anomalia não é uma previsão, e sim um sinal para olhar; por isso a tela não lhe atribui uma medida de acerto e explica o motivo.</p>
+
+<h2>Tendências</h2>
+<p>As tendências (Figura 24) mostram a disponibilidade diária de cada tipo de equipamento nos últimos 30 dias, com uma reta de mínimos quadrados estendida por sete dias, o uso de patinetes por bairro e as falhas por cem equipamentos de cada marca e modelo. Na medição do guia, o Vigilux VX-200 teve 243 falhas por cem câmeras, contra 68 do modelo mediano; a taxa passa de cem porque conta falhas, e um mesmo equipamento pode falhar mais de uma vez. A projeção linear de disponibilidade não supera a repetição do último valor nem a média de 30 dias numa cidade estável, e a tela informa isso.</p>
+<figura src="capturas/26-previsoes-tendencias.jpg" classe="alta" titulo="Tendências de disponibilidade, uso e falhas por modelo" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+
+<h2>Resumo do dia e alertas preventivos</h2>
+<p>O Resumo do dia (Figura 25) abre a tela de previsões com até cinco recomendações escolhidas entre as previsões de risco, reforço, falhas e tendências, e com o índice de todos os bairros. Quando a projeção de tendência perde para a média simples, o resumo não recomenda agir por ela. Além das recomendações, a previsão de falhas gera o alerta preventivo de falha provável, descrito no Quadro 9, que leva a recomendação para o feed da Central.</p>
+<figura src="capturas/20-previsoes-resumo.jpg" titulo="Resumo do dia na tela de previsões" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+
+<h2>Validação por teste retroativo</h2>
+<p>Para saber se a previsão de risco funciona, a tela refaz a previsão como se fosse a véspera, durante catorze dias seguidos, e compara o resultado com o que aconteceu e com uma regra simples, a média de cada bairro. Em cada dia avaliado, o histórico é cortado na meia-noite anterior e a chuva entra pela previsão do tempo guardada, de modo que nenhuma informação do próprio dia vaza para a previsão (Hyndman; Athanasopoulos, 2021). A Tabela 4 traz os resultados exibidos na tela “Quanto acertou” (Figura 26) no momento das capturas.</p>
+<tabela titulo="Resultado do teste retroativo das previsões" fonte="Elaborada pelos autores a partir do sistema F.O.G.O., banco criado em 27 out. 2026." nota="Dias avaliados: 13 a 26 de outubro de 2026. Os valores mudam um pouco de um banco para outro, porque o histórico termina na hora em que o banco é criado; na medição de 22 de outubro de 2026, registrada no README, a redução do erro foi de 7,5%.">
+<table>
+<thead><tr><th>Medida</th><th class="n">Resultado</th></tr></thead>
+<tbody>
+<tr><td>Erro absoluto médio (MAE) por bairro em blocos de 3 h: modelo × média simples</td><td class="n">0,53 × 0,58</td></tr>
+<tr><td>Redução do erro em relação à média simples</td><td class="n">8,4%</td></tr>
+<tr><td>Acerto dos 5 bairros mais arriscados à noite (18 h às 2 h): modelo × média simples</td><td class="n">3,8 × 3,6 de 5</td></tr>
+<tr><td>Falhas de equipamento na última semana: previstas × ocorridas</td><td class="n">31,9 × 41</td></tr>
+<tr><td>Parcela das falhas nos 10% de equipamentos de maior risco (ao acaso: 10%)</td><td class="n">22%</td></tr>
+<tr><td>Erro da projeção de disponibilidade em 7 dias: reta × último valor × média de 30 dias</td><td class="n">4,4 × 3,9 × 4,4 p.p.</td></tr>
+</tbody>
+</table>
+</tabela>
+<figura src="capturas/23-previsoes-acerto.jpg" titulo="Tela “Quanto acertou”, com o teste retroativo" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+<p>O ganho de 8,4% pode parecer modesto, mas deve ser lido diante do limite dos dados: por bairro e por hora quase sempre há zero ou uma ocorrência, e boa parte do erro é pura sorte. Rodando o próprio gerador 600 vezes para estimar as taxas verdadeiras, verificou-se que mesmo quem conhece essas taxas só reduziria o erro em cerca de 10%; o modelo chega, portanto, perto desse máximo. Na medição de 22 de outubro, trocar a chuva que caiu no dia avaliado pela previsão do tempo guardada reduziu o ganho de cerca de 8% para 7,5%; a equipe preferiu essa troca, que impede o dia previsto de vazar para a previsão, e mostrar o número honesto. A previsão de falhas, por sua vez, subestimou a semana avaliada (31,9 previstas contra 41 ocorridas), mas os 10% primeiros da lista concentraram mais que o dobro das falhas que o acaso daria. A escolha dos cinco bairros mais arriscados à noite ganha pouco da regra simples; o ganho maior do modelo está na distribuição ao longo das horas.</p>
+
+<h1>Funcionalidades complementares</h1>
+<p>Além das três partes do enunciado, foram construídas funcionalidades que levam a informação a quem está na rua e às reuniões de gestão, e que aproximam o sistema do uso real.</p>
+
+<h2>Modo Campo</h2>
+<p>O Modo Campo é a outra ponta da Central: uma tela feita para o celular do agente, aberta em <code>/campo</code>. Quem entra como agente em campo vai direto para o próprio painel (Figura 27), com a situação em quatro botões grandes (em serviço, em ocorrência, pausa e fora de serviço), o despacho atual e a lista “Perto de mim”, com os cinco equipamentos mais próximos e a situação de cada um. Gestor e operador também podem abrir o Modo Campo e escolher um agente, para acompanhar ou demonstrar.</p>
+<p>Quando a Central despacha o agente, o aviso chega na hora pelo canal de tempo real, com destaque na tela e vibração quando o aparelho permite (Figura 28). O agente marca “Cheguei ao local” e, ao terminar, “Concluir ocorrência” (Figura 29), o que encerra a ocorrência, resolve o alerta na Central e o devolve à situação “em serviço”. Pela lista “Perto de mim”, o agente pode relatar um problema num equipamento (mau funcionamento, furto ou vandalismo, com observação), desde que esteja a até 500 metros dele (Figura 30); o relato muda a situação do equipamento e abre o alerta na Central pelo mesmo caminho usado pela tela do gestor. O texto do relato cita apenas o nome do agente, nunca a matrícula.</p>
+<div class="lado-a-lado">
+<figura src="capturas/40-campo-painel.jpg" classe="celular" titulo="Painel do agente no Modo Campo" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+<figura src="capturas/41-campo-despacho.jpg" classe="celular" titulo="Despacho recebido no celular do agente" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+</div>
+<div class="lado-a-lado">
+<figura src="capturas/43-campo-chegada.jpg" classe="celular" titulo="Chegada marcada, com a conclusão disponível" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+<figura src="capturas/44-campo-relato.jpg" classe="celular" titulo="Relato de problema num equipamento próximo" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+</div>
+<p>A Figura 31 mostra a Central no mesmo instante em que o despacho da Figura 28 chegou ao celular, e a Figura 32 descreve a sequência completa entre a Central, o servidor e o agente.</p>
+<figura src="capturas/42-central-despacho.jpg" titulo="Central no instante do despacho ao agente" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+<figura svg="diagramas/despacho.svg" titulo="Sequência do despacho, da Central ao agente em campo" fonte="Elaborada pelos autores (2026)."></figura>
+<p>O agente só enxerga e altera o próprio despacho: a API recusa o despacho de outro agente. Cada ação do Modo Campo entra na trilha de auditoria com o estado antes e depois da ocorrência ou do equipamento alterado.</p>
+
+<h2>Boletim do dia</h2>
+<p>O Boletim do dia (Figura 33), aberto em <code>/boletim</code>, apresenta a cidade numa folha A4 pronta para imprimir ou salvar em PDF, para as reuniões de gestão. A folha traz a data e a hora de emissão, as ações do resumo do dia, os seis indicadores, a situação das cinco regiões, os cinco bairros de maior risco nas próximas 24 horas com a hora de pico e o motivo, os alertas críticos abertos, as manutenções vencidas e as dos próximos sete dias, os dez equipamentos com maior chance de falha e a recomendação de reforço. O boletim não calcula números novos: recorta e escreve o que as rotas das outras telas já fornecem.</p>
+<figura src="capturas/30-boletim.jpg" titulo="Boletim do dia, pronto para impressão" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+<p>O botão “Exportar CSV” gera, no próprio navegador, os arquivos do inventário de equipamentos, dos agentes e das manutenções pendentes, com ponto e vírgula como separador, vírgula decimal, datas no formato dd/mm/aaaa e marca de ordem de bytes UTF-8, para que abram diretamente no Excel em português com os acentos corretos.</p>
+
+<h2>Tema “Sala de controle”</h2>
+<p>O tema padrão é claro. Para quem opera em ambiente com pouca luz, o interruptor “Sala de controle” ativa um tema escuro em grafite (Figura 34). Por decisão de projeto, o tema escuro nunca é ativado automaticamente pelo sistema operacional: é sempre uma escolha de quem usa.</p>
+<figura src="capturas/33-sala-de-controle.jpg" titulo="Central no tema “Sala de controle”" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+
+<h1>Segurança da informação e proteção de dados</h1>
+<p>O F.O.G.O. mostra onde estão guardas e policiais, permite marcar um equipamento como furtado e recebe telemetria de dispositivos na rua. Nas mãos erradas, essas funções serviriam para planejar um furto, apagar uma câmera antes de um crime ou desmontar o cadastro da cidade. Por isso foi construída uma camada de segurança que envolve todo o sistema, orientada pelos riscos mais comuns em aplicações web (OWASP Foundation, 2021).</p>
+
+<h2>Autenticação e sessão</h2>
+<p>Na primeira partida, o servidor cria quatro usuários, um por papel, com senhas aleatórias mostradas uma única vez no terminal. As senhas ficam guardadas apenas como <i>hash</i> <code>scrypt</code> (N = 2<sup>14</sup>, r = 8, p = 1) com sal aleatório de 16 bytes, função de derivação projetada para encarecer ataques de força bruta (Percival, 2009), e a comparação é feita em tempo constante. A entrada aceita dez tentativas por minuto por IP e dá a mesma resposta, com o mesmo custo de processamento, para usuário inexistente e senha errada, de modo que o tempo de resposta não revela quem existe.</p>
+<p>A sessão é um cookie inacessível ao JavaScript da página (<code>httpOnly</code>) e restrito ao próprio site (<code>SameSite=Strict</code>) (Barth, 2011); o banco guarda apenas o SHA-256 do seu valor. A sessão expira em oito horas, um turno, e a troca de senha encerra todas as sessões do usuário. Para que a avaliação rode sem configuração, o sistema sobe em modo demonstração: a tela de entrada (Figura 35) mostra um botão por papel, que abre a sessão daquele usuário com um clique. Esse atalho é intencional, aparece no terminal e se desliga com a variável <code>FOGO_DEMO=0</code>, quando passam a valer apenas usuário e senha.</p>
+<figura src="capturas/01-entrar.jpg" titulo="Tela de entrada no modo demonstração, com um botão por papel" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+
+<h2>Papéis e permissões</h2>
+<p>O sistema tem quatro papéis, descritos no Quadro 10. Cada rota da API tem uma regra explícita de quem pode usá-la, e uma rota nova sem regra é recusada a todos, por padrão; um teste automatizado garante que nenhuma rota fique sem regra e outro chama cada rota sensível com cada papel, conferindo a recusa. A interface esconde o que o papel não pode usar, mas isso é apenas conforto: quem decide é o servidor.</p>
+<quadro titulo="Papéis de acesso e permissões" fonte="Elaborado pelos autores a partir de docs/SEGURANCA.md (2026).">
+<table>
+<thead><tr><th style="width:3.2cm">Papel</th><th>Pode</th><th style="width:5cm">Não pode</th></tr></thead>
+<tbody>
+<tr><td>Gestor</td><td>Tudo: cadastrar, editar e excluir equipamentos e agentes, controlar a simulação, gerar token de dispositivo, consultar a auditoria e ver os dados pessoais completos</td><td>—</td></tr>
+<tr><td>Operador da central</td><td>Ver tudo, reconhecer e resolver alertas, mudar a situação de equipamentos e agentes, registrar manutenção e abrir o Modo Campo de qualquer agente</td><td>Cadastrar, excluir, controlar a simulação e ver telefone e matrícula completos</td></tr>
+<tr><td>Agente em campo</td><td>Ver tudo, mudar a própria situação e usar o próprio Modo Campo (despacho, chegada, conclusão e relato)</td><td>As demais escritas e o Modo Campo de outro agente</td></tr>
+<tr><td>Somente consulta</td><td>Ver painéis, previsões, cadastros e o Boletim do dia</td><td>Qualquer escrita e o Modo Campo; vê a posição de policiais e guardas apenas de forma aproximada</td></tr>
+</tbody>
+</table>
+</quadro>
+
+<h2>Proteção de dados pessoais</h2>
+<p>Em atenção aos princípios da necessidade, da segurança e da prevenção da Lei Geral de Proteção de Dados Pessoais (Brasil, 2018, art. 6º, incisos III, VII e VIII), o telefone e a matrícula completos dos agentes são exibidos apenas ao gestor; os demais papéis veem os dados mascarados, como mostra a Figura 36. Para quem só consulta, a posição de policiais e guardas, e a do veículo vinculado a cada um, é arredondada para cerca de 500 metros, tanto na API quanto no canal de tempo real. A busca por matrícula é exclusiva do gestor, o telefone não entra na busca, e textos livres, como o relato do Modo Campo, não carregam matrícula nem telefone.</p>
+<figura src="capturas/32-consulta-agentes.jpg" titulo="Lista de agentes vista pelo papel “Somente consulta”, com dados mascarados" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+
+<h2>Trilha de auditoria</h2>
+<p>Toda escrita na API e toda tentativa de entrada são registradas na trilha de auditoria (Figura 37), com quem fez, o papel, a ação, a entidade, o estado antes e depois, o IP e o resultado, incluindo as tentativas recusadas, com o corpo que se tentou enviar. Senhas e tokens nunca entram na trilha. A tela, exclusiva do gestor, tem filtros e mostra os valores em linguagem legível.</p>
+<figura src="capturas/31-auditoria.jpg" titulo="Trilha de auditoria, com ações do Modo Campo e uma tentativa recusada" fonte="Elaborada pelos autores a partir do sistema F.O.G.O. (2026)."></figura>
+
+<h2>Ameaças e medidas</h2>
+<p>O Quadro 11 resume as principais ameaças consideradas e as medidas adotadas contra cada uma.</p>
+<quadro titulo="Ameaças consideradas e medidas adotadas" fonte="Elaborado pelos autores a partir de docs/SEGURANCA.md (2026).">
+<table>
+<thead><tr><th style="width:4.6cm">Ameaça</th><th>Medida</th></tr></thead>
+<tbody>
+<tr><td>Uso da API sem identificação</td><td>Toda rota exige sessão, exceto saúde, entrada e telemetria (que usa token próprio)</td></tr>
+<tr><td>Pessoa autenticada fazer mais do que deve</td><td>Permissão explícita por rota e recusa por padrão</td></tr>
+<tr><td>Roubo de sessão por injeção de script (XSS)</td><td>Cookie <code>httpOnly</code> e política de segurança de conteúdo que só executa scripts do próprio servidor</td></tr>
+<tr><td>Ação disparada por outro site (CSRF)</td><td>Cookie <code>SameSite=Strict</code> e recusa de toda escrita com <code>Origin</code> de outro site</td></tr>
+<tr><td>Página embutida em outro site (<i>clickjacking</i>)</td><td><code>frame-ancestors 'none'</code> e <code>X-Frame-Options: DENY</code></td></tr>
+<tr><td>Vazamento do arquivo do banco</td><td>Senhas em <i>scrypt</i>; sessões e tokens de dispositivo guardados só como <i>hash</i></td></tr>
+<tr><td>Injeção de SQL e entrada malformada</td><td>SQL sempre parametrizado e validação de todo corpo e filtro</td></tr>
+<tr><td>Sobrecarga do servidor</td><td>600 requisições por minuto por IP, 30 conexões de tempo real por minuto e corpo de até 256 KB</td></tr>
+<tr><td>Dispositivo falso ou leitura absurda</td><td>Token por equipamento, faixas por métrica, posição só de equipamento móvel e hora com no máximo 6 h de atraso</td></tr>
+<tr><td>Tempo real depois de sair</td><td>A conexão fecha na saída e, para sessão vencida, em até 5 segundos</td></tr>
+<tr><td>Acesso pela rede local</td><td>O servidor escuta apenas no próprio computador por padrão</td></tr>
+</tbody>
+</table>
+</quadro>
+
+<h2>Segurança da telemetria</h2>
+<p>Cada equipamento tem um token próprio, mostrado uma única vez no cadastro ou na geração de um novo, e o banco guarda apenas o seu <i>hash</i>. A comparação é feita em tempo constante, e a resposta de erro não revela quais códigos de equipamento existem. Cada dispositivo pode enviar até 120 leituras por minuto, e 30 recusas por minuto vindas do mesmo IP bloqueiam esse IP temporariamente. Cada métrica tem uma faixa válida (percentuais de 0 a 100, velocidades até 300 km/h, contagens até 100 mil por hora), e um teste roda a geração de leituras da semente e do simulador contra essas faixas, para que nenhuma mudança futura as ultrapasse sem aviso.</p>
+
+<h1>Qualidade: testes, revisões e desempenho</h1>
+<p>A qualidade do sistema foi verificada em três frentes: testes automatizados escritos junto com o código, revisões que simularam a comissão avaliadora e medições de desempenho.</p>
+
+<h2>Testes automatizados</h2>
+<p>A suíte de testes cobre regras de negócio, rotas da API, segurança, previsões, simulador e interface. Em 27 de outubro de 2026, a execução completa somou 719 testes em 94 arquivos, todos aprovados, em 42 segundos. O teste de ponta a ponta com Playwright sobe o sistema com um banco próprio e confere a Central, as previsões, a lista de equipamentos e a recusa de acesso sem sessão, em seis cenários. A verificação de tipos do TypeScript, em modo estrito, cobre o servidor e a interface. A Tabela 5 resume a suíte.</p>
+<tabela titulo="Resumo da suíte de testes automatizados" fonte="Elaborada pelos autores a partir da execução de 27 out. 2026.">
+<table>
+<thead><tr><th>Ferramenta e escopo</th><th class="n">Arquivos</th><th class="n">Testes</th><th class="n">Resultado</th></tr></thead>
+<tbody>
+<tr><td>Vitest: servidor, regras, previsões, segurança e interface</td><td class="n">94</td><td class="n">719</td><td class="n">todos aprovados</td></tr>
+<tr><td>Playwright: ponta a ponta (fumaça)</td><td class="n">1</td><td class="n">6</td><td class="n">todos aprovados</td></tr>
+</tbody>
+</table>
+</tabela>
+<p>Alguns testes merecem destaque, pois protegem as decisões mais delicadas: o teste retroativo comprova que cortar o histórico não deixa o futuro vazar, nem a chuva do próprio dia; outro comprova que dez minutos de simulação a 60 vezes e um reinício não mudam as previsões; outro, que a velocidade de 60 vezes não pinta todas as regiões de crítico; e outro, que os alertas se resolvem sozinhos quando a causa termina. Os testes de desempenho exigem, com a cidade povoada, mapa e indicadores em menos de 100 ms e regiões em menos de 200 ms.</p>
+
+<h2>Revisões como avaliador</h2>
+<p>A primeira rodada, em 19 de outubro de 2026, simulou a comissão testando o sistema pela primeira vez num computador com Windows 11. A instalação do zero levou 2 min 18 s com <code>npm</code> e 2 min 23 s com Docker; as telas foram abertas em quatro larguras (1440, 1024, 800 e 390 px), sem erro de console nem rolagem horizontal em 48 combinações; 36 casos de borda da API foram exercitados; e o sistema ficou cinco minutos a 60 vezes sem vazamento de memória. Não houve achado bloqueante; foram registrados seis achados importantes e treze detalhes, todos corrigidos depois.</p>
+<p>A segunda rodada, em 22 de outubro de 2026, usou cinco testadores independentes, cada um numa frente (Quadro 12). Os cerca de 60 achados foram corrigidos na mesma rodada, e os números do README e do guia foram medidos de novo num banco novo.</p>
+<quadro titulo="Segunda rodada de revisão: frentes e principais achados corrigidos" fonte="Elaborado pelos autores a partir de docs/REVISAO-AVALIADOR.md (2026).">
+<table>
+<thead><tr><th style="width:3.6cm">Frente</th><th>Principais achados corrigidos</th></tr></thead>
+<tbody>
+<tr><td>API e segurança</td><td>Posição do veículo do agente exata para quem só consulta; relato sem limite de distância; tempo real aberto após a saída; telemetria sem faixa por métrica; <code>Origin</code> não conferido em toda escrita</td></tr>
+<tr><td>Cadastro</td><td>Furtado saindo sem recuperação; telefone sem validação; token do dispositivo invisível na tela; órgão da viatura e veículo do agente incoerentes</td></tr>
+<tr><td>Central</td><td>Filtros escondidos sob o mapa; alertas e regiões ignorando o filtro; partida com alagamentos por chuva comum; alagamento injetado duplicando; relógio andando com a simulação pausada</td></tr>
+<tr><td>Previsões, Boletim, Campo e Auditoria</td><td>Lista de falhas instável; resumo recomendando ação por tendência pior que a média; Boletim imprimindo rodapé órfão; auditoria sem filtros; Modo Campo sem sair</td></tr>
+<tr><td>Instalação</td><td>Servidor sem escutar em IPv6; compilação ruidosa; arquivo de entrega com pastas desnecessárias; projeto do Docker Compose sem nome fixo</td></tr>
+</tbody>
+</table>
+</quadro>
+
+<h2>Desempenho medido</h2>
+<p>O desempenho foi medido em 23 de outubro de 2026, num computador Mac com Node.js 22 e banco novo, usando o Chrome controlado pelo Playwright; para simular um notebook fraco, o processador do navegador foi desacelerado em quatro vezes. A Tabela 6 apresenta os resultados.</p>
+<tabela titulo="Desempenho medido do sistema" fonte="Elaborada pelos autores a partir de medição de 23 out. 2026.">
+<table>
+<thead><tr><th>Medida</th><th class="n">Resultado</th></tr></thead>
+<tbody>
+<tr><td>Do zero até o sistema no ar (compilação, semente de 60 dias e servidor)</td><td class="n">≈ 4 s</td></tr>
+<tr><td>Rotas da API</td><td class="n">1 a 2 ms</td></tr>
+<tr><td>Primeiro cálculo das previsões (depois fica guardado por 1 min)</td><td class="n">131 ms</td></tr>
+<tr><td>Uso de processador do navegador com a Central aberta, a 1 vez e a 60 vezes</td><td class="n">2% e 5%</td></tr>
+<tr><td>Quadros por segundo na Central</td><td class="n">60</td></tr>
+<tr><td>Abertura de cada tela no notebook fraco</td><td class="n">0,1 a 0,5 s</td></tr>
+<tr><td>Memória do servidor após 30 min</td><td class="n">43 MB</td></tr>
+<tr><td>Tamanho do banco após 30 min</td><td class="n">38 MB</td></tr>
+<tr><td>JavaScript da interface, sem e com compressão</td><td class="n">1,6 MB e 0,54 MB</td></tr>
+</tbody>
+</table>
+</tabela>
+<p>Esses resultados vêm de quatro decisões: os arquivos da interface são comprimidos durante a compilação, e o servidor entrega a versão pronta conforme o navegador aceita; os arquivos com o código da versão no nome ficam guardados no navegador por um ano, enquanto a página principal é sempre conferida; cada tela é baixada só quando aberta, e a semana de risco só é calculada quando a pessoa chega até ela; e o cálculo pesado das previsões roda no máximo uma vez por minuto.</p>
+
+<h1>Implantação e execução</h1>
+<p>Esta seção reúne o necessário para executar o sistema e gerar o pacote de entrega.</p>
+
+<h2>Requisitos de ambiente</h2>
+<p>O sistema roda em macOS, Linux e Windows com Node.js 22.14 ou mais novo, versão a partir da qual o <code>better-sqlite3</code> traz o binário pronto. Com uma versão mais antiga, o comando de partida para logo no início com uma mensagem em português que sugere instalar a versão de suporte de longo prazo ou usar o Docker. Como alternativa, basta o Docker com o Docker Compose. É necessário um navegador moderno, e a internet só é usada para o fundo do mapa.</p>
+
+<h2>Execução</h2>
+<p>Na pasta do projeto, executa-se <code>npm install &amp;&amp; npm start</code> e abre-se <code>http://localhost:3333</code>. Na primeira vez, o sistema compila a interface e cria sozinho o banco <code>data/fogo.db</code> com a cidade inteira, em poucos segundos; ao final, o terminal mostra o endereço e as senhas. Com Docker, o comando é <code>docker compose up --build</code>; o banco fica num volume, que sobrevive a <code>docker compose down</code>. Se a porta estiver ocupada, o sistema avisa e sugere a próxima. O roteiro de avaliação em dois minutos está no Apêndice B.</p>
+
+<h2>Configuração</h2>
+<p>Nenhuma configuração é obrigatória. O Quadro 13 lista as variáveis de ambiente disponíveis.</p>
+<quadro titulo="Variáveis de ambiente" fonte="Elaborado pelos autores a partir do README e de docs/SEGURANCA.md (2026).">
+<table>
+<thead><tr><th style="width:4.4cm">Variável</th><th style="width:3.2cm">Padrão</th><th>Finalidade</th></tr></thead>
+<tbody>
+<tr><td><code>PORT</code></td><td>3333</td><td>Porta do servidor</td></tr>
+<tr><td><code>FOGO_DB</code></td><td><code>data/fogo.db</code></td><td>Arquivo do banco de dados</td></tr>
+<tr><td><code>FOGO_DEMO</code></td><td>ligado</td><td><code>0</code> desliga a entrada com um clique (modo demonstração)</td></tr>
+<tr><td><code>HOST</code></td><td><code>127.0.0.1</code></td><td><code>0.0.0.0</code> expõe o servidor na rede (o Docker já usa)</td></tr>
+<tr><td><code>FOGO_COOKIE_SEGURO</code></td><td>desligado</td><td><code>1</code> marca o cookie de sessão como exclusivo de HTTPS</td></tr>
+<tr><td><code>FOGO_DEV</code></td><td>desligado</td><td><code>1</code> aceita a origem do servidor de desenvolvimento do Vite</td></tr>
+</tbody>
+</table>
+</quadro>
+<p>Dois scripts completam a administração: <code>npm run token -- &lt;código&gt;</code> gera um token novo para um equipamento, e <code>npm run senha -- &lt;usuário&gt;</code> troca a senha de um usuário.</p>
+
+<h2>Empacotamento e entrega</h2>
+<p>O comando <code>npm run empacotar</code> gera o arquivo compactado de entrega apenas com o código-fonte e a documentação, sem dependências instaladas, compilações, bancos, documentos internos de processo nem o projeto do vídeo, e falha se o resultado passar de 50 MB, limite do enunciado. Com este relatório incluído, o arquivo tem cerca de 10 MB, bem abaixo do limite. O mesmo código está publicado em <span class="url">https://github.com/jonhvinnykkj/fogo-dsin-coder-challenge-2026</span>. O relatório é gerado a partir de <code>docs/relatorio/</code> pelo comando <code>node docs/relatorio/scripts/gerar-pdf.mjs</code>.</p>
+
+<h2>Vídeo de demonstração</h2>
+<p>O enunciado concede um ponto extra a quem enviar um vídeo do sistema em execução. O vídeo produzido tem 3 min 52 s em resolução 1080p e percorre a entrada por papel, o inventário, a Central, o Modo Campo com o celular do agente e a Central lado a lado, as previsões, o Boletim do dia, a exportação em CSV, o papel de consulta, a auditoria e o tema escuro. As cenas foram gravadas de forma automatizada numa instância própria do sistema, com banco novo, e montadas em Remotion, com narração sintetizada. Como não cabe junto do sistema no arquivo de 50 MB, o vídeo está publicado na página de versões do repositório, em <span class="url">https://github.com/jonhvinnykkj/fogo-dsin-coder-challenge-2026/releases/tag/v1.0</span>.</p>
+
+<h1>Limitações e trabalhos futuros</h1>
+<p>As limitações conhecidas foram declaradas no README e nas próprias telas, e são resumidas a seguir, junto com os próximos passos que elas sugerem.</p>
+<p>Os dados são sintéticos. Bairros e ruas são reais, mas equipamentos, agentes, ocorrências e telemetria foram gerados com padrões inseridos de propósito. A redescoberta desses padrões comprova que o método funciona, mas não que ele acertaria numa cidade real sem ajuste. O próximo passo natural é trocar a semente pela ingestão de dados reais, já que a rota de telemetria é a mesma que um dispositivo usaria, e validar as previsões com o mesmo teste retroativo antes de confiar nelas.</p>
+<p>As previsões têm ganhos honestos, porém modestos. O risco por bairro erra cerca de 8,4% menos que a média simples, perto do limite estimado para estes dados; a escolha dos cinco bairros mais arriscados à noite ganha pouco da regra simples; e a projeção linear de disponibilidade não supera a repetição da média numa cidade estável. Como trabalho futuro, pode-se usar o perfil por região também na tendência e testar modelos de contagem mais ricos, mantendo a regra simples como referência.</p>
+<p>No armazenamento, o SQLite atende bem a um município simulado; para milhões de leituras por dia, a telemetria deveria migrar para um banco de séries temporais. Na segurança, ficaram de fora o HTTPS próprio (que, em produção, ficaria num <i>proxy</i> com TLS), a autenticação em dois fatores e a recuperação de senha por e-mail (que exigiriam serviço externo), a tela de cadastro de usuários, a assinatura das leituras de telemetria com data e hora, e uma trilha de auditoria à prova de adulteração, encadeada por <i>hash</i> ou enviada a um armazenamento só de escrita. No inventário, o veículo de fiscalização do rotativo não tem um campo que indique se é autônomo.</p>
+
+<h1>Considerações finais</h1>
+<p>O F.O.G.O. atendeu ao objetivo de integrar, num único sistema, o inventário, o monitoramento em tempo real e a previsão para os equipamentos de trânsito e segurança e os agentes de campo de Marília/SP. As três partes do enunciado foram cumpridas de ponta a ponta: o inventário cataloga treze tipos de equipamento com características próprias e regras que mantêm os dados coerentes; a Central mostra a cidade viva, com indicadores, alertas que abrem e fecham sozinhos e uma visão clara das regiões que exigem atenção; e a Cidade Preditiva antecipa riscos, reforços e falhas, sempre dizendo o que prevê, com quais dados, como ajuda e quanto acertou.</p>
+<p>Às duas perguntas do enunciado, o sistema responde de forma verificável. Se algo acontece na cidade agora, a Central percebe em segundos: um acidente injetado aparece como alerta crítico, o agente mais próximo é despachado e o aviso chega ao seu celular. E, quanto ao que pode acontecer amanhã, as previsões são comparadas todos os dias com o que de fato ocorreu e com uma regra simples, e os resultados são mostrados como são, inclusive onde o ganho é pequeno.</p>
+<p>Os diferenciais, o Modo Campo, o Boletim do dia e a camada de segurança com papéis, proteção de dados pessoais e auditoria, aproximam a solução do uso real. A verificação por 719 testes automatizados, duas rodadas de revisão como avaliador e medições de desempenho, aliada à execução com um único comando, buscou atender ao que a comissão valoriza: um sistema que resolve o problema, roda de primeira e pode ser explicado por quem o construiu.</p>
+
+<!-- ================= ELEMENTOS PÓS-TEXTUAIS ================= -->
+
+<h1 class="centro">Referências</h1>
+<div class="referencias">
+<p>ANTHROPIC. <b>Claude Code</b>. [<i>S. l.</i>], 2026. Disponível em: https://claude.com/claude-code. Acesso em: 27 out. 2026.</p>
+<p>ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. <b>NBR 6023</b>: informação e documentação: referências: elaboração. Rio de Janeiro: ABNT, 2018.</p>
+<p>ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. <b>NBR 6024</b>: informação e documentação: numeração progressiva das seções de um documento: apresentação. Rio de Janeiro: ABNT, 2012.</p>
+<p>ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. <b>NBR 6027</b>: informação e documentação: sumário: apresentação. Rio de Janeiro: ABNT, 2012.</p>
+<p>ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. <b>NBR 6028</b>: informação e documentação: resumo, resenha e recensão: apresentação. Rio de Janeiro: ABNT, 2021.</p>
+<p>ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. <b>NBR 10520</b>: informação e documentação: citações em documentos: apresentação. Rio de Janeiro: ABNT, 2023.</p>
+<p>ASSOCIAÇÃO BRASILEIRA DE NORMAS TÉCNICAS. <b>NBR 10719</b>: informação e documentação: relatório técnico e/ou científico: apresentação. Rio de Janeiro: ABNT, 2015.</p>
+<p>BARTH, Adam. <b>HTTP state management mechanism</b>: RFC 6265. [<i>S. l.</i>]: IETF, 2011. Disponível em: https://www.rfc-editor.org/rfc/rfc6265. Acesso em: 27 out. 2026.</p>
+<p>BRASIL. Lei nº 13.709, de 14 de agosto de 2018. Lei Geral de Proteção de Dados Pessoais (LGPD). <b>Diário Oficial da União</b>: seção 1, Brasília, DF, 15 ago. 2018.</p>
+<p>DSIN. <b>DSIN Coder Challenge 2026</b>: Protocolo PROMETHEUS: etapa bônus: Desafio F.O.G.O. Marília: DSIN, 2026. Disponível em: https://appcoderchallenge.dsin.com.br/challenge/. Acesso em: 17 out. 2026.</p>
+<p>FASTIFY. <b>Fastify</b>: fast and low overhead web framework, for Node.js. Versão 5. [<i>S. l.</i>], 2026. Disponível em: https://fastify.dev. Acesso em: 27 out. 2026.</p>
+<p>HYNDMAN, Rob J.; ATHANASOPOULOS, George. <b>Forecasting</b>: principles and practice. 3. ed. Melbourne: OTexts, 2021. Disponível em: https://otexts.com/fpp3/. Acesso em: 27 out. 2026.</p>
+<p>LEAFLET. <b>Leaflet</b>: an open-source JavaScript library for mobile-friendly interactive maps. Versão 1.9. [<i>S. l.</i>], 2026. Disponível em: https://leafletjs.com. Acesso em: 27 out. 2026.</p>
+<p>MONTGOMERY, Douglas C.; RUNGER, George C. <b>Estatística aplicada e probabilidade para engenheiros</b>. 6. ed. Rio de Janeiro: LTC, 2016.</p>
+<p>OPENSTREETMAP CONTRIBUTORS. <b>OpenStreetMap</b>. [<i>S. l.</i>]: OpenStreetMap Foundation, 2026. Disponível em: https://www.openstreetmap.org. Acesso em: 17 out. 2026.</p>
+<p>OWASP FOUNDATION. <b>OWASP Top 10</b>: 2021. [<i>S. l.</i>], 2021. Disponível em: https://owasp.org/Top10/. Acesso em: 27 out. 2026.</p>
+<p>PERCIVAL, Colin. <b>Stronger key derivation via sequential memory-hard functions</b>. Ottawa: BSDCan, 2009. Disponível em: https://www.tarsnap.com/scrypt/scrypt.pdf. Acesso em: 27 out. 2026.</p>
+<p>PLAYWRIGHT. <b>Playwright</b>: reliable end-to-end testing for modern web apps. Versão 1.64. [<i>S. l.</i>]: Microsoft, 2026. Disponível em: https://playwright.dev. Acesso em: 27 out. 2026.</p>
+<p>REACT. <b>React</b>: the library for web and native user interfaces. Versão 19. [<i>S. l.</i>]: Meta, 2026. Disponível em: https://react.dev. Acesso em: 27 out. 2026.</p>
+<p>SQLITE. <b>SQLite</b>. [<i>S. l.</i>], 2026. Disponível em: https://www.sqlite.org. Acesso em: 27 out. 2026.</p>
+<p>VITEST. <b>Vitest</b>: next generation testing framework. Versão 5. [<i>S. l.</i>], 2026. Disponível em: https://vitest.dev. Acesso em: 27 out. 2026.</p>
+<p>WHATWG. <b>HTML Living Standard</b>: server-sent events. [<i>S. l.</i>], 2026. Disponível em: https://html.spec.whatwg.org/multipage/server-sent-events.html. Acesso em: 27 out. 2026.</p>
+</div>
+
+<h1 class="centro">Glossário</h1>
+<div class="glossario">
+<p><b>Agente em campo:</b> profissional de trânsito ou segurança que atua na rua (agente de trânsito, guarda municipal ou policial militar).</p>
+<p><b>Alerta:</b> aviso aberto pelo sistema quando algo exige atenção, com criticidade, explicação e resolução manual ou automática.</p>
+<p><b>Anomalia:</b> leitura de telemetria muito diferente do normal do próprio equipamento naquela hora e tipo de dia.</p>
+<p><b>Barramento de eventos:</b> componente interno do servidor que recebe os acontecimentos (alertas, posições) e os repassa ao canal de tempo real.</p>
+<p><b>Despacho:</b> envio de um agente ao local de uma ocorrência.</p>
+<p><b>Disponibilidade:</b> percentual de equipamentos operacionais entre os que deveriam funcionar (exclui não instalados e desativados).</p>
+<p><b>Índice de atenção:</b> nota de 0 a 100 que resume a pressão sobre um bairro ou região no momento.</p>
+<p><b>Modo demonstração:</b> modo de entrada com um botão por papel, ligado por padrão para a avaliação e desligável por variável de ambiente.</p>
+<p><b>Padrão inserido:</b> comportamento colocado de propósito nos dados sintéticos, que a previsão deve redescobrir.</p>
+<p><b>Semente:</b> rotina que cria a cidade e o histórico sintético a partir de um gerador com valor inicial fixo, de modo que a mesma semente gere sempre os mesmos dados.</p>
+<p><b>Telemetria:</b> leituras enviadas pelos equipamentos conectados, como fluxo de veículos, bateria ou nível da água.</p>
+<p><b>Teste retroativo:</b> refazer a previsão como se fosse o passado, usando só o que se sabia na época, e compará-la com o que de fato aconteceu.</p>
+<p><b>Token de dispositivo:</b> segredo próprio de cada equipamento, usado para autenticar o envio de telemetria.</p>
+</div>
+
+<h1 class="centro">Apêndice A – Rotas da interface de programação</h1>
+<p class="sem-recuo">O Quadro 14 lista as 48 rotas da API. Na coluna de acesso, “Todos” indica os quatro papéis com sessão; “Operação”, gestor e operador; “Próprio agente”, gestor, operador e o agente dono do <code>:id</code>; e “Público”, rotas sem sessão.</p>
+<quadro titulo="Rotas da API e acesso por papel" fonte="Elaborado pelos autores a partir de server/rotas e server/seguranca/permissoes.ts (2026).">
+<table>
+<thead><tr><th style="width:1.5cm">Método</th><th>Rota</th><th style="width:5.4cm">Finalidade</th><th style="width:2.2cm">Acesso</th></tr></thead>
+<tbody>
+<tr><td colspan="4"><b>Acesso e saúde</b></td></tr>
+<tr><td>GET</td><td><code>/api/saude</code></td><td>Verificação de funcionamento</td><td>Público</td></tr>
+<tr><td>GET</td><td><code>/api/auth/modo</code></td><td>Informa se o modo demonstração está ligado</td><td>Público</td></tr>
+<tr><td>POST</td><td><code>/api/auth/entrar</code></td><td>Entrada com usuário e senha</td><td>Público</td></tr>
+<tr><td>POST</td><td><code>/api/auth/demo</code></td><td>Entrada com um clique (modo demonstração)</td><td>Público</td></tr>
+<tr><td>POST</td><td><code>/api/auth/sair</code></td><td>Encerra a sessão</td><td>Público</td></tr>
+<tr><td>GET</td><td><code>/api/auth/eu</code></td><td>Usuário da sessão atual</td><td>Público</td></tr>
+<tr><td>GET</td><td><code>/api/auditoria</code></td><td>Trilha de auditoria, com filtros</td><td>Gestor</td></tr>
+<tr><td colspan="4"><b>Inventário</b></td></tr>
+<tr><td>GET</td><td><code>/api/tipos-equipamento</code></td><td>Catálogo de tipos, campos e métricas</td><td>Todos</td></tr>
+<tr><td>GET</td><td><code>/api/bairros</code></td><td>Bairros com região e polígono</td><td>Todos</td></tr>
+<tr><td>GET</td><td><code>/api/equipamentos</code></td><td>Lista com busca, filtros, ordem e paginação</td><td>Todos</td></tr>
+<tr><td>POST</td><td><code>/api/equipamentos</code></td><td>Cadastra (devolve o token uma única vez)</td><td>Gestor</td></tr>
+<tr><td>GET</td><td><code>/api/equipamentos/:id</code></td><td>Ficha do equipamento</td><td>Todos</td></tr>
+<tr><td>PUT</td><td><code>/api/equipamentos/:id</code></td><td>Edita o equipamento</td><td>Gestor</td></tr>
+<tr><td>DELETE</td><td><code>/api/equipamentos/:id</code></td><td>Exclui (recusado se houver histórico)</td><td>Gestor</td></tr>
+<tr><td>PATCH</td><td><code>/api/equipamentos/:id/situacao</code></td><td>Muda a situação</td><td>Operação</td></tr>
+<tr><td>POST</td><td><code>/api/equipamentos/:id/manutencoes</code></td><td>Agenda ou registra manutenção</td><td>Operação</td></tr>
+<tr><td>GET</td><td><code>/api/equipamentos/:id/telemetria</code></td><td>Telemetria recente</td><td>Todos</td></tr>
+<tr><td>POST</td><td><code>/api/equipamentos/:id/token</code></td><td>Gera um token novo de dispositivo</td><td>Gestor</td></tr>
+<tr><td>GET</td><td><code>/api/agentes</code></td><td>Lista de agentes</td><td>Todos</td></tr>
+<tr><td>POST</td><td><code>/api/agentes</code></td><td>Cadastra agente</td><td>Gestor</td></tr>
+<tr><td>GET</td><td><code>/api/agentes/:id</code></td><td>Ficha do agente</td><td>Todos</td></tr>
+<tr><td>PUT</td><td><code>/api/agentes/:id</code></td><td>Edita o agente</td><td>Gestor</td></tr>
+<tr><td>DELETE</td><td><code>/api/agentes/:id</code></td><td>Exclui o agente</td><td>Gestor</td></tr>
+<tr><td>PATCH</td><td><code>/api/agentes/:id/situacao</code></td><td>Muda a situação do agente</td><td>Próprio agente</td></tr>
+<tr><td colspan="4"><b>Central</b></td></tr>
+<tr><td>GET</td><td><code>/api/central/indicadores</code></td><td>Seis indicadores</td><td>Todos</td></tr>
+<tr><td>GET</td><td><code>/api/central/mapa</code></td><td>Pontos do mapa, com filtros</td><td>Todos</td></tr>
+<tr><td>GET</td><td><code>/api/central/regioes</code></td><td>Índice e motivos por região e bairro</td><td>Todos</td></tr>
+<tr><td>GET</td><td><code>/api/central/ocorrencias</code></td><td>Ocorrências recentes</td><td>Todos</td></tr>
+<tr><td>GET</td><td><code>/api/alertas</code></td><td>Alertas, com filtros</td><td>Todos</td></tr>
+<tr><td>PATCH</td><td><code>/api/alertas/:id/reconhecer</code></td><td>Reconhece um alerta</td><td>Operação</td></tr>
+<tr><td>PATCH</td><td><code>/api/alertas/:id/resolver</code></td><td>Resolve um alerta</td><td>Operação</td></tr>
+<tr><td>GET</td><td><code>/api/manutencao/painel</code></td><td>Quadro de manutenção</td><td>Todos</td></tr>
+<tr><td colspan="4"><b>Tempo real e simulação</b></td></tr>
+<tr><td>POST</td><td><code>/api/telemetria</code></td><td>Recebe leitura de um dispositivo (token próprio)</td><td>Público</td></tr>
+<tr><td>GET</td><td><code>/api/stream</code></td><td>Canal de eventos em tempo real (SSE)</td><td>Todos</td></tr>
+<tr><td>GET</td><td><code>/api/simulacao</code></td><td>Estado e velocidade da simulação</td><td>Todos</td></tr>
+<tr><td>PATCH</td><td><code>/api/simulacao</code></td><td>Muda a velocidade ou pausa</td><td>Gestor</td></tr>
+<tr><td>POST</td><td><code>/api/simulacao/eventos</code></td><td>Injeta acidente, furto, falha, alagamento ou congestionamento</td><td>Gestor</td></tr>
+<tr><td colspan="4"><b>Previsões</b></td></tr>
+<tr><td>GET</td><td><code>/api/previsoes/risco</code></td><td>Risco por bairro e hora (24 h e 7 dias)</td><td>Todos</td></tr>
+<tr><td>GET</td><td><code>/api/previsoes/backtest</code></td><td>Teste retroativo do risco</td><td>Todos</td></tr>
+<tr><td>GET</td><td><code>/api/previsoes/reforco</code></td><td>Recomendação de reforço de agentes</td><td>Todos</td></tr>
+<tr><td>GET</td><td><code>/api/previsoes/falhas</code></td><td>Chance de falha em sete dias</td><td>Todos</td></tr>
+<tr><td>GET</td><td><code>/api/previsoes/tendencias</code></td><td>Tendências</td><td>Todos</td></tr>
+<tr><td>GET</td><td><code>/api/previsoes/resumo</code></td><td>Resumo do dia</td><td>Todos</td></tr>
+<tr><td colspan="4"><b>Modo Campo</b></td></tr>
+<tr><td>GET</td><td><code>/api/campo/agentes/:id/despacho</code></td><td>Despacho atual do agente</td><td>Próprio agente</td></tr>
+<tr><td>GET</td><td><code>/api/campo/agentes/:id/equipamentos-proximos</code></td><td>Cinco equipamentos mais próximos</td><td>Próprio agente</td></tr>
+<tr><td>POST</td><td><code>/api/campo/agentes/:id/despachos/:ocorrenciaId/chegada</code></td><td>Marca a chegada ao local</td><td>Próprio agente</td></tr>
+<tr><td>POST</td><td><code>/api/campo/agentes/:id/despachos/:ocorrenciaId/conclusao</code></td><td>Conclui a ocorrência</td><td>Próprio agente</td></tr>
+<tr><td>POST</td><td><code>/api/campo/agentes/:id/reportes</code></td><td>Relata problema num equipamento a até 500 m</td><td>Próprio agente</td></tr>
+</tbody>
+</table>
+</quadro>
+
+<h1 class="centro">Apêndice B – Roteiro de avaliação em dois minutos</h1>
+<p class="sem-recuo">Com o sistema em execução (seção 11.2), o roteiro abaixo percorre os pontos principais em cerca de dois minutos.</p>
+<ul class="alineas">
+<li data-l="a">em <code>/entrar</code>, clicar em “Gestor”; para ver as permissões, sair pelo ícone no topo, entrar como “Somente consulta” (os botões de ação somem, telefone e matrícula aparecem mascarados e toda escrita recebe 403) e voltar como gestor;</li>
+<li data-l="b">na Central, observar os seis indicadores, o mapa com equipamentos agrupados, agentes em movimento, bairros pintados pelo índice e o feed de alertas; abrir os filtros por cima do mapa;</li>
+<li data-l="c">com a velocidade em 1 vez, usar “Injetar evento” e escolher “Acidente”: surge o alerta crítico, o agente mais próximo é despachado e o índice do bairro sobe;</li>
+<li data-l="d">passar para 60 vezes: agentes e patinetes andam mais depressa e chegam ocorrências e alertas sem parar, mas as regiões continuam distintas; voltar para 1 vez;</li>
+<li data-l="e">clicar num marcador para abrir a ficha lateral e, dela, a ficha completa, com linha do tempo, telemetria e alertas;</li>
+<li data-l="f">em Previsões, ler o Resumo do dia e abrir “Quanto acertou”, o teste retroativo;</li>
+<li data-l="g">abrir <code>/campo</code> numa janela estreita, ao lado da Central, para ver o despacho chegar ao agente; e abrir o Boletim do dia em <code>/boletim</code>;</li>
+<li data-l="h">ligar o interruptor “Sala de controle” para ver o tema escuro.</li>
+</ul>

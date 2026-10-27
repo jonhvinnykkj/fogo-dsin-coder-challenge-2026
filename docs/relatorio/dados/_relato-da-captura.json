@@ -1,0 +1,818 @@
+{
+ "arquivos": {
+  "01-entrar": {
+   "kb": 133,
+   "qualidade": 85
+  },
+  "02-central": {
+   "kb": 613,
+   "qualidade": 85
+  },
+  "03-central-filtros": {
+   "kb": 526,
+   "qualidade": 85
+  },
+  "08-legenda": {
+   "kb": 638,
+   "qualidade": 85
+  },
+  "07-central-regioes": {
+   "kb": 572,
+   "qualidade": 85
+  },
+  "05-central-ficha": {
+   "kb": 581,
+   "qualidade": 85
+  },
+  "06-central-ficha-agente": {
+   "kb": 535,
+   "qualidade": 85
+  },
+  "40-campo-painel": {
+   "kb": 202,
+   "qualidade": 85
+  },
+  "04-central-acidente": {
+   "kb": 618,
+   "qualidade": 85
+  },
+  "41-campo-despacho": {
+   "kb": 200,
+   "qualidade": 85
+  },
+  "42-central-despacho": {
+   "kb": 635,
+   "qualidade": 85
+  },
+  "43-campo-chegada": {
+   "kb": 207,
+   "qualidade": 85
+  },
+  "44-campo-relato": {
+   "kb": 108,
+   "qualidade": 85
+  },
+  "10-equipamentos": {
+   "kb": 356,
+   "qualidade": 85
+  },
+  "11-equipamento-novo": {
+   "kb": 586,
+   "qualidade": 85
+  },
+  "12-equipamento-ficha": {
+   "kb": 649,
+   "qualidade": 85
+  },
+  "13-agentes": {
+   "kb": 376,
+   "qualidade": 85
+  },
+  "14-agente-ficha": {
+   "kb": 685,
+   "qualidade": 85
+  },
+  "15-manutencao": {
+   "kb": 540,
+   "qualidade": 85
+  },
+  "16-alertas": {
+   "kb": 342,
+   "qualidade": 85
+  },
+  "20-previsoes-resumo": {
+   "kb": 481,
+   "qualidade": 85
+  },
+  "21-previsoes-risco": {
+   "kb": 419,
+   "qualidade": 85
+  },
+  "22-previsoes-semana": {
+   "kb": 414,
+   "qualidade": 85
+  },
+  "23-previsoes-acerto": {
+   "kb": 378,
+   "qualidade": 85
+  },
+  "24-previsoes-reforco": {
+   "kb": 414,
+   "qualidade": 85
+  },
+  "25-previsoes-falhas": {
+   "kb": 432,
+   "qualidade": 85
+  },
+  "26-previsoes-tendencias": {
+   "kb": 828,
+   "qualidade": 85
+  },
+  "27-previsoes-explicacao": {
+   "kb": 177,
+   "qualidade": 85
+  },
+  "30-boletim": {
+   "kb": 363,
+   "qualidade": 85
+  },
+  "30-boletim-inteiro": {
+   "kb": 808,
+   "qualidade": 85
+  },
+  "32-consulta-agentes": {
+   "kb": 356,
+   "qualidade": 85
+  },
+  "31-auditoria": {
+   "kb": 304,
+   "qualidade": 85
+  },
+  "33-sala-de-controle": {
+   "kb": 575,
+   "qualidade": 85
+  },
+  "34-swagger": {
+   "kb": 306,
+   "qualidade": 85
+  }
+ },
+ "avisos": [
+  "41: o despacho não chegou ao celular na tentativa 1; nova injeção",
+  "tela não ficou quieta em 30 s (http://localhost:3397/previsoes)",
+  "tela não ficou quieta em 30 s (http://localhost:3397/previsoes)"
+ ],
+ "numeros": {
+  "indicadoresDaCentral02": {
+   "totalEquipamentos": 350,
+   "operacionais": 287,
+   "indisponiveis": 42,
+   "naoInstalados": 11,
+   "desativados": 10,
+   "disponibilidadePct": 87.2,
+   "agentesEmAtividade": 21,
+   "agentesTotal": 80,
+   "alertasAbertos": 15,
+   "alertasCriticosAbertos": 0,
+   "manutencaoImediata": 30,
+   "manutencaoProxima7d": 18
+  },
+  "regioes07": [
+   {
+    "regiao": "Centro",
+    "indice": 36,
+    "nivel": "atencao",
+    "motivos": [
+     "Maior pressão: Banzato (índice 36)",
+     "10 equipamentos indisponíveis",
+     "7 ocorrências nas últimas 3 h"
+    ],
+    "bairros": [
+     {
+      "bairroId": 1,
+      "nome": "Alto Cafezal",
+      "indice": 28,
+      "nivel": "normal",
+      "motivos": [
+       "2 patinetes indisponíveis",
+       "1 ocorrência nas últimas 3 h"
+      ]
+     },
+     {
+      "bairroId": 2,
+      "nome": "Banzato",
+      "indice": 36,
+      "nivel": "atencao",
+      "motivos": [
+       "2 patinetes indisponíveis",
+       "3 ocorrências nas últimas 3 h"
+      ]
+     },
+     {
+      "bairroId": 4,
+      "nome": "Centro",
+      "indice": 32,
+      "nivel": "atencao",
+      "motivos": [
+       "2 patinetes indisponíveis",
+       "2 ocorrências nas últimas 3 h"
+      ]
+     },
+     {
+      "bairroId": 43,
+      "nome": "Maria Izabel",
+      "indice": 16,
+      "nivel": "normal",
+      "motivos": [
+       "1 totem do rotativo indisponível",
+       "1 ocorrência nas últimas 3 h"
+      ]
+     },
+     {
+      "bairroId": 48,
+      "nome": "Palmital",
+      "indice": 24,
+      "nivel": "normal",
+      "motivos": [
+       "2 patinetes indisponíveis"
+      ]
+     },
+     {
+      "bairroId": 58,
+      "nome": "Somenzari",
+      "indice": 12,
+      "nivel": "normal",
+      "motivos": [
+       "1 câmera indisponível"
+      ]
+     }
+    ]
+   },
+   {
+    "regiao": "Norte",
+    "indice": 24,
+    "nivel": "normal",
+    "motivos": [
+     "Maior pressão: Jardim Ohara (índice 24)",
+     "5 equipamentos indisponíveis"
+    ],
+    "bairros": [
+     {
+      "bairroId": 27,
+      "nome": "Jardim Ohara",
+      "indice": 24,
+      "nivel": "normal",
+      "motivos": [
+       "1 câmera indisponível",
+       "1 semáforo indisponível"
+      ]
+     },
+     {
+      "bairroId": 41,
+      "nome": "Lorenzetti",
+      "indice": 12,
+      "nivel": "normal",
+      "motivos": [
+       "1 painel de mensagem indisponível"
+      ]
+     },
+     {
+      "bairroId": 62,
+      "nome": "Vila Mariana",
+      "indice": 24,
+      "nivel": "normal",
+      "motivos": [
+       "1 câmera indisponível",
+       "1 veículo de transporte indisponível"
+      ]
+     }
+    ]
+   },
+   {
+    "regiao": "Sul",
+    "indice": 24,
+    "nivel": "normal",
+    "motivos": [
+     "Maior pressão: Luiz Homero Zaninotto (índice 24)",
+     "9 equipamentos indisponíveis",
+     "7 ocorrências nas últimas 3 h"
+    ],
+    "bairros": [
+     {
+      "bairroId": 7,
+      "nome": "Fragata",
+      "indice": 12,
+      "nivel": "normal",
+      "motivos": [
+       "1 câmera indisponível"
+      ]
+     },
+     {
+      "bairroId": 11,
+      "nome": "Jardim Casadei",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 13,
+      "nome": "Jardim Conquista",
+      "indice": 16,
+      "nivel": "normal",
+      "motivos": [
+       "1 sensor de alagamento indisponível",
+       "1 ocorrência nas últimas 3 h"
+      ]
+     },
+     {
+      "bairroId": 14,
+      "nome": "Jardim Continental",
+      "indice": 12,
+      "nivel": "normal",
+      "motivos": [
+       "1 viatura indisponível"
+      ]
+     },
+     {
+      "bairroId": 19,
+      "nome": "Jardim Domingos de Leo",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 21,
+      "nome": "Jardim Esplanada",
+      "indice": 4,
+      "nivel": "normal",
+      "motivos": [
+       "1 ocorrência nas últimas 3 h"
+      ]
+     },
+     {
+      "bairroId": 22,
+      "nome": "Jardim Guarujá",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 23,
+      "nome": "Jardim Itaipu",
+      "indice": 4,
+      "nivel": "normal",
+      "motivos": [
+       "1 ocorrência nas últimas 3 h"
+      ]
+     },
+     {
+      "bairroId": 24,
+      "nome": "Jardim Marajó",
+      "indice": 16,
+      "nivel": "normal",
+      "motivos": [
+       "1 semáforo indisponível",
+       "1 ocorrência nas últimas 3 h"
+      ]
+     },
+     {
+      "bairroId": 28,
+      "nome": "Jardim Parati",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 30,
+      "nome": "Jardim Planalto",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 32,
+      "nome": "Jardim Portal do Sol",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 33,
+      "nome": "Jardim Santa Paula",
+      "indice": 16,
+      "nivel": "normal",
+      "motivos": [
+       "1 câmera indisponível",
+       "1 ocorrência nas últimas 3 h"
+      ]
+     },
+     {
+      "bairroId": 34,
+      "nome": "Jardim São Vicente de Paulo",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 35,
+      "nome": "Jardim Teotônio Vilela",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 42,
+      "nome": "Luiz Homero Zaninotto",
+      "indice": 24,
+      "nivel": "normal",
+      "motivos": [
+       "1 semáforo indisponível",
+       "1 veículo de transporte indisponível"
+      ]
+     },
+     {
+      "bairroId": 44,
+      "nome": "Nova Marília",
+      "indice": 12,
+      "nivel": "normal",
+      "motivos": [
+       "1 veículo de transporte indisponível"
+      ]
+     },
+     {
+      "bairroId": 55,
+      "nome": "Parque São Jorge",
+      "indice": 16,
+      "nivel": "normal",
+      "motivos": [
+       "1 câmera indisponível",
+       "1 ocorrência nas últimas 3 h"
+      ]
+     },
+     {
+      "bairroId": 53,
+      "nome": "Parque dos Ipês",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 63,
+      "nome": "Vila Operária da Alimentação II",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 64,
+      "nome": "Vila Real",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 65,
+      "nome": "Vila Tofolli",
+      "indice": 4,
+      "nivel": "normal",
+      "motivos": [
+       "1 ocorrência nas últimas 3 h"
+      ]
+     }
+    ]
+   },
+   {
+    "regiao": "Leste",
+    "indice": 24,
+    "nivel": "normal",
+    "motivos": [
+     "Maior pressão: Jardim Damasco I (índice 24)",
+     "6 equipamentos indisponíveis",
+     "1 ocorrência nas últimas 3 h"
+    ],
+    "bairros": [
+     {
+      "bairroId": 16,
+      "nome": "Jardim Damasco I",
+      "indice": 24,
+      "nivel": "normal",
+      "motivos": [
+       "1 semáforo indisponível",
+       "1 veículo de transporte indisponível"
+      ]
+     },
+     {
+      "bairroId": 17,
+      "nome": "Jardim Damasco II",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 25,
+      "nome": "Jardim Maria Izabel",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 36,
+      "nome": "Jardim Tropical",
+      "indice": 24,
+      "nivel": "normal",
+      "motivos": [
+       "2 patinetes indisponíveis"
+      ]
+     },
+     {
+      "bairroId": 40,
+      "nome": "Jóquei Clube",
+      "indice": 16,
+      "nivel": "normal",
+      "motivos": [
+       "1 câmera indisponível",
+       "1 ocorrência nas últimas 3 h"
+      ]
+     },
+     {
+      "bairroId": 49,
+      "nome": "Parque das Esmeraldas",
+      "indice": 12,
+      "nivel": "normal",
+      "motivos": [
+       "1 câmera indisponível"
+      ]
+     },
+     {
+      "bairroId": 50,
+      "nome": "Parque das Esmeraldas II",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     }
+    ]
+   },
+   {
+    "regiao": "Oeste",
+    "indice": 24,
+    "nivel": "normal",
+    "motivos": [
+     "Maior pressão: Jardim California (índice 24)",
+     "12 equipamentos indisponíveis",
+     "10 ocorrências nas últimas 3 h (contam como 9,1 no ritmo real)"
+    ],
+    "bairros": [
+     {
+      "bairroId": 3,
+      "nome": "Cavalieri",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 5,
+      "nome": "Chico Mendes",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 6,
+      "nome": "Expedicionário Alberto Herreira",
+      "indice": 4,
+      "nivel": "normal",
+      "motivos": [
+       "1 ocorrência nas últimas 3 h"
+      ]
+     },
+     {
+      "bairroId": 8,
+      "nome": "Higienópolis",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 9,
+      "nome": "Jardim Bandeirantes",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 10,
+      "nome": "Jardim California",
+      "indice": 24,
+      "nivel": "normal",
+      "motivos": [
+       "1 câmera indisponível",
+       "1 patinete indisponível"
+      ]
+     },
+     {
+      "bairroId": 12,
+      "nome": "Jardim Cavallari",
+      "indice": 16,
+      "nivel": "normal",
+      "motivos": [
+       "1 câmera indisponível",
+       "1 ocorrência nas últimas 3 h"
+      ]
+     },
+     {
+      "bairroId": 15,
+      "nome": "Jardim D'Itália",
+      "indice": 12,
+      "nivel": "normal",
+      "motivos": [
+       "1 veículo de transporte indisponível"
+      ]
+     },
+     {
+      "bairroId": 20,
+      "nome": "Jardim Eldorado",
+      "indice": 8,
+      "nivel": "normal",
+      "motivos": [
+       "2 ocorrências nas últimas 3 h"
+      ]
+     },
+     {
+      "bairroId": 26,
+      "nome": "Jardim Morumbi",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 31,
+      "nome": "Jardim Polyana",
+      "indice": 16,
+      "nivel": "normal",
+      "motivos": [
+       "1 moto de agente indisponível",
+       "1 ocorrência nas últimas 3 h"
+      ]
+     },
+     {
+      "bairroId": 29,
+      "nome": "Jardim Pérola",
+      "indice": 16,
+      "nivel": "normal",
+      "motivos": [
+       "1 semáforo indisponível",
+       "1 ocorrência nas últimas 3 h"
+      ]
+     },
+     {
+      "bairroId": 37,
+      "nome": "Jardim Universitário",
+      "indice": 12,
+      "nivel": "normal",
+      "motivos": [
+       "1 patinete indisponível"
+      ]
+     },
+     {
+      "bairroId": 38,
+      "nome": "Jardim Veneza",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 39,
+      "nome": "Jardim Virgínia",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 18,
+      "nome": "Jardim das Pérolas",
+      "indice": 12,
+      "nivel": "normal",
+      "motivos": [
+       "1 semáforo indisponível"
+      ]
+     },
+     {
+      "bairroId": 45,
+      "nome": "Núcleo Habitacional Bela Vista",
+      "indice": 4,
+      "nivel": "normal",
+      "motivos": [
+       "1 ocorrência nas últimas 3 h"
+      ]
+     },
+     {
+      "bairroId": 46,
+      "nome": "Núcleo Habitacional Chico Mendes",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 47,
+      "nome": "Núcleo Habitacional José Teruel Martinez",
+      "indice": 24,
+      "nivel": "normal",
+      "motivos": [
+       "2 viaturas indisponíveis"
+      ]
+     },
+     {
+      "bairroId": 54,
+      "nome": "Parque Mirabilis",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 51,
+      "nome": "Parque das Vivendas",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 52,
+      "nome": "Parque das Vivendas II",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 56,
+      "nome": "Paulista",
+      "indice": 4,
+      "nivel": "normal",
+      "motivos": [
+       "1 ocorrência nas últimas 3 h"
+      ]
+     },
+     {
+      "bairroId": 57,
+      "nome": "Sítios de Recreio Céu Azul",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 59,
+      "nome": "Vereador Eduardo Andrade Rei",
+      "indice": 17,
+      "nivel": "normal",
+      "motivos": [
+       "1 câmera indisponível",
+       "2 ocorrências nas últimas 3 h (contam como 1,1 no ritmo real)"
+      ]
+     },
+     {
+      "bairroId": 60,
+      "nome": "Vila Argolo Ferrão",
+      "indice": 0,
+      "nivel": "normal",
+      "motivos": []
+     },
+     {
+      "bairroId": 61,
+      "nome": "Vila Maria",
+      "indice": 12,
+      "nivel": "normal",
+      "motivos": [
+       "1 câmera indisponível"
+      ]
+     }
+    ]
+   }
+  ],
+  "agenteDoCelular": 7,
+  "alertaAcidente04": "Acidente em Jardim Eldorado",
+  "indicadoresAcidente04": {
+   "totalEquipamentos": 350,
+   "operacionais": 287,
+   "indisponiveis": 42,
+   "naoInstalados": 11,
+   "desativados": 10,
+   "disponibilidadePct": 87.2,
+   "agentesEmAtividade": 21,
+   "agentesTotal": 80,
+   "alertasAbertos": 17,
+   "alertasCriticosAbertos": 1,
+   "manutencaoImediata": 30,
+   "manutencaoProxima7d": 18
+  },
+  "despacho41": {
+   "ocorrencia": {
+    "id": 17478,
+    "tipo": "acidente",
+    "gravidade": 4,
+    "bairroId": 2,
+    "lat": -22.207798,
+    "lng": -49.942265,
+    "inicio": "2026-10-27T18:15:52.951Z",
+    "equipamentoId": 212,
+    "agenteId": 7,
+    "descricao": "Colisão grave com vítima presa nas ferragens (próximo a FOGO-PAT-0047)",
+    "chuva": false,
+    "origem": "injetado"
+   },
+   "bairroNome": "Banzato",
+   "logradouro": "Rua Itu",
+   "distanciaMetros": 234
+  },
+  "equipamentoFicha": 2,
+  "contagens": {
+   "equipamentos": 350,
+   "agentes": 80,
+   "bairros": 65,
+   "alertasAbertos": 20,
+   "observacao": "alertasAbertos: total devolvido por /api/alertas?abertos=1 (ou, se a rota não filtrar, o campo dos indicadores)"
+  },
+  "tentativaDelete": {
+   "status": 403,
+   "corpo": "{\"erro\":\"Seu perfil (Somente consulta) não tem permissão para esta ação\"}"
+  }
+ }
+}

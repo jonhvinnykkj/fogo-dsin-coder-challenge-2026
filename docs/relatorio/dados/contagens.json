@@ -1,0 +1,7 @@
+{
+ "equipamentos": 350,
+ "agentes": 80,
+ "bairros": 65,
+ "alertasAbertos": 20,
+ "observacao": "alertasAbertos: total devolvido por /api/alertas?abertos=1 (ou, se a rota não filtrar, o campo dos indicadores)"
+}

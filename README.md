@@ -237,7 +237,7 @@ npm run e2e         # Playwright: sobe o app com banco próprio (porta 3399) e c
 
 O E2E usa `data/e2e.db`, apaga o banco velho antes de começar e o apaga de novo ao terminar (no Windows, se o arquivo ainda estiver preso, o próximo `npm run e2e` o remove); não mexe no seu `data/fogo.db`. Na primeira execução do Playwright pode ser preciso `npx playwright install chromium`.
 
-`npm run empacotar` gera `fogo-dsin-coder-challenge.zip` (sem `node_modules`, `dist`, bancos, `docs/design/`, `video/` e pastas de trabalho; falha se passar de 50 MB).
+`npm run empacotar` gera `fogo-dsin-coder-challenge.zip` (sem `node_modules`, `dist`, bancos, `docs/design/`, `docs/relatorio/`, `video/` e pastas de trabalho; falha se passar de 50 MB). O PDF do relatório técnico vai junto.
 
 ## Decisões e limitações (sem maquiagem)
 
@@ -253,7 +253,13 @@ O E2E usa `data/e2e.db`, apaga o banco velho antes de começar e o apaga de novo
 - O mapa precisa de internet para o fundo de ruas; o ViaCEP (preenchimento de CEP) é opcional e o cadastro funciona sem ele.
 - SQLite atende bem a um município simulado; para milhões de leituras por dia o caminho seria um banco de séries temporais (discutido no guia).
 
+## Relatório técnico
+
+O relatório completo do projeto, no formato da ABNT (NBR 10719), está em [docs/Relatorio-Tecnico-FOGO.pdf](docs/Relatorio-Tecnico-FOGO.pdf): requisitos com onde cada um é atendido, metodologia e uso de IA, arquitetura e modelo de dados, as três partes com capturas do sistema, as fórmulas das previsões e o teste retroativo, segurança, testes, desempenho, execução e limitações. Ele é gerado a partir de `docs/relatorio/` com `node docs/relatorio/scripts/gerar-pdf.mjs` (as capturas, com o sistema rodando numa porta própria, com `node docs/relatorio/scripts/capturar-telas.mjs`).
+
 ## Vídeo de demonstração
+
+**Assista:** [fogo-demonstracao.mp4](https://github.com/jonhvinnykkj/fogo-dsin-coder-challenge-2026/releases/download/v1.0/fogo-demonstracao.mp4) (3 min 52 s, 1080p, com narração), na página da [versão v1.0](https://github.com/jonhvinnykkj/fogo-dsin-coder-challenge-2026/releases/tag/v1.0). Mostra a entrada por papel, o inventário, a Central, o Modo Campo com o celular do agente ao lado da Central, as previsões, o Boletim do dia, a consulta mascarada e a auditoria.
 
 O código do vídeo (projeto Remotion, pasta `video/`) fica no repositório do projeto; ele não é o sistema, então não vai neste .zip.
 

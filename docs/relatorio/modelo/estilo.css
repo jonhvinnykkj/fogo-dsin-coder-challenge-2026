@@ -1,0 +1,134 @@
+/* Relatório técnico do F.O.G.O. na apresentação da ABNT NBR 10719:2015 (e NBR 6024, 6027, 6028, 6023 e 10520).
+   A4; margens superior e esquerda de 3 cm, inferior e direita de 2 cm; Times 12; entrelinha 1,5; texto justificado.
+   As folhas contam a partir da folha de rosto (a capa é um PDF à parte) e o número só aparece da parte textual em
+   diante, no canto superior direito, a 2 cm da borda de cima e com o último algarismo a 2 cm da borda direita. */
+
+@page {
+  size: A4;
+  margin: 3cm 2cm 2cm 3cm;
+  @top-right {
+    content: counter(page);
+    font: 10pt "Times New Roman", Times, serif;
+    vertical-align: bottom;
+    padding-bottom: 0.72cm;
+  }
+}
+/* Elementos pré-textuais: contam, mas não mostram o número. */
+@page pre { @top-right { content: none; } }
+.pre { page: pre; }
+
+* { box-sizing: border-box; }
+html { font: 12pt/1.5 "Times New Roman", Times, serif; color: #000; }
+body { margin: 0; }
+p { margin: 0; text-align: justify; text-indent: 1.25cm; orphans: 2; widows: 2; hyphens: auto; }
+p.sem-recuo { text-indent: 0; }
+strong, b { font-weight: 700; }
+a { color: #000; text-decoration: none; }
+.url { overflow-wrap: anywhere; hyphens: none; }
+code, .mono { font-family: Menlo, Consolas, "Courier New", monospace; font-size: 9.5pt; }
+sub, sup { line-height: 0; }
+
+/* Títulos (NBR 6024): primária em negrito e caixa alta, começando em folha nova; secundária em caixa alta;
+   terciária em negrito; separados do texto por um espaço de 1,5. */
+h1, h2, h3, h4 { font-size: 12pt; line-height: 1.5; margin: 0; break-after: avoid; text-align: left; }
+h1 { font-weight: 700; text-transform: uppercase; break-before: page; margin-bottom: 18pt; }
+h2 { font-weight: 400; text-transform: uppercase; margin: 18pt 0; }
+h3 { font-weight: 700; margin: 18pt 0; }
+h1 .num, h2 .num, h3 .num { display: inline-block; min-width: 0; margin-right: 0.5em; }
+/* Títulos sem indicativo numérico (resumo, listas, sumário, referências, glossário, apêndices): centralizados. */
+h1.centro { text-align: center; }
+
+/* Listas no texto */
+ul, ol { margin: 0; padding-left: 1.9cm; text-align: justify; }
+ul.alineas { list-style: none; padding-left: 1.25cm; }
+ul.alineas > li { position: relative; }
+ul.alineas > li::before { content: attr(data-l) ") "; position: absolute; left: -0.7cm; }
+li { margin: 0; }
+
+/* Equações (destacadas no texto, numeradas entre parênteses à direita) */
+.equacao { display: flex; align-items: baseline; margin: 9pt 0; }
+.equacao .expr { flex: 1; text-align: center; }
+.equacao .n { width: 1.2cm; text-align: right; }
+.equacao var { font-style: italic; }
+
+/* Ilustrações (figura e quadro) e tabelas: título em cima, fonte embaixo, em 10 pt e espaço simples. */
+.ilustracao { margin: 12pt 0; break-inside: avoid; }
+.ilustracao .titulo { font-size: 10pt; line-height: 1.2; text-align: center; margin: 0 auto 4pt; max-width: 15cm; text-indent: 0; }
+.ilustracao .fonte { font-size: 10pt; line-height: 1.2; text-align: left; margin-top: 4pt; text-indent: 0; }
+.ilustracao .nota { font-size: 10pt; line-height: 1.2; text-align: justify; margin-top: 2pt; text-indent: 0; }
+.ilustracao img { display: block; margin: 0 auto; max-width: 100%; border: 0.5pt solid #777; }
+.ilustracao img.celular { height: 11.5cm; width: auto; }
+.ilustracao img.meia { width: 11cm; }
+.ilustracao img.alta { max-height: 21cm; width: auto; }
+.ilustracao svg { display: block; margin: 0 auto; width: 100%; height: auto; }
+.ilustracao.svg-estreito svg { width: 82%; }
+/* Quadro longo pode continuar na folha seguinte (o cabeçalho se repete); tabela e quadro curto ficam inteiros. */
+.ilustracao.quadro { break-inside: auto; }
+.ilustracao.quadro.mantem { break-inside: avoid; }
+.ilustracao.quadro .titulo, .ilustracao.tabela .titulo { break-after: avoid; }
+
+/* Duas ilustrações lado a lado (telas de celular) */
+.lado-a-lado { display: flex; justify-content: space-around; align-items: flex-start; gap: 0.6cm; break-inside: avoid; margin: 12pt 0; }
+.lado-a-lado .ilustracao { margin: 0; flex: 0 0 auto; width: 7.4cm; }
+.lado-a-lado .ilustracao .titulo { max-width: 7.4cm; }
+
+/* Ilustração em folha deitada (o leitor gira a folha, com o topo da figura voltado para a margem esquerda): ocupa a
+   folha inteira. A caixa fica no topo e gira a partir do canto, para caber na folha ANTES do giro; centralizada pela
+   metade da altura, ela passava do fim da folha e o Chrome a partia entre páginas. */
+.folha-deitada { break-before: page; break-after: page; position: relative; height: 24.6cm; }
+.folha-deitada .ilustracao { position: absolute; left: 0.3cm; top: 0; width: 24.2cm; margin: 0;
+  transform-origin: 0 0; transform: translate(0, 24.4cm) rotate(-90deg); }
+.folha-deitada .ilustracao .titulo { max-width: 22cm; }
+/* Altura explícita: na impressão, a altura automática do SVG girado sai menor que o desenho e a fonte sobe por cima dele. */
+.folha-deitada .ilustracao svg { width: 24.2cm; height: 13.4cm; }
+
+/* Quadros: bordas fechadas. Tabelas (IBGE): sem traços verticais nas laterais, só os de cabeçalho e fecho. */
+table { width: 100%; border-collapse: collapse; font-size: 10pt; line-height: 1.25; }
+table td, table th { padding: 2.5pt 5pt; vertical-align: top; text-align: left; }
+.quadro table td, .quadro table th { border: 0.6pt solid #000; }
+.quadro table th { font-weight: 700; background: #ececec; }
+.tabela table { border-top: 1pt solid #000; border-bottom: 1pt solid #000; }
+.tabela table th { border-bottom: 0.6pt solid #000; font-weight: 700; }
+.tabela table td.n, .tabela table th.n { text-align: right; white-space: nowrap; }
+table tr { break-inside: avoid; }
+thead { display: table-header-group; }
+td code, th code { font-size: 8.5pt; overflow-wrap: anywhere; }
+
+/* ---- Capa e folha de rosto ---- */
+.capa, .rosto { height: 24.6cm; display: flex; flex-direction: column; text-align: center; font-weight: 700; text-transform: uppercase; break-after: page; }
+.capa .entidade, .rosto .entidade { line-height: 1.5; }
+.capa .autores { margin-top: 2.2cm; line-height: 1.5; }
+.capa .titulo-trabalho, .rosto .titulo-trabalho { margin: auto 0; }
+.titulo-trabalho .principal { font-size: 14pt; line-height: 1.4; }
+.titulo-trabalho .sub { font-weight: 400; text-transform: none; margin-top: 6pt; line-height: 1.4; }
+.capa .local, .rosto .local { line-height: 1.5; }
+.rosto .autores { line-height: 1.5; }
+.rosto .titulo-trabalho { margin: auto 0 1.2cm; }
+.rosto .natureza { margin: 0 0 auto 8cm; text-align: justify; text-transform: none; font-weight: 400; font-size: 10pt; line-height: 1.2; }
+
+/* ---- Resumo ---- */
+.resumo p { text-indent: 0; }
+.resumo .chaves { margin-top: 18pt; text-indent: 0; }
+
+/* ---- Listas e sumário: título, pontilhado e número da folha ---- */
+.lista { list-style: none; margin: 0; padding: 0; }
+.lista li { display: flex; align-items: baseline; margin: 0 0 3pt; text-align: left; }
+.lista .rotulo { flex: 0 1 auto; }
+.lista .pontos { flex: 1 1 auto; border-bottom: 1pt dotted #000; margin: 0 4pt; transform: translateY(-3pt); min-width: 0.6cm; }
+.lista .pg { flex: 0 0 auto; min-width: 0.7cm; text-align: right; }
+.sumario li .ind { flex: 0 0 1.3cm; }
+.sumario li.n1 { font-weight: 700; text-transform: uppercase; }
+.sumario li.n2 { text-transform: uppercase; }
+.sumario li.n3 { font-weight: 700; }
+.sumario li.pos { font-weight: 700; text-transform: uppercase; }
+.sumario li.n1 + li.n1, .sumario li.n2 + li.n1, .sumario li.n3 + li.n1 { margin-top: 6pt; }
+.siglas { width: 100%; border: 0; font-size: 12pt; line-height: 1.5; }
+.siglas td { border: 0; padding: 0 6pt 0 0; }
+.siglas td:first-child { width: 2.6cm; }
+
+/* ---- Referências (NBR 6023): alinhadas à esquerda, espaço simples, separadas por uma linha em branco ---- */
+.referencias p { text-indent: 0; text-align: left; line-height: 1.0; margin-bottom: 12pt; }
+.glossario p { text-indent: 0; margin-bottom: 6pt; }
+
+.quebra { break-before: page; }
+.mantem { break-inside: avoid; }

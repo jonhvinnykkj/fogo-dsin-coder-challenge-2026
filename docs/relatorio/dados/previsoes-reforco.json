@@ -1,0 +1,67 @@
+{
+ "geradoEm": "2026-10-27T18:18:29.930Z",
+ "horas": 24,
+ "recomendacoes": [
+  {
+   "regiaoOrigem": "Leste",
+   "regiaoDestino": "Centro",
+   "quantidade": 1,
+   "inicio": "2026-10-27T18:00:00.000Z",
+   "fim": "2026-10-28T01:00:00.000Z",
+   "cargaPorAgenteAntes": 5.38,
+   "cargaPorAgenteDepois": 4.71,
+   "motivo": "A região Centro deve ter 37,7 ocorrências na tarde de terça (15h às 22h) para 7 agentes: 5,4 por agente, contra 2,3 na Zona Leste. Mande 1 agente da Zona Leste para a região Centro das 15h às 22h; a carga na região Centro cai para 4,7 por agente."
+  },
+  {
+   "regiaoOrigem": "Leste",
+   "regiaoDestino": "Sul",
+   "quantidade": 1,
+   "inicio": "2026-10-28T01:00:00.000Z",
+   "fim": "2026-10-28T09:00:00.000Z",
+   "cargaPorAgenteAntes": 3.92,
+   "cargaPorAgenteDepois": 3.14,
+   "motivo": "A Zona Sul deve ter 15,7 ocorrências na noite de terça (22h às 6h) para 4 agentes: 3,9 por agente, contra 1,4 na Zona Leste. Mande 1 agente da Zona Leste para a Zona Sul das 22h às 6h; a carga na Zona Sul cai para 3,1 por agente."
+  },
+  {
+   "regiaoOrigem": "Leste",
+   "regiaoDestino": "Centro",
+   "quantidade": 1,
+   "inicio": "2026-10-28T09:00:00.000Z",
+   "fim": "2026-10-28T17:00:00.000Z",
+   "cargaPorAgenteAntes": 6.1,
+   "cargaPorAgenteDepois": 5.23,
+   "motivo": "A região Centro deve ter 36,6 ocorrências na manhã de quarta (6h às 14h) para 6 agentes: 6,1 por agente, contra 2,6 na Zona Leste. Mande 1 agente da Zona Leste para a região Centro das 6h às 14h; a carga na região Centro cai para 5,2 por agente."
+  },
+  {
+   "regiaoOrigem": "Norte",
+   "regiaoDestino": "Sul",
+   "quantidade": 1,
+   "inicio": "2026-10-28T09:00:00.000Z",
+   "fim": "2026-10-28T17:00:00.000Z",
+   "cargaPorAgenteAntes": 5.95,
+   "cargaPorAgenteDepois": 5.1,
+   "motivo": "A Zona Sul deve ter 35,7 ocorrências na manhã de quarta (6h às 14h) para 6 agentes: 6,0 por agente, contra 2,7 na Zona Norte. Mande 1 agente da Zona Norte para a Zona Sul das 6h às 14h; a carga na Zona Sul cai para 5,1 por agente."
+  }
+ ],
+ "explicacao": {
+  "oQuePreve": "Em quais regiões vai faltar agente em cada turno das próximas 24 horas: as ocorrências previstas para cada agente escalado.",
+  "dadosUsados": [
+   "Mapa de risco das próximas 24 horas (ocorrências esperadas por bairro e hora)",
+   "Escala de 80 agentes: turno de cada um e região da base",
+   "Turnos: manhã 6h–14h, tarde 14h–22h, noite 22h–6h e madrugada 0h–6h (plantão que reforça a noite)"
+  ],
+  "comoAjuda": "Diz quantos agentes mover, de onde, para onde e em que horário (4 remanejamentos sugeridos): equilibra a carga até no máximo 20% acima da média da cidade, sem deixar a região de origem mais carregada que a de destino e com no máximo 3 mudanças por turno.",
+  "confiabilidade": [
+   {
+    "metrica": "Erro médio por bairro a cada 3 horas",
+    "valor": 0.5302,
+    "descricao": "Nos 14 dias antes de hoje, a previsão feita na véspera errou em média 0,53 ocorrência por bairro em cada bloco de 3 horas: 8,4% menos que repetir a média de cada bairro (0,58)."
+   },
+   {
+    "metrica": "Acerto dos 5 bairros mais arriscados à noite",
+    "valor": 3.8,
+    "descricao": "Entre 18h e 2h, dos 5 bairros apontados como mais arriscados, em média 3,8 estavam de fato entre os 5 com mais ocorrências (escolher pela média simples acertaria 3,6)."
+   }
+  ]
+ }
+}

@@ -1,0 +1,24 @@
+flowchart TB
+  SIM["Simulador<br/>(no próprio processo)"] --> TEL
+  DISP["Dispositivo IoT real<br/>(token por equipamento)"] --> TEL
+  subgraph Servidor["Servidor"]
+    TEL["POST /api/telemetria<br/>validação e ingestão"] --> ANO["Detecção de<br/>anomalias"]
+    ANO --> MOT["Motor de alertas<br/>abre · repete · resolve"]
+    MOT --> BAR["Barramento<br/>de eventos"]
+    BAR --> SSE["GET /api/stream<br/>Server-Sent Events"]
+    PRE["Módulo preditivo<br/>risco · reforço · falhas"] --> API["API REST /api/*<br/>zod + Swagger"]
+    SEG["Segurança<br/>sessão · papéis · auditoria"] -.-> API
+  end
+  TEL --> DB[("SQLite<br/>data/fogo.db")]
+  MOT --> DB
+  DB --> PRE
+  API <--> DB
+  subgraph Cliente["Navegador (React)"]
+    CEN["Central de<br/>Operações"]
+    INV["Inventário<br/>e fichas"]
+    PRV["Previsões e<br/>Boletim do dia"]
+    CAM["Modo Campo<br/>(celular)"]
+  end
+  SSE --> CEN
+  SSE --> CAM
+  API <--> Cliente

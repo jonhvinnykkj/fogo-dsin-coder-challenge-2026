@@ -1,0 +1,144 @@
+{
+ "dias": 14,
+ "maeModelo": 0.5302,
+ "maeIngenuo": 0.579,
+ "ganhoPct": 8.4,
+ "acertoTop5Medio": 3.8,
+ "acertoTop5IngenuoMedio": 3.6,
+ "porDia": [
+  {
+   "data": "2026-10-13",
+   "acertoTop5": 4,
+   "acertoTop5Ingenuo": 3,
+   "mae": 0.5578,
+   "maeIngenuo": 0.5939
+  },
+  {
+   "data": "2026-10-14",
+   "acertoTop5": 5,
+   "acertoTop5Ingenuo": 4,
+   "mae": 0.5728,
+   "maeIngenuo": 0.568
+  },
+  {
+   "data": "2026-10-15",
+   "acertoTop5": 4,
+   "acertoTop5Ingenuo": 4,
+   "mae": 0.5176,
+   "maeIngenuo": 0.555
+  },
+  {
+   "data": "2026-10-16",
+   "acertoTop5": 4,
+   "acertoTop5Ingenuo": 3,
+   "mae": 0.5479,
+   "maeIngenuo": 0.604
+  },
+  {
+   "data": "2026-10-17",
+   "acertoTop5": 4,
+   "acertoTop5Ingenuo": 4,
+   "mae": 0.4973,
+   "maeIngenuo": 0.5617
+  },
+  {
+   "data": "2026-10-18",
+   "acertoTop5": 3,
+   "acertoTop5Ingenuo": 3,
+   "mae": 0.4749,
+   "maeIngenuo": 0.525
+  },
+  {
+   "data": "2026-10-19",
+   "acertoTop5": 3,
+   "acertoTop5Ingenuo": 3,
+   "mae": 0.5458,
+   "maeIngenuo": 0.5641
+  },
+  {
+   "data": "2026-10-20",
+   "acertoTop5": 4,
+   "acertoTop5Ingenuo": 4,
+   "mae": 0.5047,
+   "maeIngenuo": 0.5637
+  },
+  {
+   "data": "2026-10-21",
+   "acertoTop5": 4,
+   "acertoTop5Ingenuo": 4,
+   "mae": 0.5642,
+   "maeIngenuo": 0.6311
+  },
+  {
+   "data": "2026-10-22",
+   "acertoTop5": 3,
+   "acertoTop5Ingenuo": 3,
+   "mae": 0.5634,
+   "maeIngenuo": 0.6302
+  },
+  {
+   "data": "2026-10-23",
+   "acertoTop5": 4,
+   "acertoTop5Ingenuo": 4,
+   "mae": 0.5756,
+   "maeIngenuo": 0.6043
+  },
+  {
+   "data": "2026-10-24",
+   "acertoTop5": 4,
+   "acertoTop5Ingenuo": 4,
+   "mae": 0.5253,
+   "maeIngenuo": 0.6047
+  },
+  {
+   "data": "2026-10-25",
+   "acertoTop5": 4,
+   "acertoTop5Ingenuo": 4,
+   "mae": 0.4409,
+   "maeIngenuo": 0.5189
+  },
+  {
+   "data": "2026-10-26",
+   "acertoTop5": 3,
+   "acertoTop5Ingenuo": 3,
+   "mae": 0.5342,
+   "maeIngenuo": 0.5809
+  }
+ ],
+ "explicacao": {
+  "oQuePreve": "Quanto o mapa de risco teria acertado nos 14 dias antes de hoje (13/10 a 26/10) se cada dia tivesse sido previsto na véspera.",
+  "dadosUsados": [
+   "Ocorrências registradas de 28/08 a 27/10, por bairro e hora",
+   "Para cada dia, o modelo foi refeito só com os dados até a meia-noite anterior, e a chuva do dia entra pela previsão do tempo da véspera, não pela que caiu (nada do próprio dia entra no cálculo)",
+   "Comparação: a média simples de ocorrências por hora de cada bairro, igual em todas as horas, sem horário, chuva nem tendência"
+  ],
+  "comoAjuda": "Diz se dá para confiar no mapa de risco antes de mexer na escala: quanto ele erra e se aponta os bairros certos.",
+  "confiabilidade": [
+   {
+    "metrica": "Erro médio do modelo (ocorrências por bairro a cada 3 horas)",
+    "valor": 0.5302,
+    "descricao": "Medido em blocos de 3 horas por bairro (8 por dia): em média o modelo errou 0,53 ocorrência por bloco."
+   },
+   {
+    "metrica": "Erro médio da média simples (por bairro a cada 3 horas)",
+    "valor": 0.579,
+    "descricao": "Repetir a média de cada bairro, igual em todas as horas, errou 0,58 por bloco."
+   },
+   {
+    "metrica": "Erro a menos que a média simples (%)",
+    "valor": 8.4,
+    "descricao": "O modelo errou 8,4% menos que a média simples."
+   },
+   {
+    "metrica": "Acerto dos 5 bairros mais arriscados à noite (0 a 5)",
+    "valor": 3.8,
+    "descricao": "Entre 18h e 2h, dos 5 bairros apontados como mais arriscados, em média 3,8 estiveram mesmo entre os 5 com mais ocorrências (melhor dia: 5 de 5)."
+   },
+   {
+    "metrica": "Acerto dos 5 bairros pela média simples à noite (0 a 5)",
+    "valor": 3.6,
+    "descricao": "Para comparar: escolher sempre os 5 bairros de maior média acertaria 3,6."
+   }
+  ]
+ }
+}
