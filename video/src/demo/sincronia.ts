@@ -50,16 +50,24 @@ export function sincronizar(planos: Plano[], falas: FalaGravada[], { primeiroAbr
     const dur = Math.max(p.dur, fimFala + FOLGA + (saiComTransicao ? TRANSICAO / 30 : 0));
 
     const vel0 = p.velocidade ?? 1;
-    const disponivel = (duracaoClipe[p.clipe] ?? Number.POSITIVE_INFINITY) - p.de - 0.08;
+    // no lado-a-lado vale a menor das duas gravações
+    const duracaoGravada = Math.min(duracaoClipe[p.clipe] ?? Number.POSITIVE_INFINITY, p.layout === 'lado-a-lado' ? (duracaoClipe[p.celular ?? ''] ?? Number.POSITIVE_INFINITY) : Number.POSITIVE_INFINITY);
+    const disponivel = duracaoGravada - p.de - 0.08;
     const vel = Math.max(VELOCIDADE_MINIMA, Math.min(vel0, disponivel / dur));
     const fator = vel0 / vel;
     const reescala = (tq: number) => (abre ? (tq <= FIM_ABERTURA ? tq : FIM_ABERTURA + (tq - FIM_ABERTURA) * fator) : tq * fator);
 
-    let camera = p.camera?.map((q) => ({ ...q, t: reescala(q.t) }));
-    if (camera && camera.length) {
-      const ultimo = camera[camera.length - 1];
-      if (ultimo.t < dur - 0.8) camera = [...camera, { ...ultimo, t: dur, zoom: ultimo.zoom * 1.035 }];
-    }
+    // reescala os quadros-chave e fecha com aproximação lenta, se a câmera para antes do fim
+    const reescalaCamera = (cam: Plano['camera']) => {
+      let c = cam?.map((q) => ({ ...q, t: reescala(q.t) }));
+      if (c && c.length) {
+        const ultimo = c[c.length - 1];
+        if (ultimo.t < dur - 0.8) c = [...c, { ...ultimo, t: dur, zoom: ultimo.zoom * 1.035 }];
+      }
+      return c;
+    };
+    const camera = reescalaCamera(p.camera);
+    const cameraCelular = reescalaCamera(p.cameraCelular);
 
     const legendas = p.legendas?.map((l) => {
       const delas = l.com ? colocadas.filter((c) => l.com!.includes(c.id)) : [];
@@ -72,6 +80,6 @@ export function sincronizar(planos: Plano[], falas: FalaGravada[], { primeiroAbr
     });
 
     const efeitos = p.efeitos?.map((e) => ({ ...e, t: (e.src - p.de) / vel }));
-    return { ...p, dur, velocidade: vel, camera, legendas, efeitos, falas: colocadas };
+    return { ...p, dur, velocidade: vel, camera, cameraCelular, legendas, efeitos, falas: colocadas };
   });
 }

@@ -2,7 +2,7 @@
 // Tempos em segundos. `de` = onde o trecho começa na gravação; `dur` = quanto fica na tela; câmera e legendas usam o
 // tempo da tela, contado do início do plano. O 1º plano de cada capítulo começa dentro do monitor da abertura e abre
 // para a tela cheia aos ~5,4 s (ABERTURA_CAPITULO + expansão), por isso as legendas dele começam depois disso.
-import { CalendarBlank, Gauge, IdentificationBadge, MapTrifold, SquaresFour, TrafficCone, TrendDown, WarningDiamond } from '@phosphor-icons/react';
+import { CalendarBlank, ClockCounterClockwise, Gauge, IdentificationBadge, MapPin, MapTrifold, NavigationArrow, SquaresFour, TrafficCone, TrendDown, WarningDiamond } from '@phosphor-icons/react';
 import type { IndicadorCapitulo } from './CenaCapitulo';
 import { br, type Numeros } from './dados';
 import type { Plano } from './Montagem';
@@ -21,6 +21,10 @@ const SEM_MENU = { x: 0.5615, zoom: 1.14 };
 const LISTA = { x: 0.4917, zoom: 1.37 };
 /** Previsões: conteúdo de x 248 a ~1500 (à direita fica o índice da página); a tela mostra só o conteúdo. */
 const PREVISOES = { x: 0.4516, zoom: 1.52 };
+/** Boletim: a folha A4 vai de x 564 a 1356, no meio da tela. */
+const BOLETIM = { x: 0.5, zoom: 1.7 };
+/** Central na janela da esquerda (lado a lado): o topo do feed de alertas, onde o alerta novo aparece. */
+const FEED = { x: 0.86, y: 0.3, zoom: 1.65 };
 
 /** Câmera parada em tela inteira enquanto o plano está no monitor da abertura; depois aproxima. */
 const abreEm = (x: number, y: number, zoom: number, depois?: { t: number; x: number; y: number; zoom: number }) => [
@@ -28,6 +32,21 @@ const abreEm = (x: number, y: number, zoom: number, depois?: { t: number; x: num
   { t: 5.2, x: 0.5, y: 0.5, zoom: 1 },
   { t: 6.6, x, y, zoom },
   ...(depois ? [depois] : []),
+];
+
+/** A entrada por papel: plano solto entre a abertura e o 1º capítulo. O cursor passa pelos papéis e entra como Gestor. */
+export const entrada: Plano[] = [
+  {
+    clipe: 'entrar',
+    de: 0.3,
+    dur: 7.4,
+    camera: [
+      { t: 0, x: 0.5, y: 0.5, zoom: 1.32 },
+      { t: 3.4, x: 0.5, y: 0.52, zoom: 1.4 },
+      { t: 4.6, x: 0.5, y: 0.5, zoom: 1 },
+    ],
+    legendas: [{ linhas: [{ texto: 'Cada pessoa entra com o seu papel;' }, { texto: 'o gestor vê tudo.', destaque: 'gestor' }], de: 0.5, ate: 7, com: ['e01', 'e02'] }],
+  },
 ];
 
 export function capitulos(n: Numeros): DefCapitulo[] {
@@ -200,6 +219,77 @@ export function capitulos(n: Numeros): DefCapitulo[] {
     },
     {
       numero: '3',
+      linhas: ['Modo', 'Campo'],
+      rotuloMonitor: 'Modo Campo · celular do agente',
+      indicadores: [
+        { valor: n.agentesCampo, rotulo: 'Agentes em atividade', Icone: IdentificationBadge },
+        { valor: n.metrosDespacho, sufixo: ' m', rotulo: 'Do agente até o acidente', Icone: NavigationArrow, destaque: true },
+        { valor: n.pertoDeMim, rotulo: 'Equipamentos perto dele', Icone: MapPin },
+      ],
+      planos: [
+        {
+          id: 'campo-entrar',
+          clipe: 'campo-entrar-celular',
+          layout: 'celular',
+          de: 0.3,
+          dur: 10.8,
+          legendas: [{ linhas: [{ texto: 'O agente entra e cai no próprio painel.', destaque: 'painel' }], de: 5.6, ate: 10.4, com: ['c01', 'c02'], naoAntes: 5.6 }],
+        },
+        {
+          id: 'campo-situacao',
+          clipe: 'campo-situacao-celular',
+          layout: 'celular',
+          de: 0.2,
+          dur: 4.6,
+          entrada: 'empurrar',
+          legendas: [{ linhas: [{ texto: 'A situação muda num toque.', destaque: 'toque' }], de: 0.5, ate: 4.2, com: ['c03'] }],
+        },
+        {
+          clipe: 'campo-despacho',
+          celular: 'campo-despacho-celular',
+          layout: 'lado-a-lado',
+          de: 0.2,
+          dur: 8.6,
+          entrada: 'mascara',
+          efeitos: [{ som: 'alerta', src: 3.2, volume: 0.5 }],
+          camera: [
+            { t: 0, x: 0.26, y: 0.9, zoom: 1.7 },
+            { t: 2.3, x: 0.26, y: 0.9, zoom: 1.7 },
+            { t: 3.6, x: FEED.x, y: FEED.y, zoom: FEED.zoom },
+            { t: 8.6, x: FEED.x, y: FEED.y, zoom: FEED.zoom * 1.04 },
+          ],
+          legendas: [{ linhas: [{ texto: 'Acidente perto dele:' }, { texto: 'o despacho chega na hora.', destaque: 'na hora' }], de: 0.6, ate: 8.2, com: ['c04', 'c05'] }],
+        },
+        {
+          clipe: 'campo-chegada',
+          celular: 'campo-chegada-celular',
+          layout: 'lado-a-lado',
+          de: 0.2,
+          dur: 6.2,
+          camera: [
+            { t: 0, x: FEED.x, y: FEED.y, zoom: FEED.zoom },
+            { t: 6.2, x: FEED.x, y: FEED.y, zoom: FEED.zoom * 1.04 },
+          ],
+          legendas: [{ linhas: [{ texto: 'Chegou e concluiu:' }, { texto: 'o alerta sai da Central.', destaque: 'sai' }], de: 0.5, ate: 5.8, com: ['c06', 'c07'] }],
+        },
+        {
+          clipe: 'campo-relato',
+          celular: 'campo-relato-celular',
+          layout: 'lado-a-lado',
+          de: 0.3,
+          dur: 8.8,
+          velocidade: 1.2,
+          entrada: 'empurrar',
+          camera: [
+            { t: 0, x: FEED.x, y: FEED.y, zoom: FEED.zoom },
+            { t: 8.8, x: FEED.x, y: FEED.y, zoom: FEED.zoom * 1.04 },
+          ],
+          legendas: [{ linhas: [{ texto: 'Relato a até 500 m' }, { texto: 'vira alerta na Central.', destaque: 'alerta' }], de: 0.6, ate: 8.4, com: ['c08', 'c09'] }],
+        },
+      ],
+    },
+    {
+      numero: '4',
       linhas: ['Cidade', 'preditiva'],
       rotuloMonitor: 'Previsões · Marília',
       indicadores: [
@@ -280,6 +370,68 @@ export function capitulos(n: Numeros): DefCapitulo[] {
             { t: 4.8, x: PREVISOES.x, y: 0.4, zoom: 1.56 },
           ],
           legendas: [{ linhas: [{ texto: 'Falhas prováveis, com o porquê de cada uma.', destaque: 'porquê' }], de: 0.4, ate: 4.4, com: ['n25'] }],
+        },
+      ],
+    },
+    {
+      numero: '5',
+      linhas: ['Boletim', 'do dia'],
+      rotuloMonitor: 'Boletim do dia · Marília',
+      indicadores: [
+        { valor: n.regioes, rotulo: 'Regiões na folha', Icone: MapTrifold },
+        { valor: n.alertasBoletim, rotulo: 'Alertas abertos', Icone: WarningDiamond },
+        { valor: n.registrosAuditoria, rotulo: 'Registros na auditoria', Icone: ClockCounterClockwise, destaque: true },
+      ],
+      planos: [
+        {
+          clipe: 'boletim',
+          de: 0.2,
+          dur: 18.0,
+          // a folha fica no topo (título e resumo) até o monitor abrir; a rolagem começa em ~7,7 s
+          camera: abreEm(BOLETIM.x, 0.3, BOLETIM.zoom, { t: 18.0, x: BOLETIM.x, y: 0.32, zoom: BOLETIM.zoom * 1.03 }),
+          legendas: [
+            { linhas: [{ texto: 'A cidade numa folha, pronta para imprimir.', destaque: 'imprimir' }], de: 5.6, ate: 10.2, com: ['b01'], naoAntes: 5.6 },
+            { linhas: [{ texto: 'Regiões, risco, alertas, manutenção e falhas.', destaque: 'risco' }], de: 10.4, ate: 17.6, com: ['b02'] },
+          ],
+        },
+        {
+          clipe: 'boletim-csv',
+          de: 0.2,
+          dur: 4.4,
+          velocidade: 1.1,
+          entrada: 'empurrar',
+          camera: [
+            { t: 0, x: 0.42, y: 0.2, zoom: 1.9 },
+            { t: 4.4, x: 0.42, y: 0.2, zoom: 1.98 },
+          ],
+          legendas: [{ linhas: [{ texto: 'Listas em CSV, prontas para o Excel.', destaque: 'Excel' }], de: 0.4, ate: 4.0, com: ['b03'] }],
+        },
+        {
+          clipe: 'consulta',
+          de: 0.2,
+          dur: 8.0,
+          velocidade: 1.1,
+          entrada: 'mascara',
+          camera: [
+            { t: 0, x: 0.5, y: 0.5, zoom: 1.32 },
+            { t: 1.0, x: 0.5, y: 0.5, zoom: 1.32 },
+            { t: 2.0, x: 0.5, y: 0.5, zoom: 1 },
+            { t: 3.6, x: 0.5, y: 0.5, zoom: 1 },
+            { t: 4.8, x: 0.3, y: 0.45, zoom: 1.6 },
+            { t: 8.0, x: 0.3, y: 0.5, zoom: 1.66 },
+          ],
+          legendas: [{ linhas: [{ texto: 'Na consulta, sem botões de ação' }, { texto: 'e com dados pessoais mascarados.', destaque: 'mascarados' }], de: 0.5, ate: 7.6, com: ['b04'] }],
+        },
+        {
+          clipe: 'auditoria',
+          de: 0.2,
+          dur: 5.6,
+          entrada: 'empurrar',
+          camera: [
+            { t: 0, x: 0.42, y: 0.42, zoom: 1.5 },
+            { t: 5.6, x: 0.42, y: 0.5, zoom: 1.56 },
+          ],
+          legendas: [{ linhas: [{ texto: 'Auditoria: quem fez o quê,' }, { texto: 'inclusive em campo.', destaque: 'campo' }], de: 0.5, ate: 5.2, com: ['b05'] }],
         },
       ],
     },

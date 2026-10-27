@@ -1,4 +1,5 @@
-// O vídeo inteiro: abertura, os três capítulos (Inventário, Central, Previsões), o toque no tema e o fechamento,
+// O vídeo inteiro: abertura, a entrada por papel, os cinco capítulos (Inventário, Central, Modo Campo, Previsões, Boletim),
+// o toque no tema e o fechamento,
 // com narração (frase por frase, no tempo de cada cena), trilha abaixada sob a voz e efeitos discretos.
 // Números, narração e duração das gravações chegam por props, calculadas dos JSONs (dados.ts / calcularDemonstracao).
 import { AbsoluteFill, Audio, Sequence, staticFile, type CalculateMetadataFunction } from 'remotion';
@@ -8,7 +9,7 @@ import { CenaCapitulo, duracaoCapitulo } from './CenaCapitulo';
 import { carregarDuracaoClipes, carregarNarracao, carregarNumeros, NUMEROS_VAZIOS, type Numeros } from './dados';
 import { DURACAO_FECHAMENTO, Fechamento } from './Fechamento';
 import { EntradaMascara, linhaDoTempo, Montagem, TRANSICAO, type Plano } from './Montagem';
-import { capitulos, coda, type DefCapitulo } from './roteiro';
+import { capitulos, coda, entrada, type DefCapitulo } from './roteiro';
 import { RESPIRO, sincronizar, type FalaGravada, type FalaNoPlano } from './sincronia';
 
 // `type` (e não interface) para o Remotion aceitar como Record<string, unknown>.
@@ -29,7 +30,7 @@ export const PROPS_PADRAO: PropsDemonstracao = {
   narracao: [],
   duracaoClipes: {},
   equipe: [],
-  musica: 'audio/trilha.mp3',
+  musica: 'audio/trilha-longa.mp3', // a trilha de 19/10 esticada para 3:52 (scripts/esticar-trilha.py)
   efeitos: true,
 };
 
@@ -50,6 +51,7 @@ interface Bloco {
 interface Montado {
   blocos: Bloco[];
   caps: DefCapitulo[];
+  entrada: Plano[];
   coda: Plano[];
   duracaoAbertura: number;
   duracaoFechamento: number;
@@ -71,6 +73,7 @@ function enfileirar(falas: FalaGravada[], inicio: number): { colocadas: FalaNoPl
 
 export function montar({ numeros, narracao, duracaoClipes }: PropsDemonstracao): Montado {
   const caps = capitulos(numeros).map((c) => ({ ...c, planos: sincronizar(c.planos, narracao, { primeiroAbre: true, duracaoClipe: duracaoClipes }) }));
+  const entradaSinc = sincronizar(entrada, narracao, { duracaoClipe: duracaoClipes });
   const codaSinc = sincronizar(coda, narracao, { duracaoClipe: duracaoClipes });
   const abertura = enfileirar(narracao.filter((f) => f.cena === 'abertura'), 0.8);
   const fechamento = enfileirar(narracao.filter((f) => f.cena === 'fechamento'), 0.9);
@@ -79,7 +82,8 @@ export function montar({ numeros, narracao, duracaoClipes }: PropsDemonstracao):
 
   const lista = [
     { nome: 'abertura', duracao: duracaoAbertura, mascara: false },
-    ...caps.map((c, i) => ({ nome: `capitulo-${c.numero}`, duracao: duracaoCapitulo(c.planos), mascara: i > 0 })),
+    { nome: 'entrada', duracao: duracaoCapitulo(entradaSinc), mascara: true },
+    ...caps.map((c) => ({ nome: `capitulo-${c.numero}`, duracao: duracaoCapitulo(c.planos), mascara: true })),
     { nome: 'coda', duracao: duracaoCapitulo(codaSinc), mascara: true },
     { nome: 'fechamento', duracao: duracaoFechamento, mascara: true },
   ];
@@ -103,16 +107,17 @@ export function montar({ numeros, narracao, duracaoClipes }: PropsDemonstracao):
     });
   };
   abertura.colocadas.forEach((f) => porFala(0, f));
+  porPlanos(inicio('entrada'), entradaSinc);
   caps.forEach((c, i) => {
     const base = inicio(`capitulo-${c.numero}`);
     porPlanos(base, c.planos);
-    efeitos.push({ som: `transicao-${i + 1}`, quadro: Math.max(0, base - 6), volume: 0.42 });
+    efeitos.push({ som: `transicao-${(i % 3) + 1}`, quadro: Math.max(0, base - 6), volume: 0.42 });
     c.indicadores.forEach((_, k) => efeitos.push({ som: k % 2 ? 'tique-b' : 'tique-a', quadro: base + 48 + k * 8, volume: 0.3 }));
   });
   porPlanos(inicio('coda'), codaSinc);
   fechamento.colocadas.forEach((f) => porFala(inicio('fechamento'), f));
 
-  return { blocos, caps, coda: codaSinc, duracaoAbertura, duracaoFechamento, falas, efeitos, total: t };
+  return { blocos, caps, entrada: entradaSinc, coda: codaSinc, duracaoAbertura, duracaoFechamento, falas, efeitos, total: t };
 }
 
 export const duracaoTotal = (props: PropsDemonstracao) => montar(props).total;
@@ -144,6 +149,7 @@ export function Demonstracao(props: PropsDemonstracao) {
   const cena = (nome: string) => {
     if (nome === 'abertura') return <Abertura duracao={m.duracaoAbertura} />;
     if (nome === 'fechamento') return <Fechamento equipe={equipe} />;
+    if (nome === 'entrada') return <Montagem planos={m.entrada} />;
     if (nome === 'coda') return <Montagem planos={m.coda} />;
     const c = m.caps.find((x) => `capitulo-${x.numero}` === nome)!;
     return <CenaCapitulo numero={c.numero} linhas={c.linhas} rotuloMonitor={c.rotuloMonitor} indicadores={c.indicadores} planos={c.planos} />;

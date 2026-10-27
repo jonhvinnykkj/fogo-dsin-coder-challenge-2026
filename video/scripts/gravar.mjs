@@ -1,15 +1,19 @@
 // Grava o F.O.G.O. de verdade, cena por cena, para o vídeo de demonstração.
 //
 // - Chromium do Playwright (o da raiz do app) em 1920×1080, tema "Sala de controle" ligado desde o início.
+// - Um 2º contexto é o celular do agente (390×844, 2×, toque): as cenas do Modo Campo gravam a Central e o celular
+//   AO MESMO TEMPO (<cena>.mp4 e <cena>-celular.mp4, 780×1688), para o vídeo mostrar as duas pontas lado a lado.
 // - Captura pelo CDP (Page.startScreencast, JPEG 92, todo quadro) com o horário de cada quadro; o ffmpeg monta
 //   cada cena a 30 fps respeitando esses horários. Fica bem mais nítido que o recordVideo do Playwright.
-// - Um cursor desenhado na página (seta + anel laranja no clique) anda com curva, sem teleporte.
+// - Um cursor desenhado na página (seta + anel laranja no clique) anda com curva, sem teleporte; no celular, o toque
+//   aparece como um círculo claro no ponto tocado.
+// - Tudo exige login: a 1ª cena entra como Gestor pelo botão do modo demonstração; o celular entra como Agente.
 // - Salva em public/gravacoes/dados/ os JSONs da API que alimentam os números grandes do vídeo.
 //
-// Uso (com o app rodando numa instância própria, nunca a 3333 do usuário):
+// Uso (com o app rodando numa instância própria e banco novo, nunca a 3333 do usuário):
 //   FOGO_URL=http://localhost:3396 node scripts/gravar.mjs            grava todas as cenas
 //   FOGO_URL=http://localhost:3396 SECO=1 node scripts/gravar.mjs     ensaio: só tira uma foto no fim de cada cena
-//   CENAS=cen-geral,cen-acidente ...                                   só algumas cenas
+//   CENAS=cen-geral,cen-acidente ...                                   só algumas cenas (o login é feito sem gravar)
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
@@ -65,6 +69,42 @@ function instalarCursor() {
   else instalar();
 }
 
+// ---------- toque no celular ----------
+function instalarToque() {
+  const instalar = () => {
+    if (document.getElementById('toque-video-estilo')) return;
+    const estilo = document.createElement('style');
+    estilo.id = 'toque-video-estilo';
+    estilo.textContent = `
+      .toque-video{position:fixed;z-index:2147483647;pointer-events:none;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgb(255 255 255 / .5);border:2px solid rgb(255 255 255 / .85);box-shadow:0 2px 10px rgb(0 0 0 / .35);animation:toque-video .62s cubic-bezier(.16,1,.3,1) forwards}
+      @keyframes toque-video{0%{transform:scale(.55);opacity:0}18%{transform:scale(1);opacity:1}55%{transform:scale(1);opacity:1}100%{transform:scale(1.25);opacity:0}}`;
+    document.documentElement.appendChild(estilo);
+    window.__toqueVideo = (x, y) => {
+      const a = document.createElement('div');
+      a.className = 'toque-video';
+      a.style.left = `${x}px`;
+      a.style.top = `${y}px`;
+      document.documentElement.appendChild(a);
+      setTimeout(() => a.remove(), 700);
+    };
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', instalar);
+  else instalar();
+}
+
+/** Rola até o elemento (se ele não estiver inteiro na tela) e toca no centro dele, mostrando o círculo do toque. */
+async function tocar(page, locator, { depois = 600, margem = 140 } = {}) {
+  await locator.waitFor({ state: 'visible', timeout: 15000 });
+  const caixa = await locator.boundingBox();
+  const altura = page.viewportSize().height;
+  if (!caixa || caixa.y < 70 || caixa.y + caixa.height > altura - 40) await rolarAte(page, locator, { margem, ms: 700 });
+  const c = await centro(locator);
+  await page.evaluate(({ x, y }) => window.__toqueVideo?.(x, y), c);
+  await esperar(150);
+  await page.touchscreen.tap(c.x, c.y);
+  await esperar(depois);
+}
+
 // ---------- ações com cursor ----------
 let pos = { x: 960, y: 600 };
 
@@ -114,17 +154,19 @@ async function digitar(page, locator, texto, { atraso = 95, depois = 500 } = {})
   await esperar(depois);
 }
 
-/** Rola a área de conteúdo (main#conteudo) com curva até o elemento ficar a `margem` px do topo. */
+/** Rola a área de conteúdo (main#conteudo; fora do app, como no Boletim e no celular, a própria página) com curva até
+ *  o elemento ficar a `margem` px do topo. */
 async function rolarAte(page, locator, { margem = 96, ms = 1100 } = {}) {
   await locator.waitFor({ state: 'attached', timeout: 15000 });
   const alvo = await locator.evaluate((el, m) => {
-    const main = document.getElementById('conteudo');
-    return main.scrollTop + el.getBoundingClientRect().top - main.getBoundingClientRect().top - m;
+    const main = document.getElementById('conteudo') ?? document.scrollingElement;
+    const topo = main === document.scrollingElement ? 0 : main.getBoundingClientRect().top;
+    return main.scrollTop + el.getBoundingClientRect().top - topo - m;
   }, margem);
   await page.evaluate(
     ({ alvo, ms }) =>
       new Promise((pronto) => {
-        const main = document.getElementById('conteudo');
+        const main = document.getElementById('conteudo') ?? document.scrollingElement;
         const de = main.scrollTop;
         const max = main.scrollHeight - main.clientHeight;
         const ate = Math.max(0, Math.min(max, alvo));
@@ -145,43 +187,56 @@ async function rolarAte(page, locator, { margem = 96, ms = 1100 } = {}) {
 
 async function salvarJson(page, nome, caminho) {
   const resposta = await page.request.get(BASE + caminho);
+  if (!resposta.ok()) throw new Error(`${caminho}: HTTP ${resposta.status()}`);
   const corpo = await resposta.json();
   writeFileSync(join(DADOS, `${nome}.json`), JSON.stringify({ caminho, salvoEm: new Date().toISOString(), dados: corpo }, null, 1));
   return corpo;
 }
 
 // ---------- gravação por CDP ----------
-function criarGravador(cdp) {
+function criarGravador(cdp, { largura = 1920, altura = 1080, sufixo = '' } = {}) {
   let ativo = null;
   cdp.on('Page.screencastFrame', ({ data, metadata, sessionId }) => {
     cdp.send('Page.screencastFrameAck', { sessionId }).catch(() => {});
     if (!ativo) return;
     const n = ativo.quadros.length;
     const arquivo = join(ativo.pasta, `${String(n).padStart(6, '0')}.jpg`);
-    ativo.quadros.push({ arquivo, t: metadata.timestamp });
+    ativo.quadros.push({ arquivo, t: metadata.timestamp, chegou: Date.now() / 1000 });
     ativo.escritas.push(writeFile(arquivo, Buffer.from(data, 'base64')));
   });
   return {
-    async comecar(nome) {
+    async comecar(cena) {
+      const nome = cena + sufixo;
       const pasta = join(TMP, nome);
       rmSync(pasta, { recursive: true, force: true });
       mkdirSync(pasta, { recursive: true });
-      ativo = { nome, pasta, quadros: [], escritas: [] };
-      await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: 1920, maxHeight: 1080, everyNthFrame: 1 });
+      ativo = { nome, pasta, quadros: [], escritas: [], inicio: Date.now() / 1000 };
+      await cdp.send('Page.startScreencast', { format: 'jpeg', quality: 92, maxWidth: largura, maxHeight: altura, everyNthFrame: 1 });
     },
-    async parar() {
-      const fim = Date.now() / 1000;
+    /** `fim` comum às duas gravações de uma cena com Central e celular (o ffmpeg da 1ª demora e trava o Node). */
+    async parar(fim = Date.now() / 1000) {
       await cdp.send('Page.stopScreencast');
       const g = ativo;
       ativo = null;
       await Promise.all(g.escritas);
+      // Os quadros podem chegar fora de ordem, e o 1º de uma página parada traz a hora da última pintura (às vezes
+      // segundos antes de começar a gravar). Fica: o último quadro pintado até o início, valendo desde o início, e os
+      // seguintes até o fim. Assim Central e celular gravados juntos têm o mesmo começo e o mesmo fim.
+      g.quadros.sort((a, b) => a.t - b.t);
+      if (process.env.DEPURAR) console.log(`  [${g.nome}] inicio ${g.inicio.toFixed(3)} fim ${fim.toFixed(3)} (${(fim - g.inicio).toFixed(2)} s) · 1º ${g.quadros[0]?.t.toFixed(3)} último ${g.quadros.at(-1)?.t.toFixed(3)} · chegada 1º ${g.quadros[0]?.chegou?.toFixed(3)} · ${g.quadros.length} quadros`);
+      const antes = g.quadros.filter((q) => q.t <= g.inicio).length;
+      g.quadros = g.quadros.slice(Math.max(0, antes - 1)).filter((q) => q.t <= fim);
       if (g.quadros.length < 2) throw new Error(`Cena ${g.nome}: só ${g.quadros.length} quadro(s)`);
+      g.quadros[0].t = g.inicio;
+      // Uma entrada por quadro de saída (30 por segundo), com o último quadro capturado até aquele instante. Com uma
+      // duração longa no último quadro, o concat do ffmpeg a contava duas vezes (5 s parados viravam 10 s).
       const linhas = ['ffconcat version 1.0'];
-      g.quadros.forEach((q, i) => {
-        const prox = i + 1 < g.quadros.length ? g.quadros[i + 1].t : Math.max(fim, q.t + 1 / 30);
-        linhas.push(`file '${q.arquivo}'`, `duration ${Math.max(0.001, prox - q.t).toFixed(4)}`);
-      });
-      linhas.push(`file '${g.quadros.at(-1).arquivo}'`);
+      const total = Math.max(2, Math.round((fim - g.inicio) * 30));
+      for (let k = 0, j = 0; k < total; k++) {
+        const instante = g.inicio + k / 30;
+        while (j + 1 < g.quadros.length && g.quadros[j + 1].t <= instante) j++;
+        linhas.push(`file '${g.quadros[j].arquivo}'`, 'duration 0.033333');
+      }
       const lista = join(g.pasta, 'lista.txt');
       writeFileSync(lista, linhas.join('\n'));
       const destino = join(SAIDA, `${g.nome}.mp4`);
@@ -197,8 +252,73 @@ function criarGravador(cdp) {
   };
 }
 
+// ---------- login ----------
+/** Botão de um papel na tela de entrada (o nome acessível junta etiqueta, papel e descrição; o papel vem em negrito). */
+const botaoPapel = (page, papel) => page.getByRole('button').filter({ has: page.getByText(papel, { exact: true }) });
+
+/** Entra sem gravar (usado quando só algumas cenas são gravadas, e para trocar de papel entre cenas). */
+async function entrarComo(page, papel) {
+  await page.goto(BASE + '/entrar');
+  await botaoPapel(page, papel).click();
+  await page.waitForURL((u) => !u.pathname.startsWith('/entrar'), { timeout: 15000 });
+}
+
+async function sair(page) {
+  await page.request.post(BASE + '/api/auth/sair');
+}
+
+/** O agente do celular (o usuário "agente" do modo demonstração) e o equipamento mais perto dele. */
+let agenteId = null;
+async function agenteDoCelular(c) {
+  if (agenteId === null) agenteId = (await (await c.request.get(BASE + '/api/auth/eu')).json()).usuario.agenteId;
+  return agenteId;
+}
+
+/** Deixa o agente livre e em serviço antes do despacho: o simulador manda agentes o tempo todo. */
+async function liberarAgente(c) {
+  const id = await agenteDoCelular(c);
+  const { despacho } = await (await c.request.get(`${BASE}/api/campo/agentes/${id}/despacho`)).json();
+  if (despacho) {
+    const o = despacho.ocorrencia.id;
+    if (!despacho.chegouEm) await c.request.post(`${BASE}/api/campo/agentes/${id}/despachos/${o}/chegada`);
+    await c.request.post(`${BASE}/api/campo/agentes/${id}/despachos/${o}/conclusao`);
+  }
+}
+
 // ---------- roteiro ----------
+// Cada cena recebe (página da Central, { d: Central, c: celular }). `grava` diz quem é gravado: 'd' (padrão), 'c' ou 'dc'.
 const roteiro = [
+  {
+    nome: 'entrar',
+    preparar: async (page) => {
+      // aquece o cache (blocos do mapa e a tela da Central) para o mapa não aparecer cinza logo depois do login
+      await entrarComo(page, 'Gestor');
+      await page.getByRole('region', { name: 'Indicadores da cidade' }).waitFor();
+      await page.waitForTimeout(5000);
+      await sair(page);
+      await page.goto(BASE + '/entrar');
+      await botaoPapel(page, 'Gestor').waitFor();
+      await page.waitForTimeout(1500);
+    },
+    gravar: async (page) => {
+      await mover(page, 960, 300, 600);
+      for (const papel of ['Somente consulta', 'Agente em campo', 'Operador da central']) {
+        const c = await centro(botaoPapel(page, papel));
+        await mover(page, c.x + 90, c.y, 420);
+        await esperar(260);
+      }
+      await clicar(page, botaoPapel(page, 'Gestor'), { depois: 200 });
+      await page.getByRole('region', { name: 'Indicadores da cidade' }).waitFor();
+      await mover(page, 1500, 140, 900);
+      await esperar(2600);
+    },
+    depois: async (page) => {
+      await salvarJson(page, 'indicadores-inicio', '/api/central/indicadores');
+      await salvarJson(page, 'tipos-equipamento', '/api/tipos-equipamento');
+      await salvarJson(page, 'agentes', '/api/agentes?limite=1');
+      await salvarJson(page, 'equipamentos', '/api/equipamentos?limite=1');
+    },
+  },
   {
     nome: 'inv-lista',
     preparar: async (page) => {
@@ -382,6 +502,109 @@ const roteiro = [
       await page.getByRole('button', { name: 'Calor de ocorrências' }).click();
     },
   },
+  // ---------- Modo Campo: o celular do agente ----------
+  {
+    nome: 'campo-entrar',
+    grava: 'c',
+    preparar: async (_d, { c }) => {
+      // o simulador despacha agentes o tempo todo: entra sem gravar, libera o agente e sai, para o painel abrir limpo;
+      // a visita também deixa a tela do Campo em cache (sem ela, o toque mostra "Carregando…" por segundos)
+      await entrarComo(c, 'Agente em campo');
+      await c.getByRole('heading', { name: 'Minha situação' }).waitFor();
+      await c.waitForTimeout(1500);
+      await liberarAgente(c);
+      await sair(c);
+      await c.goto(BASE + '/entrar');
+      await botaoPapel(c, 'Agente em campo').waitFor();
+      await c.waitForTimeout(1200);
+    },
+    gravar: async (_d, { c }) => {
+      // 1º plano do capítulo: a tela de entrada fica no monitor da abertura (~5,4 s) antes do toque
+      await esperar(5400);
+      await tocar(c, botaoPapel(c, 'Agente em campo'), { depois: 200 });
+      await c.getByRole('heading', { name: 'Minha situação' }).waitFor();
+      await esperar(4800);
+    },
+  },
+  {
+    nome: 'campo-situacao',
+    grava: 'c',
+    gravar: async (_d, { c }) => {
+      const grupo = c.getByRole('group', { name: 'Minha situação' });
+      await esperar(400);
+      await tocar(c, grupo.getByRole('button', { name: 'Em pausa' }), { depois: 1500 });
+      await tocar(c, grupo.getByRole('button', { name: 'Em serviço' }), { depois: 1600 });
+    },
+  },
+  {
+    nome: 'campo-despacho',
+    grava: 'dc',
+    preparar: async (page, { c }) => {
+      await liberarAgente(c);
+      const id = await agenteDoCelular(c);
+      const proximos = await salvarJson(c, 'campo-proximos', `/api/campo/agentes/${id}/equipamentos-proximos`);
+      const alvo = (proximos.itens ?? proximos)[0];
+      // o acidente injetado pela Central nasce ao lado do agente do celular, para o despacho ir para ele
+      await page.route('**/api/simulacao/eventos', async (rota) => {
+        const corpo = JSON.parse(rota.request().postData() ?? '{}');
+        if (corpo.tipo === 'acidente') corpo.alvoId = alvo.id;
+        await rota.continue({ postData: JSON.stringify(corpo) });
+      });
+      await page.goto(BASE + '/');
+      await page.getByRole('region', { name: 'Indicadores da cidade' }).waitFor();
+      await page.waitForTimeout(2500);
+      await c.evaluate(() => window.scrollTo(0, 0));
+      await c.getByRole('heading', { name: 'Despacho', exact: true }).waitFor();
+      await c.waitForTimeout(800);
+    },
+    gravar: async (page, { c }) => {
+      await liberarAgente(c); // de novo: o simulador pode ter despachado o agente enquanto a Central carregava
+      await clicar(page, page.getByRole('button', { name: 'Injetar evento' }), { depois: 700 });
+      await clicar(page, page.getByRole('list', { name: 'Evento para injetar na cidade' }).getByRole('button', { name: /Acidente/ }), { depois: 200 });
+      // o cursor para na linha "N críticos · N abertos", sem passar por cima do alerta novo
+      await mover(page, 1640, 231, 900);
+      await c.getByText('Novo despacho!').waitFor({ timeout: 10000 });
+      await c.getByText('Acidente', { exact: true }).waitFor({ timeout: 3000 }); // o despacho é o acidente injetado
+      // a distância na hora do despacho (segundos depois o agente já chegou e ela vira 0 m)
+      await salvarJson(c, 'campo-despacho', `/api/campo/agentes/${await agenteDoCelular(c)}/despacho`);
+      await esperar(5100);
+    },
+    depois: async (page) => {
+      await page.unroute('**/api/simulacao/eventos');
+    },
+  },
+  {
+    nome: 'campo-chegada',
+    grava: 'dc',
+    gravar: async (page, { c }) => {
+      await esperar(500);
+      await tocar(c, c.getByRole('button', { name: 'Cheguei ao local' }), { depois: 1800 });
+      await tocar(c, c.getByRole('button', { name: 'Concluir ocorrência' }), { depois: 3800 });
+    },
+  },
+  {
+    nome: 'campo-relato',
+    grava: 'dc',
+    gravar: async (page, { c }) => {
+      await esperar(400);
+      await rolarAte(c, c.getByRole('heading', { name: 'Perto de mim' }), { margem: 80, ms: 1000 });
+      await esperar(700);
+      const botoes = c.getByRole('button', { name: /^Relatar problema em FOGO-(RAD|SEM|CAM|PMV|CAN)-/ });
+      const botao = (await botoes.count()) ? botoes.first() : c.getByRole('button', { name: /^Relatar problema em / }).first();
+      await tocar(c, botao, { depois: 900 });
+      await tocar(c, c.getByRole('radio', { name: 'Mau funcionamento' }), { depois: 500 });
+      await tocar(c, c.getByRole('textbox', { name: /Observação/ }), { depois: 300 });
+      await c.keyboard.type('Não liga desde cedo.', { delay: 85 });
+      await esperar(500);
+      await tocar(c, c.getByRole('button', { name: 'Enviar relato' }), { depois: 900 });
+      // a confirmação aparece no topo de "Perto de mim"
+      await rolarAte(c, c.getByRole('heading', { name: 'Perto de mim' }), { margem: 80, ms: 800 });
+      await esperar(2800);
+    },
+    depois: async (page) => {
+      await salvarJson(page, 'central-indicadores-campo', '/api/central/indicadores');
+    },
+  },
   {
     nome: 'prev-resumo',
     preparar: async (page) => {
@@ -454,6 +677,86 @@ const roteiro = [
       await esperar(2600);
     },
   },
+  // ---------- Boletim do dia, papéis e auditoria ----------
+  {
+    nome: 'boletim',
+    preparar: async (page) => {
+      await page.goto(BASE + '/boletim');
+      await page.getByRole('heading', { name: 'Boletim do dia' }).waitFor();
+      await page.getByRole('heading', { name: 'Maior chance de falha em 7 dias' }).waitFor({ timeout: 60000 });
+      await page.waitForTimeout(2500);
+    },
+    gravar: async (page) => {
+      // 1º plano do capítulo: a folha fica no topo enquanto o monitor da abertura abre (~5,4 s)
+      await esperar(5000);
+      const imprimir = await centro(page.getByRole('button', { name: 'Imprimir / Salvar PDF' }));
+      await mover(page, imprimir.x, imprimir.y, 800);
+      await esperar(1400);
+      await mover(page, 1500, 560, 700);
+      for (const titulo of ['Situação das regiões', 'Bairros de maior risco nas próximas 24 h', 'Alertas críticos abertos', 'Manutenção vencida ou nos próximos 7 dias', 'Maior chance de falha em 7 dias']) {
+        await rolarAte(page, page.getByRole('heading', { name: titulo }), { margem: 90, ms: 1100 });
+        await esperar(1000);
+      }
+    },
+    depois: async (page) => {
+      await salvarJson(page, 'central-indicadores-boletim', '/api/central/indicadores');
+    },
+  },
+  {
+    nome: 'boletim-csv',
+    preparar: async (page) => {
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.waitForTimeout(600);
+    },
+    gravar: async (page) => {
+      const grupo = page.getByRole('group', { name: 'Exportar CSV' });
+      await mover(page, (await centro(grupo)).x, (await centro(grupo)).y + 60, 700);
+      await esperar(500);
+      const espera = page.waitForEvent('download', { timeout: 15000 }).catch(() => null);
+      await clicar(page, grupo.getByRole('button').first(), { depois: 400 });
+      await espera;
+      await esperar(1800);
+    },
+  },
+  {
+    nome: 'consulta',
+    preparar: async (page) => {
+      await sair(page);
+      await page.goto(BASE + '/entrar');
+      await botaoPapel(page, 'Somente consulta').waitFor();
+      await page.waitForTimeout(1200);
+    },
+    gravar: async (page) => {
+      await clicar(page, botaoPapel(page, 'Somente consulta'), { depois: 200 });
+      await page.getByRole('region', { name: 'Indicadores da cidade' }).waitFor();
+      await esperar(1500);
+      await clicar(page, page.getByRole('link', { name: 'Agentes', exact: true }).first(), { depois: 300 });
+      await page.locator('tbody tr').nth(9).waitFor();
+      await esperar(600);
+      await mover(page, 1200, 360, 900);
+      await mover(page, 1250, 640, 1400);
+      await esperar(1600);
+    },
+  },
+  {
+    nome: 'auditoria',
+    preparar: async (page) => {
+      await sair(page);
+      await entrarComo(page, 'Gestor');
+      await page.goto(BASE + '/auditoria');
+      await page.locator('tbody tr').nth(5).waitFor();
+      await page.waitForTimeout(1200);
+    },
+    gravar: async (page) => {
+      await mover(page, 900, 360, 700);
+      await esperar(900);
+      await mover(page, 1000, 700, 2200);
+      await esperar(2600);
+    },
+    depois: async (page) => {
+      await salvarJson(page, 'auditoria', '/api/auditoria?limite=1');
+    },
+  },
   {
     nome: 'tema',
     preparar: async (page) => {
@@ -469,8 +772,7 @@ const roteiro = [
 
 // ---------- execução ----------
 const navegador = await chromium.launch({ args: ['--hide-scrollbars'] });
-const contexto = await navegador.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1, locale: 'pt-BR', timezoneId: 'America/Sao_Paulo' });
-await contexto.addInitScript(() => {
+const temaEscuro = () => {
   try {
     if (!sessionStorage.getItem('video:tema-ok')) {
       localStorage.setItem('fogo:tema', 'escuro');
@@ -479,37 +781,63 @@ await contexto.addInitScript(() => {
   } catch {
     /* sem armazenamento */
   }
-});
+};
+const comum = { locale: 'pt-BR', timezoneId: 'America/Sao_Paulo', acceptDownloads: true };
+const contexto = await navegador.newContext({ ...comum, viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+await contexto.addInitScript(temaEscuro);
 await contexto.addInitScript(instalarCursor);
 const page = await contexto.newPage();
-const cdp = await contexto.newCDPSession(page);
-const gravador = criarGravador(cdp);
+const gravador = criarGravador(await contexto.newCDPSession(page));
 
-await salvarJson(page, 'indicadores-inicio', '/api/central/indicadores');
-await salvarJson(page, 'tipos-equipamento', '/api/tipos-equipamento');
-await salvarJson(page, 'agentes', '/api/agentes?limite=1');
-await salvarJson(page, 'equipamentos', '/api/equipamentos?limite=1');
+// navegador próprio para o celular: só com a escala forçada o screencast entrega 780×1688 (sem ela, 390×844)
+const navegadorCelular = await chromium.launch({ args: ['--hide-scrollbars', '--force-device-scale-factor=2'] });
+const contextoCelular = await navegadorCelular.newContext({
+  ...comum,
+  viewport: { width: 390, height: 844 },
+  deviceScaleFactor: 2,
+  isMobile: true,
+  hasTouch: true,
+  userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+});
+await contextoCelular.addInitScript(temaEscuro);
+await contextoCelular.addInitScript(instalarToque);
+const celular = await contextoCelular.newPage();
+const gravadorCelular = criarGravador(await contextoCelular.newCDPSession(celular), { largura: 780, altura: 1688, sufixo: '-celular' });
 
+// Gravando só algumas cenas: entra sem gravar (Gestor na Central; o celular, se alguma cena do Modo Campo vier depois do login dele).
+if (SO && !SO.has('entrar')) {
+  await entrarComo(page, 'Gestor');
+  await roteiro.find((c) => c.nome === 'entrar').depois(page);
+}
+if (SO && !SO.has('campo-entrar') && roteiro.some((c) => SO.has(c.nome) && c.nome.startsWith('campo-'))) await entrarComo(celular, 'Agente em campo');
+
+const paginas = { d: page, c: celular };
 for (const cena of roteiro) {
   if (SO && !SO.has(cena.nome)) continue;
   console.log(`cena ${cena.nome}`);
-  if (cena.preparar) await cena.preparar(page);
+  const grava = cena.grava ?? 'd';
+  if (cena.preparar) await cena.preparar(page, paginas);
   await page.mouse.move(pos.x, pos.y);
   if (SECO) {
-    await cena.gravar(page);
-    await page.screenshot({ path: join(FOTOS, `${cena.nome}.png`) });
+    await cena.gravar(page, paginas);
+    if (grava.includes('d')) await page.screenshot({ path: join(FOTOS, `${cena.nome}.png`) });
+    if (grava.includes('c')) await celular.screenshot({ path: join(FOTOS, `${cena.nome}-celular.png`) });
   } else {
-    await gravador.comecar(cena.nome);
+    if (grava.includes('d')) await gravador.comecar(cena.nome);
+    if (grava.includes('c')) await gravadorCelular.comecar(cena.nome);
     await esperar(150);
     await page.mouse.move(pos.x + 1, pos.y);
-    await cena.gravar(page);
+    await cena.gravar(page, paginas);
     await esperar(300);
-    await gravador.parar();
+    const fim = Date.now() / 1000;
+    if (grava.includes('d')) await gravador.parar(fim);
+    if (grava.includes('c')) await gravadorCelular.parar(fim);
   }
-  if (cena.depois) await cena.depois(page);
+  if (cena.depois) await cena.depois(page, paginas);
 }
 
 await navegador.close();
+await navegadorCelular.close();
 rmSync(TMP, { recursive: true, force: true });
 
 // duração de cada gravação: a sincronia com a narração usa para saber até onde dá para esticar um plano

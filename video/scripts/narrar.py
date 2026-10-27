@@ -56,8 +56,9 @@ def gerar(frases: list, tmp: Path) -> None:
     pasta = tmp / 'tomadas'
     pasta.mkdir(parents=True, exist_ok=True)
     for i, frase in enumerate(frases):
-        anterior = frases[i - 1]['fala'] if i > 0 else None
-        seguinte = frases[i + 1]['fala'] if i + 1 < len(frases) else None
+        # lote parcial (só as frases novas): `antes`/`depois` trazem as vizinhas de verdade, já gravadas
+        anterior = frase['antes'] if 'antes' in frase else (frases[i - 1]['fala'] if i > 0 else None)
+        seguinte = frase['depois'] if 'depois' in frase else (frases[i + 1]['fala'] if i + 1 < len(frases) else None)
         for k in range(tomadas_de(frase)):
             destino = pasta / f"{frase['id']}_{k}.mp3"
             if destino.exists():

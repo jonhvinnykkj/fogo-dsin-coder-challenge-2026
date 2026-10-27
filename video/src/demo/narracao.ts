@@ -6,6 +6,7 @@
 
 export type CenaNarrada =
   | 'abertura'
+  | 'entrar'
   | 'inv-lista'
   | 'inv-ficha'
   | 'inv-novo-a'
@@ -18,12 +19,21 @@ export type CenaNarrada =
   | 'cen-regioes'
   | 'cen-60x'
   | 'cen-calor'
+  | 'campo-entrar'
+  | 'campo-situacao'
+  | 'campo-despacho'
+  | 'campo-chegada'
+  | 'campo-relato'
   | 'prev-resumo'
   | 'prev-risco'
   | 'prev-semana'
   | 'prev-acertou'
   | 'prev-reforco'
   | 'prev-falhas'
+  | 'boletim'
+  | 'boletim-csv'
+  | 'consulta'
+  | 'auditoria'
   | 'coda'
   | 'fechamento';
 
@@ -83,6 +93,9 @@ export function narracao(n: NumerosNarracao): FraseNarracao[] {
     f('n01', 'abertura', 'Se algo acontece na cidade agora, a central percebe?', undefined, { pergunta: true, tomadas: 4 }),
     f('n02', 'abertura', 'Com o F.O.G.O., a central de Marília percebe.', 'Com o Fogo, a central de Marília percebe.'),
 
+    f('e01', 'entrar', 'Tudo começa na entrada: cada pessoa entra com o seu papel.'),
+    f('e02', 'entrar', 'Gestor, operador, agente em campo ou consulta. O gestor vê tudo.'),
+
     f(
       'n03',
       'inv-lista',
@@ -107,7 +120,18 @@ export function narracao(n: NumerosNarracao): FraseNarracao[] {
     f('n16', 'cen-60x', 'Em 60×, os agentes andam e os eventos não param.', 'Em sessenta vezes, os agentes andam e os eventos não param.'),
     f('n17', 'cen-calor', 'E o calor mostra onde as ocorrências se concentram.'),
 
-    f('n18', 'prev-resumo', 'Por fim, as previsões. O resumo do dia diz o que fazer hoje.'),
+    f('c01', 'campo-entrar', 'Do outro lado, o celular do agente.'),
+    f('c02', 'campo-entrar', 'Quem entra como agente cai direto no próprio painel.'),
+    f('c03', 'campo-situacao', 'A situação muda com um toque, e a central vê na hora.'),
+    f('c04', 'campo-despacho', 'Um acidente perto dele.'),
+    f('c05', 'campo-despacho', 'A central despacha o agente mais próximo, e o aviso chega no celular na mesma hora.'),
+    f('c06', 'campo-chegada', 'Ele marca a chegada e, no fim, conclui a ocorrência.'),
+    f('c07', 'campo-chegada', 'O alerta sai da central.'),
+    f('c08', 'campo-relato', 'Se um equipamento falha, ele relata dali mesmo, a até 500 metros.', 'Se um equipamento falha, ele relata dali mesmo, a até quinhentos metros.'),
+    f('c09', 'campo-relato', 'E a central recebe o alerta.'),
+
+    // era "Por fim, as previsões": agora o boletim vem depois
+    f('n18', 'prev-resumo', 'Agora, as previsões. O resumo do dia diz o que fazer hoje.'),
     f('n19', 'prev-resumo', 'E cada previsão explica o que prevê e quais dados usa.'),
     f('n20', 'prev-risco', 'O risco de cada bairro, hora a hora, nas próximas 24 horas.', 'O risco de cada bairro, hora a hora, nas próximas vinte e quatro horas.'),
     f('n21', 'prev-semana', 'A semana em blocos de 3 horas; um clique mostra o que pesa.', 'A semana em blocos de três horas; um clique mostra o que pesa.'),
@@ -120,6 +144,12 @@ export function narracao(n: NumerosNarracao): FraseNarracao[] {
     f('n23', 'prev-acertou', 'É um ganho modesto, dito sem exagero.'),
     f('n24', 'prev-reforco', 'O reforço sugere quantos agentes mover, para onde e quando.'),
     f('n25', 'prev-falhas', 'E as falhas prováveis vêm com o motivo de cada uma.'),
+
+    f('b01', 'boletim', 'Para a reunião, o boletim do dia: a cidade numa folha, pronta para imprimir.'),
+    f('b02', 'boletim', 'Regiões, bairros de risco, alertas, manutenções e falhas prováveis.'),
+    f('b03', 'boletim-csv', 'E as listas saem em CSV, prontas para o Excel.', 'E as listas saem em cê-ésse-vê, prontas para o Excel.', { tomadas: 2, exigir: ['excel'] }),
+    f('b04', 'consulta', 'Cada papel vê só o que pode: na consulta, os botões somem e os dados pessoais ficam mascarados.'),
+    f('b05', 'auditoria', 'E a auditoria registra quem fez o quê, até o que o agente fez em campo.'),
 
     f('n26', 'coda', 'O tema claro é o padrão; o escuro é escolha de quem opera.'),
     // "com o Claude Code", sem contexto: com a frase anterior como contexto a voz diz "Clôdo Códo"; sozinha, a transcrição

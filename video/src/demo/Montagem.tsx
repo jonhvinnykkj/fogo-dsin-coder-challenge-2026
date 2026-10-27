@@ -9,6 +9,7 @@ import { LegendaPlaca, type LinhaLegenda } from '../componentes/Legenda';
 import { PlacaTela, type QuadroCamera } from '../componentes/PlacaTela';
 import { curva, marca, video } from '../tema';
 import { progresso } from '../tempo';
+import { PalcoCelular, PalcoLadoALado } from './Palcos';
 import type { FalaNoPlano } from './sincronia';
 
 export type Entrada = 'corte' | 'empurrar' | 'mascara';
@@ -49,6 +50,13 @@ export interface Plano {
   entrada?: Entrada;
   /** câmera em segundos locais do plano (x, y de 0 a 1 na gravação; zoom 1 = tela cheia) */
   camera?: { t: number; x: number; y: number; zoom: number }[];
+  /** 'tela' (padrão): gravação de desktop em tela cheia. 'celular': `clipe` é uma gravação do celular (retrato), num aparelho no palco.
+   *  'lado-a-lado': `clipe` é a Central (desktop) à esquerda e `celular` a gravação do celular feita AO MESMO TEMPO, à direita. */
+  layout?: 'tela' | 'celular' | 'lado-a-lado';
+  /** só 'lado-a-lado': gravação do celular feita junto com `clipe` (mesmos `de` e `velocidade`) */
+  celular?: string;
+  /** câmera do celular (mesmo formato de `camera`); sem ela, o celular fica inteiro e parado */
+  cameraCelular?: { t: number; x: number; y: number; zoom: number }[];
   legendas?: LegendaPlano[];
   /** quando a 1ª frase começa (segundos do plano); padrão na sincronia */
   inicioFala?: number;
@@ -111,7 +119,10 @@ function PlanoNaTela({ plano, saida, retangulo }: { plano: Plano; saida: Entrada
 
   const desloca = (entrada === 'empurrar' ? (1 - entra) * video.largura : 0) - (saida === 'empurrar' ? sai * video.largura : 0);
   const recua = saida === 'mascara' ? sai : 0;
-  const camera: QuadroCamera[] = (plano.camera ?? [{ t: 0, x: 0.5, y: 0.5, zoom: 1 }]).map((q) => ({ f: Math.round(q.t * fps), x: q.x, y: q.y, zoom: q.zoom }));
+  const paraQuadros = (c: Plano['camera']): QuadroCamera[] => (c ?? [{ t: 0, x: 0.5, y: 0.5, zoom: 1 }]).map((q) => ({ f: Math.round(q.t * fps), x: q.x, y: q.y, zoom: q.zoom }));
+  const camera = paraQuadros(plano.camera);
+  const layout = plano.layout ?? 'tela';
+  const palco = { clipe: plano.clipe, celular: plano.celular, trimBefore: quadros(plano.de), velocidade: plano.velocidade ?? 1, camera, cameraCelular: paraQuadros(plano.cameraCelular) };
 
   return (
     <AbsoluteFill
@@ -122,18 +133,25 @@ function PlanoNaTela({ plano, saida, retangulo }: { plano: Plano; saida: Entrada
         clipPath: entrada === 'mascara' && entra < 1 ? `inset(0 ${(1 - entra) * 100}% 0 0)` : undefined,
       }}
     >
-      <div style={{ position: 'absolute', left: r.x, top: r.y }}>
-        <PlacaTela
-          src={`gravacoes/${plano.clipe}.mp4`}
-          trimBefore={quadros(plano.de)}
-          velocidade={plano.velocidade ?? 1}
-          imgLargura={video.largura}
-          imgAltura={video.altura}
-          largura={r.largura}
-          altura={r.altura}
-          camera={camera}
-        />
-      </div>
+      {layout === 'tela' ? (
+        <div style={{ position: 'absolute', left: r.x, top: r.y }}>
+          <PlacaTela
+            src={`gravacoes/${plano.clipe}.mp4`}
+            trimBefore={quadros(plano.de)}
+            velocidade={plano.velocidade ?? 1}
+            imgLargura={video.largura}
+            imgAltura={video.altura}
+            largura={r.largura}
+            altura={r.altura}
+            camera={camera}
+          />
+        </div>
+      ) : (
+        // palco de 1920×1080 reduzido para o retângulo (monitor da abertura ou tela cheia)
+        <div style={{ position: 'absolute', left: r.x, top: r.y, width: video.largura, height: video.altura, transform: `scale(${r.largura / video.largura})`, transformOrigin: '0 0', overflow: 'hidden' }}>
+          {layout === 'celular' ? <PalcoCelular {...palco} /> : <PalcoLadoALado {...palco} />}
+        </div>
+      )}
       {(plano.legendas ?? []).map((l) => (
         <div key={l.linhas.map((x) => x.texto).join('|')} style={{ position: 'absolute', bottom: 64, ...(l.lado === 'direita' ? { right: 64 } : { left: 64 }) }}>
           <LegendaPlaca linhas={l.linhas} inicio={Math.round(l.de * fps)} fim={Math.round(l.ate * fps)} />

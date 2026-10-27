@@ -21,6 +21,14 @@ export type Numeros = {
   bairros: number;
   /** /api/previsoes/risco?horas=168 → horas / 24 */
   dias: number;
+  /** Modo Campo: /api/central/indicadores logo depois do relato, a distância do despacho e os equipamentos perto do agente */
+  agentesCampo: number;
+  metrosDespacho: number;
+  pertoDeMim: number;
+  /** Boletim: regiões (/api/central/regioes), alertas abertos na hora do boletim e registros da auditoria no fim */
+  regioes: number;
+  alertasBoletim: number;
+  registrosAuditoria: number;
 };
 
 async function ler<T>(nome: string): Promise<T> {
@@ -32,7 +40,7 @@ async function ler<T>(nome: string): Promise<T> {
 const lista = (d: unknown): unknown[] => (Array.isArray(d) ? d : ((d as { itens?: unknown[] }).itens ?? []));
 
 export async function carregarNumeros(): Promise<Numeros> {
-  const [equipamentos, tipos, agentes, central, backtest, bairros, semana] = await Promise.all([
+  const [equipamentos, tipos, agentes, central, backtest, bairros, semana, campo, despacho, proximos, regioes, boletim, auditoria] = await Promise.all([
     ler<{ total: number }>('equipamentos'),
     ler<unknown>('tipos-equipamento'),
     ler<{ total: number }>('agentes'),
@@ -40,6 +48,12 @@ export async function carregarNumeros(): Promise<Numeros> {
     ler<{ ganhoPct: number; dias: number }>('previsoes-backtest'),
     ler<unknown>('bairros'),
     ler<{ horas: number }>('previsoes-semana'),
+    ler<{ agentesEmAtividade: number }>('central-indicadores-campo'),
+    ler<{ despacho: { distanciaMetros: number } | null }>('campo-despacho'),
+    ler<unknown>('campo-proximos'),
+    ler<unknown>('central-regioes'),
+    ler<{ alertasAbertos: number }>('central-indicadores-boletim'),
+    ler<{ total: number }>('auditoria'),
   ]);
   return {
     equipamentos: equipamentos.total,
@@ -52,6 +66,12 @@ export async function carregarNumeros(): Promise<Numeros> {
     diasTeste: backtest.dias,
     bairros: lista(bairros).length,
     dias: semana.horas / 24,
+    agentesCampo: campo.agentesEmAtividade,
+    metrosDespacho: despacho.despacho?.distanciaMetros ?? 0,
+    pertoDeMim: lista(proximos).length,
+    regioes: lista(regioes).length,
+    alertasBoletim: boletim.alertasAbertos,
+    registrosAuditoria: auditoria.total,
   };
 }
 
@@ -71,6 +91,12 @@ export const NUMEROS_VAZIOS: Numeros = {
   diasTeste: 0,
   bairros: 0,
   dias: 0,
+  agentesCampo: 0,
+  metrosDespacho: 0,
+  pertoDeMim: 0,
+  regioes: 0,
+  alertasBoletim: 0,
+  registrosAuditoria: 0,
 };
 
 /** Duração de cada gravação (s), para a sincronia saber até onde dá para esticar um plano. */

@@ -5,12 +5,37 @@ import { calcularDemonstracao, Demonstracao, duracaoTotal, PROPS_PADRAO } from '
 import { EstiloA } from './estilos/EstiloA';
 import { EstiloB } from './estilos/EstiloB';
 import { EstiloC } from './estilos/EstiloC';
+import { Montagem, quadros, type Plano } from './demo/Montagem';
 import { carregarFonte } from './fonte';
 import { video } from './tema';
 
 carregarFonte();
 
 const QUADROS_POR_ESTILO = 4 * video.fps;
+
+// Teste dos layouts de celular (os clipes ainda serão gravados em public/gravacoes/).
+const PLANOS_TESTE: Plano[] = [
+  {
+    clipe: 'campo-entrar-celular',
+    layout: 'celular',
+    de: 0,
+    dur: 4,
+    legendas: [{ linhas: [{ texto: 'O agente entra no Modo Campo' }], de: 0.4, ate: 3.6 }],
+  },
+  {
+    clipe: 'campo-despacho',
+    celular: 'campo-despacho-celular',
+    layout: 'lado-a-lado',
+    de: 0,
+    dur: 6,
+    entrada: 'empurrar',
+    legendas: [{ linhas: [{ texto: 'O alerta chega ao celular na hora' }], de: 0.6, ate: 5.4 }],
+  },
+];
+
+function TesteLayouts() {
+  return <Montagem planos={PLANOS_TESTE} />;
+}
 
 function Estilos() {
   return (
@@ -46,6 +71,9 @@ export function Raiz() {
         <Composition id="EstiloA" component={EstiloA} durationInFrames={QUADROS_POR_ESTILO} {...formato} />
         <Composition id="EstiloB" component={EstiloB} durationInFrames={QUADROS_POR_ESTILO} {...formato} />
         <Composition id="EstiloC" component={EstiloC} durationInFrames={QUADROS_POR_ESTILO} {...formato} />
+      </Folder>
+      <Folder name="Testes">
+        <Composition id="TesteLayouts" component={TesteLayouts} durationInFrames={quadros(10) - 14} {...formato} />
       </Folder>
     </>
   );
