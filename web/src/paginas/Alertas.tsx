@@ -10,11 +10,11 @@ import { formatarDataHora, formatarNumero, formatarRelativo } from '../../../sha
 import type { Alerta } from '../../../shared/modelos';
 import { mensagemDeErro } from '../api/cliente';
 import { useAlertas, useBairros, useReconhecerAlerta, useResolverAlerta, type FiltrosAlertas } from '../api/consultas';
-import { AvisoErro } from '../componentes/AvisoErro';
-import { BarraFiltros, type DefinicaoFiltro, type ValorFiltro } from '../componentes/BarraFiltros';
-import { Botao } from '../componentes/Botao';
-import { EtiquetaCriticidade, ordenarAlertas, TipoAlerta } from '../componentes/EtiquetaAlerta';
-import { Tabela, type Coluna } from '../componentes/Tabela';
+import { AvisoErro } from '../componentes/base/AvisoErro';
+import { BarraFiltros, type DefinicaoFiltro, type ValorFiltro } from '../componentes/base/BarraFiltros';
+import { Botao } from '../componentes/base/Botao';
+import { EtiquetaCriticidade, ordenarAlertas, TipoAlerta } from '../componentes/etiquetas/EtiquetaAlerta';
+import { Tabela, type Coluna } from '../componentes/base/Tabela';
 import { useOrdemSemPular } from '../util/ordemEstavel';
 import { useAgora } from '../util/useAgora';
 import { useConsulta } from '../util/useConsulta';

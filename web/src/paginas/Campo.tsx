@@ -5,11 +5,11 @@
 import { ArrowLeft, SignOut } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { esquecerAgente, lerAgenteSalvo, salvarAgente } from '../campo/agenteSalvo';
-import estilos from '../campo/Campo.module.css';
-import { EscolhaDoAgente } from '../campo/EscolhaDoAgente';
-import { PainelDoAgente } from '../campo/PainelDoAgente';
-import { EstadoVazio } from '../componentes/EstadoVazio';
+import { esquecerAgente, lerAgenteSalvo, salvarAgente } from '../componentes/campo/agenteSalvo';
+import estilos from '../componentes/campo/Campo.module.css';
+import { EscolhaDoAgente } from '../componentes/campo/EscolhaDoAgente';
+import { PainelDoAgente } from '../componentes/campo/PainelDoAgente';
+import { EstadoVazio } from '../componentes/base/EstadoVazio';
 import { useSessaoOpcional } from '../sessao/Sessao';
 
 export default function Campo() {

@@ -33,7 +33,18 @@ server/
   preditivo/              base (estatísticas), risco, backtest, reforço, falhas, tendências, resumo
 web/src/
   paginas/                uma por tela: Central, Equipamentos, fichas e formulários, Agentes, Manutenção, Alertas, Previsões
-  componentes/            peças: mapa, placas de indicador, feed de alertas, tabela, gaveta, cartão de explicação…
+  componentes/            peças das telas, separadas por onde são usadas:
+    base/                   genéricas, usadas em toda parte: Botao, Campo, Tabela, Gaveta, AvisoErro, EstadoVazio, BarraFiltros…
+    etiquetas/              selos de situação, de alerta e o ícone de cada tipo de equipamento
+    layout/                 a moldura do app: Shell, Navegacao, MenuUsuario, relógio da simulação, tema, conexão
+    dialogos/               as gavetas de confirmação (excluir, manutenção, situação, token)
+    central/                só da Central: faixa de indicadores, feed de alertas, ficha lateral, regiões, simulação
+    previsoes/              só de Previsões: grade de risco, régua de horário, ranking de falhas, reforço, backtest…
+    equipamentos/           só da ficha e do formulário de equipamento: gráfico de telemetria, campos do tipo
+    campo/                  só do Modo Campo (/campo): painel do agente, despachos, perto de mim, relato
+  mapa/                   tudo de mapa: MapaBase, MapaOperacional (Central), MapaRisco (Previsões), SeletorPontoMapa, camadas e ícones do Leaflet
+  boletim/                montagem e exportação (CSV) do Boletim do dia
+  util/                   funções e hooks sem tela (datas, números, risco, filtros na URL…)
   api/                    cliente HTTP e consultas (TanStack Query)
   tempo-real/useStream.ts conexão SSE que atualiza as telas e reconecta sozinha
   estilo/                 tokens de cor e base (tema claro; escuro só se o usuário escolher)
@@ -57,7 +68,7 @@ Exemplo: um radar manda "fluxo = 0" na hora do pico.
 6. **`server/tempo-real/barramento.ts`**: recebe o evento `alerta` (e as posições, que agrupa a cada 2 s para não inundar a tela).
 7. **`server/rotas/stream.ts`** (`GET /api/stream`): entrega o barramento a cada navegador conectado, como **Server-Sent Events** (`:ping` a cada 15 s para a conexão não cair).
 8. **`web/src/tempo-real/useStream.ts`**: recebe o evento e atualiza o cache do TanStack Query; se a conexão cai (notebook dormiu, servidor reiniciou), reconecta e **ressincroniza** a tela.
-9. **`web/src/componentes/FeedAlertas.tsx`** e **`FaixaIndicadores.tsx`**: o alerta aparece no feed e o número "Alertas críticos" sobe. O mapa (`MapaOperacional.tsx`) pinta o marcador.
+9. **`web/src/componentes/central/FeedAlertas.tsx`** e **`FaixaIndicadores.tsx`**: o alerta aparece no feed e o número "Alertas críticos" sobe. O mapa (`web/src/mapa/MapaOperacional.tsx`) pinta o marcador.
 
 Quando o problema passa, o caminho inverso: três leituras normais seguidas fecham a anomalia; sinal que volta fecha "sem sinal"; ocorrência que termina fecha o alerta dela; reparo concluído fecha a falha. Resolução automática fica registrada como `automatica` (a manual, como `manual`).
 

@@ -5,7 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { Navigate, useLocation } from 'react-router-dom';
 import { pode, type Acao, type ModoAcesso, type Papel, type UsuarioSessao } from '../../../shared/seguranca';
 import { api, EVENTO_SESSAO_EXPIRADA } from '../api/cliente';
-import { EstadoVazio } from '../componentes/EstadoVazio';
+import { EstadoVazio } from '../componentes/base/EstadoVazio';
 
 const CHAVE_EU = ['sessao', 'eu'] as const;
 const CHAVE_MODO = ['sessao', 'modo'] as const;

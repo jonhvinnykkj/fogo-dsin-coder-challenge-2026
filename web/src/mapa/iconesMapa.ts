@@ -16,7 +16,7 @@ import {
 import { formatarNumero } from '../../../shared/formato';
 import type { SituacaoManutencao } from '../../../shared/modelos';
 import { TIPOS_EQUIPAMENTO, type TipoEquipamentoId } from '../../../shared/tipos-equipamento';
-import { componenteDoIcone } from '../componentes/IconeTipo';
+import { componenteDoIcone } from '../componentes/etiquetas/IconeTipo';
 import { corDoTexto } from '../estilo/contraste';
 import { manutencaoUrgente, pedeAtencaoDeManutencao, type ContaManutencao } from './regrasMapa';
 import './mapa-operacional.css';

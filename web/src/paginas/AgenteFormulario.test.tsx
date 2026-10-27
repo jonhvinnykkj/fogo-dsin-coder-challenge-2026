@@ -6,7 +6,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import AgenteFormulario from './AgenteFormulario';
 
-vi.mock('../componentes/SeletorPontoMapa', () => ({ SeletorPontoMapa: () => <div data-testid="seletor-mapa" /> }));
+vi.mock('../mapa/SeletorPontoMapa', () => ({ SeletorPontoMapa: () => <div data-testid="seletor-mapa" /> }));
 
 const base = { situacao: 'operacional', cep: '17500-000', logradouro: 'Rua A', referencia: '', bairroId: 1, bairroNome: 'Centro', regiao: 'Centro', lat: -22.2, lng: -49.9, latAtual: -22.2, lngAtual: -49.9, ultimoSinalEm: null, criadoEm: '', atualizadoEm: '', manutencaoNecessidade: 'nenhuma', caracteristicas: {}, cidade: 'Marília', uf: 'SP' };
 const MOTO = { ...base, id: 1, codigo: 'FOGO-MOT-0001', tipo: 'moto_agente', marca: 'Honda', modelo: 'CG', orgao: 'Secretaria de Mobilidade Urbana' };

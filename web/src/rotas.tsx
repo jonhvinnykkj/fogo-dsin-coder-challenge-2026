@@ -2,10 +2,10 @@
 import { Signpost } from '@phosphor-icons/react';
 import { lazy, Suspense, type ReactNode } from 'react';
 import { createBrowserRouter, Link, useRouteError, type RouteObject } from 'react-router-dom';
-import { AvisoErro } from './componentes/AvisoErro';
-import { classeBotao } from './componentes/Botao';
-import { EstadoVazio } from './componentes/EstadoVazio';
-import { Shell } from './componentes/Shell';
+import { AvisoErro } from './componentes/base/AvisoErro';
+import { classeBotao } from './componentes/base/Botao';
+import { EstadoVazio } from './componentes/base/EstadoVazio';
+import { Shell } from './componentes/layout/Shell';
 import { ExigePermissao, ExigeSessao } from './sessao/Sessao';
 import { TempoRealProvider } from './tempo-real/TempoReal';
 

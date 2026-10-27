@@ -9,7 +9,7 @@ import type { Bairro } from '../../../shared/modelos';
 import EquipamentoFormulario from './EquipamentoFormulario';
 
 // O mapa (Leaflet) não roda no jsdom: o seletor de ponto vira um stub com os mesmos campos de erro.
-vi.mock('../componentes/SeletorPontoMapa', () => ({
+vi.mock('../mapa/SeletorPontoMapa', () => ({
   SeletorPontoMapa: ({ erro, idErro }: { erro?: string; idErro?: string }) => <div data-testid="seletor-mapa">{erro && <p id={idErro} role="alert">{erro}</p>}</div>,
 }));
 
