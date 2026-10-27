@@ -9,7 +9,8 @@ import { deflateRawSync } from 'node:zlib'
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const NOME = 'fogo-dsin-coder-challenge'
 const SAIDA = join(RAIZ, `${NOME}.zip`)
-const LIMITE_BYTES = 50 * 1024 * 1024
+// 50 MB contados em decimal (50.000.000 bytes): o mais rígido dos dois jeitos de ler o limite do site.
+const LIMITE_BYTES = 50_000_000
 
 // Pastas inteiras que ficam de fora (em qualquer nível).
 const PASTAS_FORA = new Set(['node_modules', 'dist', 'test-results', 'playwright-report', '.git', '.superpowers', '.impeccable', '.vscode', '.idea', '__pycache__'])
@@ -108,7 +109,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const arquivos = listar(RAIZ).sort()
   const zip = montarZip(arquivos)
   writeFileSync(SAIDA, zip)
-  const mb = (zip.length / 1024 / 1024).toFixed(2).replace('.', ',')
+  const mb = (zip.length / 1_000_000).toFixed(2).replace('.', ',')
   console.log(`${NOME}.zip: ${arquivos.length} arquivos, ${mb} MB`)
   if (zip.length > LIMITE_BYTES) {
     console.error('O pacote passou de 50 MB, o limite da entrega. Confira o que entrou com "unzip -l".')

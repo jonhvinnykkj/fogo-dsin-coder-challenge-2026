@@ -237,7 +237,7 @@ npm run e2e         # Playwright: sobe o app com banco próprio (porta 3399) e c
 
 O E2E usa `data/e2e.db`, apaga o banco velho antes de começar e o apaga de novo ao terminar (no Windows, se o arquivo ainda estiver preso, o próximo `npm run e2e` o remove); não mexe no seu `data/fogo.db`. Na primeira execução do Playwright pode ser preciso `npx playwright install chromium`.
 
-`npm run empacotar` gera `fogo-dsin-coder-challenge.zip` (sem `node_modules`, `dist`, bancos, `docs/design/`, `docs/relatorio/`, `video/` e pastas de trabalho; falha se passar de 50 MB). O PDF do relatório técnico vai junto.
+`npm run empacotar` gera `fogo-dsin-coder-challenge.zip` (sem `node_modules`, `dist`, bancos, `docs/design/`, `docs/relatorio/`, `video/` e pastas de trabalho; falha se passar de 50 MB, contados como 50.000.000 bytes). Vão junto o PDF do relatório técnico e, se estiver na raiz, a versão compacta do vídeo (`fogo-demonstracao.mp4`, fora do git).
 
 ## Decisões e limitações (sem maquiagem)
 
@@ -261,7 +261,7 @@ O relatório completo do projeto, no formato da ABNT (NBR 10719), está em [docs
 
 **Assista:** [fogo-demonstracao.mp4](https://github.com/jonhvinnykkj/fogo-dsin-coder-challenge-2026/releases/download/v1.0/fogo-demonstracao.mp4) (3 min 52 s, 1080p, com narração), na página da [versão v1.0](https://github.com/jonhvinnykkj/fogo-dsin-coder-challenge-2026/releases/tag/v1.0). Mostra a entrada por papel, o inventário, a Central, o Modo Campo com o celular do agente ao lado da Central, as previsões, o Boletim do dia, a consulta mascarada e a auditoria.
 
-O código do vídeo (projeto Remotion, pasta `video/`) fica no repositório do projeto; ele não é o sistema, então não vai neste .zip.
+No `.zip` de entrega, uma versão compacta do mesmo vídeo vem na raiz: `fogo-demonstracao.mp4`. O código que gera o vídeo (projeto Remotion, pasta `video/`) fica no repositório; ele não é o sistema, então não vai no `.zip`.
 
 ## Uso de IA
 

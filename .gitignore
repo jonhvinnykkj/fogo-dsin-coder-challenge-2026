@@ -14,3 +14,5 @@ video/out/
 video/public/gravacoes/
 __pycache__/
 *.pyc
+# vídeo compacto que vai no .zip de entrega (gerado de video/out; a versão completa está na versão v1.0 do GitHub)
+/fogo-demonstracao.mp4
